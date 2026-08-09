@@ -1,0 +1,251 @@
+Screen {
+    background: #090d18;
+    color: #dce7ff;
+}
+
+Header {
+    background: #11182a;
+    color: #67e8f9;
+    text-style: bold;
+}
+
+Footer {
+    background: #11182a;
+    color: #91a4c7;
+}
+
+.page {
+    padding: 1 2;
+    height: 1fr;
+}
+
+#dashboard-content {
+    height: 1fr;
+    overflow-y: auto;
+}
+
+#dashboard-actions {
+    height: 6;
+    min-height: 6;
+    margin: 0;
+    padding: 0 1;
+    border: round #34476b;
+    background: #0e1525;
+    scrollbar-size-horizontal: 1;
+}
+
+/* Sotto 24 righe riduciamo gli elementi decorativi, non quelli operativi. */
+.compact-height .page {
+    padding: 0 1;
+}
+
+.compact-height .hero {
+    min-height: 4;
+    padding: 0 1;
+    margin-bottom: 0;
+}
+
+.compact-height .stats-row {
+    height: 5;
+    margin-bottom: 0;
+}
+
+.compact-height .stat-card {
+    padding: 0 1;
+}
+
+.compact-height .actions {
+    height: 3;
+    min-height: 3;
+    margin: 0;
+}
+
+.compact-height #dashboard-actions {
+    height: 6;
+    min-height: 6;
+}
+
+.compact-height #dashboard-actions Button {
+    min-width: 12;
+    margin-right: 0;
+}
+
+.compact-height #editor {
+    min-height: 4;
+}
+
+.compact-height #result {
+    height: 6;
+}
+
+.compact-height #card {
+    height: 1fr;
+    min-height: 3;
+    overflow-y: auto;
+}
+
+.compact-height #timer {
+    height: 3;
+    min-height: 3;
+    padding: 0 1;
+    margin: 0;
+}
+
+.hero {
+    height: auto;
+    min-height: 7;
+    padding: 1 2;
+    margin-bottom: 1;
+    border: round #34476b;
+    background: #11182a;
+}
+
+.neon-title {
+    color: #67e8f9;
+    text-style: bold;
+}
+
+.muted {
+    color: #91a4c7;
+}
+
+.stats-row {
+    height: 8;
+    margin-bottom: 1;
+}
+
+.stat-card {
+    width: 1fr;
+    margin-right: 1;
+    padding: 1 2;
+    border: round #34476b;
+    background: #101727;
+    content-align: center middle;
+}
+
+.stat-card.last {
+    margin-right: 0;
+}
+
+.panel {
+    border: round #34476b;
+    background: #0e1525;
+    padding: 1;
+    margin-bottom: 1;
+}
+
+.actions {
+    height: auto;
+    margin: 1 0;
+    overflow-x: auto;
+}
+
+.resume-info {
+    width: 100%;
+    height: auto;
+    padding: 0 1;
+}
+
+Button {
+    margin-right: 1;
+    min-width: 15;
+    background: #263552;
+    color: #e8f2ff;
+    border: tall #40577e;
+}
+
+Button:hover, Button:focus {
+    background: #0e7490;
+    border: tall #67e8f9;
+}
+
+Button.primary {
+    background: #6d28d9;
+    border: tall #a78bfa;
+}
+
+Button.success {
+    background: #065f46;
+    border: tall #34d399;
+}
+
+Button.warning {
+    background: #713f12;
+    border: tall #fbbf24;
+}
+
+ProgressBar > .bar--bar {
+    color: #22d3ee;
+}
+
+DataTable {
+    height: 1fr;
+    border: round #34476b;
+    background: #0e1525;
+}
+
+Input, TextArea {
+    border: round #34476b;
+    background: #080c16;
+    color: #dce7ff;
+}
+
+Input:focus, TextArea:focus {
+    border: round #22d3ee;
+}
+
+#lesson-scroll, #exercise-scroll, #lab-scroll, #glossary-scroll {
+    height: 1fr;
+    border: round #34476b;
+    background: #0e1525;
+    padding: 1 2;
+}
+
+Markdown, #lesson-markdown {
+    width: 100%;
+    max-width: 100%;
+}
+
+#exercise-layout {
+    height: 1fr;
+}
+
+#exercise-left {
+    width: 42%;
+    height: 1fr;
+    margin-right: 1;
+}
+
+#exercise-right {
+    width: 58%;
+    height: 1fr;
+}
+
+#editor {
+    height: 1fr;
+    min-height: 14;
+}
+
+#result {
+    height: 12;
+    overflow-y: auto;
+    border: round #34476b;
+    background: #080c16;
+    padding: 1;
+}
+
+.passed {
+    color: #34d399;
+}
+
+.failed {
+    color: #fb7185;
+}
+
+.locked {
+    color: #fbbf24;
+}
+
+MarkdownH1 { color: #67e8f9; }
+MarkdownH2 { color: #a78bfa; }
+MarkdownBlockQuote { border-left: thick #22d3ee; background: #111c30; }
