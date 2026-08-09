@@ -4,6 +4,28 @@ DEV//48 è una piattaforma di studio offline, in italiano, dedicata allo svilupp
 
 Il catalogo include **50 lezioni**, **100 esercizi brevi**, **12 laboratori**, **150 flashcard** e **4 sfide a tempo**. Le attività fondamentali formano un percorso guidato; gli approfondimenti restano facoltativi.
 
+## Anteprima
+
+### Dashboard e percorso guidato
+
+![Dashboard di DEV48 con progresso, statistiche e accesso rapido alle attività](docs/screenshots/dashboard.png)
+
+### Esercizi interattivi
+
+![Editor integrato di un esercizio con indizi, soluzione e navigazione guidata](docs/screenshots/exercise-editor.png)
+
+### Flashcard
+
+| Domanda | Risposta |
+|---|---|
+| ![Flashcard prima di mostrare la risposta](docs/screenshots/flashcard-question.png) | ![Flashcard con la risposta visualizzata](docs/screenshots/flashcard-answer.png) |
+
+### Laboratori e curriculum
+
+| Laboratori pratici | Curriculum ricercabile |
+|---|---|
+| ![Elenco dei laboratori pratici disponibili](docs/screenshots/labs.png) | ![Curriculum completo con lezioni, moduli e stato](docs/screenshots/curriculum.png) |
+
 ## Avvio rapido
 
 1. Fai doppio clic su **`Avvia DEV48.bat`**.
