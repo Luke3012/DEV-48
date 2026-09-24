@@ -39,9 +39,20 @@ node_modules/
 dist/
 build/
 coverage/
+.angular/
 .vite/
 .vitest/
 *.tsbuildinfo
+
+# Build, test e preferenze locali .NET / Visual Studio
+[Bb]in/
+[Oo]bj/
+.vs/
+TestResults/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
 
 # Variabili d'ambiente e segreti
 .env
@@ -66,4 +77,3 @@ pnpm-debug.log*
 .DS_Store
 Thumbs.db
 Desktop.ini
-
