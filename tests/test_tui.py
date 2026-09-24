@@ -1,17 +1,18 @@
 import asyncio
 
-from textual.widgets import Button, DataTable, Input
+from textual.widgets import Button, DataTable, Input, Static, TextArea
+from textual.containers import ScrollableContainer
 
 from dev48.app import (
     CurriculumScreen, DashboardScreen, Dev48App, ExerciseScreen, FlashcardsScreen,
     ChallengesScreen, GlossaryScreen, LabScreen, LabsScreen, LessonScreen,
-    SimulationScreen,
+    SimulationScreen, TrackSelectionScreen,
 )
 
 
 def test_dashboard_smoke(tmp_path):
     async def scenario():
-        app = Dev48App(tmp_path / "data", tmp_path / "workspace")
+        app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=False)
         try:
             async with app.run_test(size=(140, 45)) as pilot:
                 await pilot.pause()
@@ -33,7 +34,7 @@ def test_dashboard_smoke(tmp_path):
 
 def test_dashboard_actions_stay_visible_in_short_terminal(tmp_path):
     async def scenario():
-        app = Dev48App(tmp_path / "data", tmp_path / "workspace")
+        app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=False)
         try:
             async with app.run_test(size=(100, 16)) as pilot:
                 await pilot.pause()
@@ -56,7 +57,7 @@ def test_dashboard_actions_stay_visible_in_short_terminal(tmp_path):
 
 def test_every_screen_remains_operable_in_short_terminal(tmp_path):
     async def scenario():
-        app = Dev48App(tmp_path / "data", tmp_path / "workspace")
+        app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=False)
         try:
             async with app.run_test(size=(150, 16)) as pilot:
                 await pilot.pause()
@@ -98,7 +99,7 @@ def test_every_screen_remains_operable_in_short_terminal(tmp_path):
 
 def test_curriculum_search_and_shortcuts(tmp_path):
     async def scenario():
-        app = Dev48App(tmp_path / "data", tmp_path / "workspace")
+        app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=False)
         try:
             async with app.run_test(size=(140, 45)) as pilot:
                 await pilot.pause()
@@ -124,7 +125,7 @@ def test_curriculum_search_and_shortcuts(tmp_path):
 
 def test_continue_opens_first_required_lesson(tmp_path):
     async def scenario():
-        app = Dev48App(tmp_path / "data", tmp_path / "workspace")
+        app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=False)
         try:
             async with app.run_test(size=(140, 45)) as pilot:
                 await pilot.pause()
@@ -146,7 +147,7 @@ def test_continue_opens_first_required_lesson(tmp_path):
 
 def test_all_exercise_editors_and_libraries_mount(tmp_path):
     async def scenario():
-        app = Dev48App(tmp_path / "data", tmp_path / "workspace")
+        app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=False)
         try:
             async with app.run_test(size=(150, 48)) as pilot:
                 await pilot.pause()
@@ -157,6 +158,11 @@ def test_all_exercise_editors_and_libraries_mount(tmp_path):
                     app.push_screen(ExerciseScreen(exercise.id))
                     await pilot.pause()
                     assert app.screen.query_one("#editor")
+                    scope = app.screen.query_one("#exercise-scope", Static)
+                    assert "Come funziona il controllo" in scope.content
+                    if exercise.kind == "angular":
+                        assert "mock" in scope.content
+                        assert "non controlla il DOM" in scope.content
                     assert app.focused.id == "editor"
                     app.pop_screen()
                     await pilot.pause()
@@ -174,9 +180,97 @@ def test_all_exercise_editors_and_libraries_mount(tmp_path):
     asyncio.run(scenario())
 
 
+def test_theory_toggle_preserves_reading_editor_and_cursor_positions(tmp_path):
+    async def scenario():
+        app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=False)
+        try:
+            async with app.run_test(size=(170, 48)) as pilot:
+                await pilot.pause()
+                exercise = next(item for item in app.catalog.exercises if item.kind == "reflection")
+                lesson_screen = LessonScreen(exercise.lesson_id)
+                app.push_screen(lesson_screen)
+                await pilot.pause()
+                lesson_scroll = lesson_screen.query_one("#lesson-scroll", ScrollableContainer)
+                lesson_scroll.scroll_to(y=12, animate=False, force=True)
+                await pilot.pause()
+                lesson_position = lesson_scroll.scroll_y
+
+                app.push_screen(ExerciseScreen(exercise.id))
+                await pilot.pause()
+                editor = app.screen.query_one("#editor", TextArea)
+                editor.text = "Prima versione da rivedere.\nSeconda riga della risposta."
+                editor.cursor_location = (1, 12)
+                prompt = app.screen.query_one("#exercise-prompt", ScrollableContainer)
+                prompt.scroll_to(y=5, animate=False, force=True)
+                await pilot.pause()
+                prompt_position = prompt.scroll_y
+
+                await pilot.press("f1")
+                await pilot.pause()
+                theory = app.screen.query_one("#theory-scroll", ScrollableContainer)
+                assert theory.display
+                assert not prompt.display
+                assert editor.text == "Prima versione da rivedere.\nSeconda riga della risposta."
+                assert editor.cursor_location == (1, 12)
+                assert app.store.get(exercise.id)["answer"] == editor.text
+                theory.scroll_to(y=12, animate=False, force=True)
+                await pilot.pause()
+                theory_position = theory.scroll_y
+
+                await pilot.press("f1")
+                await pilot.pause()
+                assert prompt.display
+                assert not theory.display
+                assert prompt.scroll_y == prompt_position
+                assert editor.cursor_location == (1, 12)
+
+                await pilot.press("f1")
+                await pilot.pause()
+                assert app.screen.query_one("#theory-scroll").scroll_y == theory_position
+                assert editor.text == "Prima versione da rivedere.\nSeconda riga della risposta."
+                await pilot.press("escape")
+                await pilot.pause()
+                assert app.screen.query_one("#exercise-prompt").display
+                assert not app.screen.query_one("#theory-scroll").display
+                assert app.screen.query_one("#back").label.plain == "← LEZIONE"
+                assert editor.cursor_location == (1, 12)
+
+                await pilot.press("escape")
+                await pilot.pause()
+                assert app.screen is lesson_screen
+                assert lesson_scroll.scroll_y == lesson_position
+                assert app.store.get(exercise.id)["answer"] == "Prima versione da rivedere.\nSeconda riga della risposta."
+        finally:
+            app.shutdown_resources()
+
+    asyncio.run(scenario())
+
+
+def test_reflection_check_does_not_award_xp_or_claim_to_grade_meaning(tmp_path):
+    async def scenario():
+        app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=False)
+        try:
+            async with app.run_test(size=(150, 45)) as pilot:
+                await pilot.pause()
+                exercise = next(item for item in app.catalog.exercises if item.kind == "reflection")
+                app.push_screen(ExerciseScreen(exercise.id))
+                await pilot.pause()
+                app.screen.query_one("#editor", TextArea).text = exercise.solution
+                app.screen.run_current()
+                await pilot.pause()
+                state = app.store.get(exercise.id)
+                assert state["status"] == "completed"
+                assert state["score"] == 0
+                assert "AUTOVERIFICA" in str(app.screen.query_one("#result").content)
+        finally:
+            app.shutdown_resources()
+
+    asyncio.run(scenario())
+
+
 def test_resume_last_and_wide_lesson_layout(tmp_path):
     async def scenario():
-        app = Dev48App(tmp_path / "data", tmp_path / "workspace")
+        app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=False)
         last = app.catalog.lessons[3]
         app.store.complete_lesson(last.id)
         try:
@@ -203,7 +297,7 @@ def test_resume_last_and_wide_lesson_layout(tmp_path):
 
 
 def test_guided_sequence_lesson_exercises_next_lesson(tmp_path):
-    app = Dev48App(tmp_path / "data", tmp_path / "workspace")
+    app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=False)
     try:
         mandatory = [item for item in app.catalog.lessons if item.mandatory]
         first, second = mandatory[:2]
@@ -218,3 +312,115 @@ def test_guided_sequence_lesson_exercises_next_lesson(tmp_path):
         assert app.next_step() == ("lesson", second)
     finally:
         app.shutdown_resources()
+
+
+def test_track_selection_screen_interaction(tmp_path):
+    async def scenario():
+        app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=True)
+        try:
+            async with app.run_test(size=(140, 45)) as pilot:
+                await pilot.pause()
+                assert isinstance(app.screen, TrackSelectionScreen)
+                # Press '1' to choose Angular & .NET
+                await pilot.press("1")
+                await pilot.pause()
+                assert isinstance(app.screen, DashboardScreen)
+                assert app.catalog.track == "dotnet-angular"
+                assert "Angular & .NET" in app.title
+                assert "Signals" in app.sub_title
+
+                # Press 'ctrl+t' on Dashboard to switch to JS & React
+                await pilot.press("ctrl+t")
+                await pilot.pause()
+                assert app.catalog.track == "web-js-react"
+                assert "Web Development Academy" in app.title
+                assert "React 19" in app.sub_title
+
+                # Open curriculum screen
+                await pilot.press("ctrl+k")
+                await pilot.pause()
+                assert isinstance(app.screen, CurriculumScreen)
+                # Press ctrl+t while not in Dashboard -> should not switch track
+                await pilot.press("ctrl+t")
+                await pilot.pause()
+                assert app.catalog.track == "web-js-react"
+        finally:
+            app.shutdown_resources()
+
+    asyncio.run(scenario())
+
+
+def test_lesson_and_action_buttons_arrows_and_enter(tmp_path):
+    async def scenario():
+        app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=False)
+        try:
+            async with app.run_test(size=(140, 45)) as pilot:
+                await pilot.pause()
+                lesson = app.catalog.lessons[0]
+
+                # 1. LessonScreen: enter on scroll container immediately advances
+                app.push_screen(LessonScreen(lesson.id))
+                await pilot.pause()
+                assert isinstance(app.screen, LessonScreen)
+                assert app.focused.id == "lesson-scroll"
+                await pilot.press("enter")
+                await pilot.pause()
+                assert isinstance(app.screen, ExerciseScreen)
+                app.pop_screen()
+                await pilot.pause()
+                app.pop_screen()
+                await pilot.pause()
+
+                # 2. LessonScreen: arrow keys toggle between buttons, enter triggers focused
+                app.push_screen(LessonScreen(lesson.id))
+                await pilot.pause()
+                assert app.focused.id == "lesson-scroll"
+                # Right moves to advance
+                await pilot.press("right")
+                await pilot.pause()
+                assert app.focused.id == "advance"
+                # Right moves to back
+                await pilot.press("right")
+                await pilot.pause()
+                assert app.focused.id == "back"
+                # Right cycles back to advance
+                await pilot.press("right")
+                await pilot.pause()
+                assert app.focused.id == "advance"
+                # Left moves to back
+                await pilot.press("left")
+                await pilot.pause()
+                assert app.focused.id == "back"
+                # Enter on back pops screen
+                await pilot.press("enter")
+                await pilot.pause()
+                assert isinstance(app.screen, DashboardScreen)
+
+                # 3. LabScreen: arrows cycle through lab buttons
+                lab = app.catalog.labs[0]
+                app.push_screen(LabScreen(lab.id))
+                await pilot.pause()
+                assert isinstance(app.screen, LabScreen)
+                # Press right -> focus moves to #open
+                await pilot.press("right")
+                await pilot.pause()
+                assert app.focused.id == "open"
+                # Press right -> #install
+                await pilot.press("right")
+                await pilot.pause()
+                assert app.focused.id == "install"
+                # Press left -> #open
+                await pilot.press("left")
+                await pilot.pause()
+                assert app.focused.id == "open"
+                # Move to #back and press enter
+                await pilot.press("left")
+                await pilot.pause()
+                assert app.focused.id == "back"
+                await pilot.press("enter")
+                await pilot.pause()
+                assert isinstance(app.screen, DashboardScreen)
+        finally:
+            app.shutdown_resources()
+
+    asyncio.run(scenario())

@@ -45,6 +45,7 @@ def main() -> int:
         checks.append(line(False, "Textual", f"non importabile: {error}"))
 
     for command, args, required in (
+        ("dotnet", ["--version"], True),
         ("node", ["--version"], True),
         ("npm", ["--version"], True),
         ("git", ["--version"], False),
@@ -56,14 +57,15 @@ def main() -> int:
 
     try:
         from dev48.models import Catalog
-        catalog = Catalog(ROOT / "content")
-        errors = catalog.validate()
-        counts = (
-            f"{len(catalog.lessons)} lezioni, {len(catalog.exercises)} esercizi, "
-            f"{len(catalog.labs)} lab, {len(catalog.flashcards)} flashcard, "
-            f"{len(catalog.simulations)} simulazioni"
-        )
-        checks.append(line(not errors, "Catalogo", counts if not errors else "; ".join(errors)))
+        for track_id, track_label in [("dotnet-angular", "Angular & .NET"), ("web-js-react", "JS & React")]:
+            catalog = Catalog(ROOT / "content", track=track_id)
+            errors = catalog.validate()
+            counts = (
+                f"{len(catalog.lessons)} lezioni, {len(catalog.exercises)} esercizi, "
+                f"{len(catalog.labs)} lab, {len(catalog.flashcards)} flashcard, "
+                f"{len(catalog.simulations)} simulazioni"
+            )
+            checks.append(line(not errors, f"Catalogo ({track_label})", counts if not errors else "; ".join(errors)))
     except Exception as error:
         checks.append(line(False, "Catalogo", str(error)))
 
@@ -85,6 +87,13 @@ def main() -> int:
         checks.append(line(result.passed, "Runner JavaScript", result.output.splitlines()[0]))
     except Exception as error:
         checks.append(line(False, "Runner JavaScript", str(error)))
+
+    try:
+        from dev48.runners import run_csharp
+        result_cs = run_csharp("public class S { public static int Add(int a, int b) => a + b; }", ({"name": "add", "expression": "S.Add(2,3)", "expected": 5},))
+        checks.append(line(result_cs.passed, "Runner .NET C#", result_cs.output.splitlines()[0]))
+    except Exception as error:
+        checks.append(line(False, "Runner .NET C#", str(error)))
 
     passed = all(checks)
     print("\nRISULTATO:", "tutto pronto." if passed else "serve correggere almeno un controllo obbligatorio.")

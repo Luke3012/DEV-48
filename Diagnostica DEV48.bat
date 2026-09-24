@@ -9,6 +9,7 @@ if not exist ".venv\Scripts\python.exe" (
     echo.
     where py 2>nul
     where python 2>nul
+    where dotnet 2>nul
     where node 2>nul
     where npm 2>nul
     pause

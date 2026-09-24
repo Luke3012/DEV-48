@@ -198,15 +198,42 @@ class ProgressStore:
         row = self.connection.execute("SELECT value FROM settings WHERE key=?", (key,)).fetchone()
         return str(row["value"]) if row else default
 
-    def stats(self, total_lessons: int, total_exercises: int) -> dict:
-        completed_lessons = self.connection.execute(
-            "SELECT COUNT(*) n FROM progress WHERE item_type='lesson' AND status='completed'"
-        ).fetchone()["n"]
-        completed_exercises = self.connection.execute(
-            "SELECT COUNT(*) n FROM progress WHERE item_type='exercise' AND status='completed'"
-        ).fetchone()["n"]
-        xp = self.connection.execute("SELECT COALESCE(SUM(score),0) xp FROM progress").fetchone()["xp"]
-        attempts = self.connection.execute("SELECT COALESCE(SUM(attempts),0) n FROM progress").fetchone()["n"]
+    def get_active_track(self, default: str = "dotnet-angular") -> str:
+        return self.get_setting("active_track", default)
+
+    def set_active_track(self, track: str) -> None:
+        self.set_setting("active_track", track)
+
+    def stats(self, total_lessons: int, total_exercises: int, track_item_ids: set[str] | None = None) -> dict:
+        if track_item_ids is not None:
+            # Calcolo isolato per la traccia attiva
+            id_list = list(track_item_ids)
+            placeholders = ",".join("?" for _ in id_list) if id_list else "''"
+            completed_lessons = self.connection.execute(
+                f"SELECT COUNT(*) n FROM progress WHERE item_type='lesson' AND status='completed' AND item_id IN ({placeholders})",
+                id_list,
+            ).fetchone()["n"]
+            completed_exercises = self.connection.execute(
+                f"SELECT COUNT(*) n FROM progress WHERE item_type='exercise' AND status='completed' AND item_id IN ({placeholders})",
+                id_list,
+            ).fetchone()["n"]
+            xp = self.connection.execute(
+                f"SELECT COALESCE(SUM(score),0) xp FROM progress WHERE item_id IN ({placeholders})",
+                id_list,
+            ).fetchone()["xp"]
+            attempts = self.connection.execute(
+                f"SELECT COALESCE(SUM(attempts),0) n FROM progress WHERE item_id IN ({placeholders})",
+                id_list,
+            ).fetchone()["n"]
+        else:
+            completed_lessons = self.connection.execute(
+                "SELECT COUNT(*) n FROM progress WHERE item_type='lesson' AND status='completed'"
+            ).fetchone()["n"]
+            completed_exercises = self.connection.execute(
+                "SELECT COUNT(*) n FROM progress WHERE item_type='exercise' AND status='completed'"
+            ).fetchone()["n"]
+            xp = self.connection.execute("SELECT COALESCE(SUM(score),0) xp FROM progress").fetchone()["xp"]
+            attempts = self.connection.execute("SELECT COALESCE(SUM(attempts),0) n FROM progress").fetchone()["n"]
         return {
             "completed_lessons": completed_lessons,
             "completed_exercises": completed_exercises,
