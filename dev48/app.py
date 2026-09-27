@@ -11,7 +11,7 @@ from textual.binding import Binding
 from textual.containers import Horizontal, Vertical, ScrollableContainer
 from textual.screen import Screen
 from textual.widgets import (
-    Button, DataTable, Footer, Header, Input, Label, Markdown,
+    Button, Collapsible, DataTable, Footer, Header, Input, Label, Markdown,
     ProgressBar, Static, TextArea,
 )
 
@@ -196,13 +196,13 @@ class DashboardScreen(Screen):
                     classes="hero",
                 )
                 with Horizontal(classes="stats-row"):
-                    yield Static(f"[bold #67e8f9]{stats['percent']}%[/]\nPROGRESSO", classes="stat-card")
-                    yield Static(f"[bold #a78bfa]{stats['xp']}[/]\nXP", classes="stat-card")
-                    yield Static(f"[bold #34d399]{stats['completed_lessons']}[/]/{stats['total_lessons']}\nLEZIONI", classes="stat-card")
-                    yield Static(f"[bold #fbbf24]{stats['completed_exercises']}[/]/{stats['total_exercises']}\nESERCIZI", classes="stat-card last")
+                    yield Static(f"[bold #67e8f9]{stats['percent']}%[/]\nPROGRESSO", id="dashboard-percent", classes="stat-card")
+                    yield Static(f"[bold #a78bfa]{stats['xp']}[/]\nXP", id="dashboard-xp", classes="stat-card")
+                    yield Static(f"[bold #34d399]{stats['completed_lessons']}[/]/{stats['total_lessons']}\nLEZIONI", id="dashboard-lessons", classes="stat-card")
+                    yield Static(f"[bold #fbbf24]{stats['completed_exercises']}[/]/{stats['total_exercises']}\nESERCIZI", id="dashboard-exercises", classes="stat-card last")
                 yield Label("PROGRESSO COMPLESSIVO", classes="muted")
                 yield ProgressBar(total=100, show_eta=False, id="overall-progress")
-                yield Static(self.app.learning_plan_markup(), classes="panel")
+                yield Static(self.app.learning_plan_markup(), id="learning-plan", classes="panel")
                 last_label = self.app.last_item_title()
                 next_label = self.app.next_step_title()
                 yield Static(
@@ -226,8 +226,40 @@ class DashboardScreen(Screen):
         yield Footer()
 
     def on_mount(self) -> None:
-        self.query_one("#overall-progress", ProgressBar).update(progress=self.app.stats()["percent"])
+        self.refresh_dashboard()
         self.set_focus(self.query_one("#continue", Button))
+
+    def on_screen_resume(self, event: events.ScreenResume) -> None:
+        self.refresh_dashboard()
+
+    def refresh_dashboard(self) -> None:
+        stats = self.app.stats()
+        self.query_one("#dashboard-percent", Static).update(f"[bold #67e8f9]{stats['percent']}%[/]\nPROGRESSO")
+        self.query_one("#dashboard-xp", Static).update(f"[bold #a78bfa]{stats['xp']}[/]\nXP")
+        self.query_one("#dashboard-lessons", Static).update(
+            f"[bold #34d399]{stats['completed_lessons']}[/]/{stats['total_lessons']}\nLEZIONI"
+        )
+        self.query_one("#dashboard-exercises", Static).update(
+            f"[bold #fbbf24]{stats['completed_exercises']}[/]/{stats['total_exercises']}\nESERCIZI"
+        )
+        self.query_one("#overall-progress", ProgressBar).update(progress=stats["percent"])
+        self.query_one("#learning-plan", Static).update(self.app.learning_plan_markup())
+
+        last_label = self.app.last_item_title()
+        next_label = self.app.next_step_title()
+        last_text = f"[bold #67e8f9]PROSSIMO PASSO[/]  {next_label}\n"
+        last_text += (
+            f"[bold #34d399]ULTIMA SCHERMATA[/]  {last_label}"
+            if last_label
+            else "[#91a4c7]ULTIMA SCHERMATA  Nessuna: il percorso è pronto per iniziare.[/]"
+        )
+        self.query_one("#last-item", Static).update(last_text)
+
+        continue_button = self.query_one("#continue", Button)
+        continue_button.label = "▶ PROSSIMO PASSO" if last_label else "▶ INIZIA"
+        resume_button = self.query_one("#resume", Button)
+        resume_button.label = "↩ ULTIMA SCHERMATA" if last_label else "↩ NESSUNA SCHERMATA"
+        resume_button.disabled = not bool(last_label)
 
     def action_previous_control(self) -> None:
         self.focus_previous()
@@ -428,18 +460,23 @@ class ExerciseScreen(TimedScreen):
             with Horizontal(id="exercise-layout"):
                 with Vertical(id="exercise-left"):
                     with ScrollableContainer(id="exercise-prompt", can_focus=True):
-                        yield Static(f"[bold #a78bfa]Come funziona il controllo:[/] {scope_note}", id="exercise-scope", classes="panel")
+                        yield Collapsible(
+                            Static(f"[bold #a78bfa]Come funziona il controllo:[/] {scope_note}", id="exercise-scope"),
+                            title="Controlli automatici",
+                            collapsed=True,
+                            id="exercise-scope-details",
+                        )
                         yield Markdown(ex.prompt)
                         if ex.creative_goals:
                             goals_txt = "\n".join(f"- ★ {g}" for g in ex.creative_goals)
                             yield Static(f"\n[bold #34d399]Estensioni facoltative · non valutate automaticamente[/]\n{goals_txt}", classes="panel")
-                        yield Static("\n[bold #a78bfa]Regola[/]\nProva autonomamente. F5 esegue; H mostra un indizio. La soluzione si sblocca dopo due fallimenti.", classes="panel")
                     with ScrollableContainer(id="theory-scroll", can_focus=True):
                         yield Static("[bold #a78bfa]TEORIA DELLA LEZIONE[/]\nF1 apre o richiude la teoria senza perdere risposta, cursore o punto di lettura. ESC torna prima all'esercizio; da lì puoi rientrare nella lezione al punto in cui l'avevi lasciata.", classes="panel")
                         yield Markdown(self.app.catalog.lesson_body(self.app.catalog.lesson_by_id[ex.lesson_id]), id="theory-markdown")
                 with Vertical(id="exercise-right"):
                     yield TextArea(initial, language=language, show_line_numbers=True, id="editor")
-                    yield Static("Pronto. Scrivi la soluzione e premi F5.", id="result")
+                    with ScrollableContainer(id="result-scroll", can_focus=True):
+                        yield Static("", id="result")
             with Horizontal(id="exercise-actions", classes="actions"):
                 yield Button("▶ ESEGUI [F5]", id="run", classes="primary")
                 yield Button("◇ INDIZIO [H]", id="hint")
@@ -452,10 +489,17 @@ class ExerciseScreen(TimedScreen):
     def on_mount(self) -> None:
         super().on_mount()
         self.query_one("#theory-scroll", ScrollableContainer).display = False
+        self.query_one("#result-scroll", ScrollableContainer).display = False
         self.set_focus(self.query_one("#editor", TextArea))
 
     def editor_value(self) -> str:
         return self.query_one("#editor", TextArea).text
+
+    def update_result(self, content: str) -> None:
+        result_scroll = self.query_one("#result-scroll", ScrollableContainer)
+        self.query_one("#result", Static).update(content)
+        result_scroll.display = True
+        result_scroll.scroll_home(animate=False, force=True)
 
     def action_save(self) -> None:
         self.app.store.save_answer(self.exercise.id, "exercise", self.editor_value())
@@ -490,9 +534,9 @@ class ExerciseScreen(TimedScreen):
         if self.exercise.kind == "reflection":
             matches = sum(item.startswith("✓") for item in result.details)
             label = f"AUTOVERIFICA · {matches}/{len(result.details)} termini presenti"
-            self.query_one("#result", Static).update(f"[bold #fbbf24]{label}[/]\nLa checklist non valuta il significato. Confronta la spiegazione con il modello.\n\n{details}")
+            self.update_result(f"[bold #fbbf24]{label}[/]\nLa checklist non valuta il significato. Confronta la spiegazione con il modello.\n\n{details}")
         else:
-            self.query_one("#result", Static).update(f"[bold {color}]{icon} {result.score}%[/]\n{result.output}\n\n{details}")
+            self.update_result(f"[bold {color}]{icon} {result.score}%[/]\n{result.output}\n\n{details}")
         if result.passed and self.exercise.kind == "reflection":
             self.app.notify("Autoverifica completata · confronta la risposta con il modello.", title="Richiamo")
         elif result.passed:
@@ -505,16 +549,16 @@ class ExerciseScreen(TimedScreen):
         level = min(int(state.get("hint_level", 0)) + 1, len(self.exercise.hints))
         self.app.store.set_hint(self.exercise.id, level)
         hints = "\n".join(f"{i}. {hint}" for i, hint in enumerate(self.exercise.hints[:level], 1))
-        self.query_one("#result", Static).update(f"[bold #fbbf24]INDIZI {level}/{len(self.exercise.hints)}[/]\n{hints}")
+        self.update_result(f"[bold #fbbf24]INDIZI {level}/{len(self.exercise.hints)}[/]\n{hints}")
 
     def show_solution(self) -> None:
         state = self.app.store.get(self.exercise.id)
         if int(state.get("attempts", 0)) < 2:
             remaining = 2 - int(state.get("attempts", 0))
-            self.query_one("#result", Static).update(f"[bold #fbbf24]SOLUZIONE BLOCCATA[/]\nServono ancora {remaining} tentativi reali. Usa H per un indizio.")
+            self.update_result(f"[bold #fbbf24]SOLUZIONE BLOCCATA[/]\nServono ancora {remaining} tentativi reali. Usa H per un indizio.")
             return
         text = f"SOLUZIONE COMMENTATA\n\n{self.exercise.solution}\n\n{self.exercise.explanation}"
-        self.query_one("#result", Static).update(text)
+        self.update_result(text)
 
     def action_next_exercise(self) -> None:
         self.next_exercise()

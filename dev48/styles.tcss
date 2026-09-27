@@ -74,7 +74,7 @@ Footer {
     min-height: 4;
 }
 
-.compact-height #result {
+.compact-height #result-scroll {
     height: 6;
 }
 
@@ -284,12 +284,16 @@ Markdown, #lesson-markdown {
     min-height: 14;
 }
 
-#result {
+#result-scroll {
     height: 12;
     overflow-y: auto;
     border: round #34476b;
     background: #080c16;
     padding: 1;
+}
+
+#result {
+    width: 100%;
 }
 
 .passed {
