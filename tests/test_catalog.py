@@ -83,7 +83,8 @@ def test_dotnet_angular_course_is_complete_and_explicit_about_its_checks():
     for lesson in catalog.lessons:
         body = catalog.lesson_body(lesson)
         markdown.append(body)
-        assert len(body.split()) >= 500, lesson.id
+        # Check useful content, without enforcing filler to reach a word quota.
+        assert len(body.split()) >= 180, lesson.id
         for heading in (
             "## In parole semplici", "## Le parole da riconoscere", "## Anatomia e Sintassi del Codice",
             "## Un esempio concreto", "### Seguilo passo per passo", "## Pattern Guida per gli Esercizi",
@@ -99,6 +100,16 @@ def test_dotnet_angular_course_is_complete_and_explicit_about_its_checks():
         walkthroughs.append(walkthrough)
 
     assert len(set(walkthroughs)) == len(catalog.lessons)
+    positions = {lesson.title: index for index, lesson in enumerate(catalog.lessons)}
+    assert positions["Introduzione a signal() e aggiornamento stato con set() e update()"] < positions["Progetto Angular Standalone e Bootstrap applicazione"]
+    assert positions["Valori derivati intelligenti con computed()"] < positions["Nuovo Control Flow: @if, @else, @for e @switch"]
+    for body in markdown:
+        assert "Non dare per scontato di conoscere i termini" not in body
+        assert "## Controllo rapido" not in body
+        import re
+        for target in re.findall(r"\]\((net-[^)]+\.md)\)", body):
+            assert (ROOT / "content" / "lessons_dotnet" / target).is_file()
+    assert all("colloquio" not in item.title.lower() for item in catalog.simulations)
     clean_architecture = next(
         body for lesson, body in zip(catalog.lessons, markdown, strict=True)
         if lesson.title == "Architettura Pulita: separazione di Domain, Application e API"
@@ -135,7 +146,8 @@ def test_dotnet_angular_course_is_complete_and_explicit_about_its_checks():
     assert "Glitch-Free" not in all_lessons
 
     for lesson, body in zip(catalog.lessons, markdown, strict=True):
-        assert len([line for line in body.splitlines() if line.startswith("```")]) >= 4, lesson.id
+        fences = [line for line in body.splitlines() if line.startswith("```")]
+        assert len(fences) >= 2 and len(fences) % 2 == 0, lesson.id
 
     reflections = [item for item in catalog.exercises if item.kind == "reflection"]
     assert len(reflections) == len(catalog.lessons) + 1
@@ -150,6 +162,30 @@ def test_dotnet_angular_course_is_complete_and_explicit_about_its_checks():
     referenced_lessons = {(ROOT / "content" / lesson.body_file).resolve() for lesson in catalog.lessons}
     markdown_files = {path.resolve() for path in (ROOT / "content" / "lessons_dotnet").glob("*.md")}
     assert markdown_files == referenced_lessons
+
+
+
+def test_course_scaffolds_explain_practice_and_preserve_learner_work(tmp_path):
+    import json
+    from dev48.workspace import ensure_lab_workspace
+
+    catalog = Catalog(ROOT / "content", track="dotnet-angular")
+    for lab in catalog.labs:
+        workspace = ensure_lab_workspace(tmp_path, lab)
+        guide = workspace / "README.md"
+        assert "## Come affrontare questo laboratorio" in guide.read_text(encoding="utf-8")
+        guide.write_text("Appunti personali", encoding="utf-8")
+        sources = list(workspace.glob("server/*.cs")) + list(workspace.glob("client/src/app/*.ts"))
+        learner_file = sources[0]
+        learner_file.write_text("// codice personale", encoding="utf-8")
+        ensure_lab_workspace(tmp_path, lab)
+        assert guide.read_text(encoding="utf-8") == "Appunti personali"
+        assert learner_file.read_text(encoding="utf-8") == "// codice personale"
+
+    server = tmp_path / "lab-efcore-sqlite-db" / "server"
+    manifest = json.loads((server / ".config/dotnet-tools.json").read_text(encoding="utf-8"))
+    assert "dotnet-ef" in manifest["tools"]
+    assert "Microsoft.EntityFrameworkCore.Design" in (server / "Server.csproj").read_text(encoding="utf-8")
 
 
 def test_amazon_sde_oa_course_has_independent_mapped_content():

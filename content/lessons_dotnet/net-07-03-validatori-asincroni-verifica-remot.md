@@ -6,9 +6,9 @@ L'obiettivo di questa lezione è controllare unicità di email o codici fiscali 
 
 I validatori asincroni restituiscono una Promise o un Observable di ValidationErrors, permettendo di interrogare un endpoint REST prima che l'utente invii il modulo.
 
-### Prima di iniziare
+### Nel percorso
 
-Non dare per scontato di conoscere i termini elencati sotto: la spiegazione li introduce nel contesto. Se un termine resta poco chiaro, consulta il glossario e torna all'esempio.
+Approfondimento facoltativo: puoi riprenderlo dopo aver completato la pratica essenziale del modulo.
 
 ## Le parole da riconoscere
 
@@ -19,11 +19,7 @@ Non dare per scontato di conoscere i termini elencati sotto: la spiegazione li i
 - `verifica remota`
 - `unicita`
 
-Non serve imparare questi termini a memoria. Concentrati inizialmente su **`asyncvalidator`, `observable`** e cerca di osservarli all'interno del codice e degli esercizi pratici.
-
 ## Anatomia e Sintassi del Codice
-
-Leggi la spiegazione prima del codice. Quando compare una parola nuova, cerca il suo ruolo qui e prova a riconoscerla nell'esempio.
 
 ### Validatore Asincrono con Debounce:
 ```typescript
@@ -46,8 +42,6 @@ export function uniqueEmailValidator(checkApi: (email: string) => Observable<boo
 
 ## Un esempio concreto
 
-Questo è un esempio o un estratto minimo. Potrebbe dipendere da import, classi o configurazioni dichiarate altrove; il blocco mostra la parte pertinente al concetto.
-
 ```text
 return timer(300).pipe(
   switchMap(() => api.checkEmail(control.value)),
@@ -64,37 +58,12 @@ return timer(300).pipe(
 
 ## Pattern Guida per gli Esercizi
 
-La traccia seguente mostra un modo di applicare il concetto. Confrontala con il prompt e adatta i passaggi ai casi richiesti; potrebbe mostrare soltanto la parte centrale:
-
-```typescript
-export class AsyncCheckSimulator {
-    takenEmails = new Set(['admin@dev48.it', 'test@dev48.it']);
-    isEmailAvailable(email: string): boolean {
-        return !this.takenEmails.has(email.toLowerCase().trim());
-    }
-}
-```
-
-Prima di iniziare, prova a indicare che cosa ricevi, quale risultato ti aspetti e un caso limite. Poi affronta un passaggio alla volta e usa i controlli disponibili per verificare la consegna.
+La pratica breve isola una regola e non avvia l'applicazione Angular. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
 
 ## Dove ci si confonde spesso
 
 - Eseguire chiamate HTTP all'API a ogni singolo tasto premuto senza applicare `debounceTime` o `timer` (intasando la rete del server).
 
-Se qualcosa non funziona al primo tentativo, leggi il primo errore del compilatore o del test. Controlla una cosa alla volta: sintassi, tipo restituito, poi caso limite.
-
-## Controllo rapido
-
-- Riesco a spiegare il concetto principale con parole mie senza leggere?
-- So identificare input, output e almeno un caso limite o di errore?
-- Saprei applicare questa feature all'interno di un componente o di un'API reale?
-
 ## Domanda di verifica
 
-> Perché è indispensabile inserire un debounce prima di effettuare la verifica asincrona su una chiamata API?
-
-Prova a formulare una risposta chiara: prima definisci la regola generale, poi porta un esempio pratico, e infine cita un errore comune da evitare.
-
-## Prima di andare avanti
-
-Se una parte rimane poco chiara, torna al primo passaggio e spiega che cosa entra e che cosa esce dal codice. Passa all'esercizio quando riesci a prevedere almeno il caso normale e un caso limite.
+> Quando conviene ritardare la verifica remota, e che cosa mostri mentre il controllo è pending?

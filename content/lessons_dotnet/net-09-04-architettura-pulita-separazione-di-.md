@@ -6,9 +6,11 @@ L'obiettivo di questa lezione è organizzare una soluzione enterprise isolando e
 
 La Clean Architecture stabilisce che le regole di business e il dominio centrale non devono dipendere da nessun framework esterno, database o libreria UI. I dettagli dipendono dal dominio, mai il contrario.
 
-### Prima di iniziare
+### Nel percorso
 
-Non dare per scontato di conoscere i termini elencati sotto: la spiegazione li introduce nel contesto. Se un termine resta poco chiaro, consulta il glossario e torna all'esempio.
+Da conoscere: [Dependency Injection: Transient, Scoped e Singleton](net-03-02-dependency-injection-transient-scop.md); [Principi SOLID applicati allo sviluppo Full-Stack](net-09-03-principi-solid-applicati-allo-svilu.md).
+
+Usa questa separazione quando regole e integrazioni cambiano in modo indipendente. Un CRUD piccolo può iniziare con cartelle e servizi nello stesso progetto: creare quattro progetti subito aggiunge configurazione senza necessariamente migliorare lo studio. Angular comunica con l'API via HTTP e non è un assembly dipendente da Domain. L'esercizio considera i riferimenti tra layer di business; il punto di composizione dell'API può conoscere Infrastructure per registrare le implementazioni.
 
 ## Le parole da riconoscere
 
@@ -19,11 +21,7 @@ Non dare per scontato di conoscere i termini elencati sotto: la spiegazione li i
 - `infrastructure`
 - `dependency rule`
 
-Non serve imparare questi termini a memoria. Concentrati inizialmente su **`clean architecture`, `onion architecture`** e cerca di osservarli all'interno del codice e degli esercizi pratici.
-
 ## Anatomia e Sintassi del Codice
-
-Leggi la spiegazione prima del codice. Quando compare una parola nuova, cerca il suo ruolo qui e prova a riconoscerla nell'esempio.
 
 ### I Layer della Clean Architecture:
 1. **Domain (Nucleo)**: Entità pure, Value Objects, eccezioni di dominio. Zero dipendenze esterne.
@@ -32,8 +30,6 @@ Leggi la spiegazione prima del codice. Quando compare una parola nuova, cerca il
 4. **API / Presentation**: Minimal API di ASP.NET Core o frontend Angular. Riceve le richieste e delega ai casi d'uso.
 
 ## Un esempio concreto
-
-Questo è un esempio o un estratto minimo. Potrebbe dipendere da import, classi o configurazioni dichiarate altrove; il blocco mostra la parte pertinente al concetto.
 
 ```text
 API endpoint -> caso d'uso Application -> regole Domain
@@ -50,7 +46,7 @@ Infrastructure implementa i contratti dichiarati verso il centro. Domain non con
 
 ## Pattern Guida per gli Esercizi
 
-La traccia seguente mostra un modo di applicare il concetto. Confrontala con il prompt e adatta i passaggi ai casi richiesti; potrebbe mostrare soltanto la parte centrale:
+La pratica breve isola una regola e non avvia l'applicazione .NET. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
 
 ```csharp
 using System.Threading;
@@ -68,27 +64,11 @@ public sealed class RegisterSubject(ISubjectRepository repository) {
 }
 ```
 
-Prima di iniziare, prova a indicare che cosa ricevi, quale risultato ti aspetti e un caso limite. Poi affronta un passaggio alla volta e usa i controlli disponibili per verificare la consegna.
-
 ## Dove ci si confonde spesso
 
 - Far dipendere il Domain da EF Core o da librerie web
 - saltare i layer e scrivere query SQL direttamente nei componenti UI.
 
-Se qualcosa non funziona al primo tentativo, leggi il primo errore del compilatore o del test. Controlla una cosa alla volta: sintassi, tipo restituito, poi caso limite.
-
-## Controllo rapido
-
-- Riesco a spiegare il concetto principale con parole mie senza leggere?
-- So identificare input, output e almeno un caso limite o di errore?
-- Saprei applicare questa feature all'interno di un componente o di un'API reale?
-
 ## Domanda di verifica
 
 > Qual è la regola cardinale della Clean Architecture riguardo alla direzione delle dipendenze?
-
-Prova a formulare una risposta chiara: prima definisci la regola generale, poi porta un esempio pratico, e infine cita un errore comune da evitare.
-
-## Prima di andare avanti
-
-Se una parte rimane poco chiara, torna al primo passaggio e spiega che cosa entra e che cosa esce dal codice. Passa all'esercizio quando riesci a prevedere almeno il caso normale e un caso limite.

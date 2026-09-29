@@ -6,10 +6,6 @@ L'obiettivo di questa lezione è configurare la validazione JWT in ASP.NET Core,
 
 In un esempio didattico locale, ASP.NET Core può emettere un token dopo aver verificato credenziali dimostrative e convalidare firma, issuer, audience e scadenza sulle richieste successive. L'autenticazione stabilisce chi presenta il token; una policy decide quali ruoli possono usare un endpoint.
 
-### Prima di iniziare
-
-Non dare per scontato di conoscere i termini elencati sotto: la spiegazione li introduce nel contesto. Se un termine resta poco chiaro, consulta il glossario e torna all'esempio.
-
 ## Le parole da riconoscere
 
 - `jwtsecuritytokenhandler`
@@ -19,11 +15,7 @@ Non dare per scontato di conoscere i termini elencati sotto: la spiegazione li i
 - `claimstype`
 - `authorization policy`
 
-Non serve imparare questi termini a memoria. Concentrati inizialmente su **`jwtsecuritytokenhandler`, `symmetricsecuritykey`** e cerca di osservarli all'interno del codice e degli esercizi pratici.
-
 ## Anatomia e Sintassi del Codice
-
-Leggi la spiegazione prima del codice. Quando compare una parola nuova, cerca il suo ruolo qui e prova a riconoscerla nell'esempio.
 
 ### Prepara la chiave locale in PowerShell
 Esegui i comandi nella cartella che contiene `Server.csproj`; `dotnet user-secrets init` si esegue una sola volta per progetto. Il pacchetto abilita la convalida Bearer nell'API. User Secrets mantiene una chiave di sviluppo fuori dal repository; genera una chiave casuale sul tuo computer.
@@ -101,8 +93,6 @@ Il token demo usa una chiave HMAC condivisa. User Secrets è solo per sviluppo l
 
 ## Un esempio concreto
 
-Questo è un esempio o un estratto minimo. Potrebbe dipendere da import, classi o configurazioni dichiarate altrove; il blocco mostra la parte pertinente al concetto.
-
 ```text
 POST /api/login { "userName": "demo", "password": "demo" } -> 200 con token
 GET /api/profile senza token -> 401
@@ -120,16 +110,7 @@ POST /api/login con userName `admin` e password `demo`, poi GET /api/admin -> 20
 
 ## Pattern Guida per gli Esercizi
 
-La traccia seguente mostra un modo di applicare il concetto. Confrontala con il prompt e adatta i passaggi ai casi richiesti; potrebbe mostrare soltanto la parte centrale:
-
-```csharp
-public static class AuthClaimHelper {
-    public static string ExtractUsername(string? emailClaim) =>
-        string.IsNullOrWhiteSpace(emailClaim) ? "Guest" : emailClaim.Split('@')[0];
-}
-```
-
-Prima di iniziare, prova a indicare che cosa ricevi, quale risultato ti aspetti e un caso limite. Poi affronta un passaggio alla volta e usa i controlli disponibili per verificare la consegna.
+La pratica breve isola una regola e non avvia l'applicazione .NET. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
 
 ## Dove ci si confonde spesso
 
@@ -138,20 +119,6 @@ Prima di iniziare, prova a indicare che cosa ricevi, quale risultato ti aspetti 
 - confondere `RequireAuthorization()` (serve un utente autenticato) con una policy di ruolo
 - fidarsi di una guard Angular al posto della policy API.
 
-Se qualcosa non funziona al primo tentativo, leggi il primo errore del compilatore o del test. Controlla una cosa alla volta: sintassi, tipo restituito, poi caso limite.
-
-## Controllo rapido
-
-- Riesco a spiegare il concetto principale con parole mie senza leggere?
-- So identificare input, output e almeno un caso limite o di errore?
-- Saprei applicare questa feature all'interno di un componente o di un'API reale?
-
 ## Domanda di verifica
 
 > Che differenza c'è tra `RequireAuthorization()` e `RequireAuthorization("AdminOnly")` e quali risposte HTTP ti aspetti?
-
-Prova a formulare una risposta chiara: prima definisci la regola generale, poi porta un esempio pratico, e infine cita un errore comune da evitare.
-
-## Prima di andare avanti
-
-Se una parte rimane poco chiara, torna al primo passaggio e spiega che cosa entra e che cosa esce dal codice. Passa all'esercizio quando riesci a prevedere almeno il caso normale e un caso limite.

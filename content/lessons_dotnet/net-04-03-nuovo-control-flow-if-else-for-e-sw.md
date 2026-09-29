@@ -6,9 +6,11 @@ L'obiettivo di questa lezione è confrontare il Control Flow integrato (`@if`, `
 
 Il Control Flow integrato (`@if`, `@for`, `@switch`) è disponibile da Angular 17. Usa blocchi leggibili nel template e non richiede CommonModule per queste istruzioni; l'effetto sulle prestazioni dipende dall'applicazione e dal lavoro svolto.
 
-### Prima di iniziare
+### Nel percorso
 
-Non dare per scontato di conoscere i termini elencati sotto: la spiegazione li introduce nel contesto. Se un termine resta poco chiaro, consulta il glossario e torna all'esempio.
+Da conoscere: [Introduzione a signal() e aggiornamento stato con set() e update()](net-05-01-introduzione-a-signal-e-aggiornamen.md); [Valori derivati intelligenti con computed()](net-05-02-valori-derivati-intelligenti-con-co.md).
+
+Il modello TypeScript prepara i dati; il template decide che cosa mostrare. Nel laboratorio Catalogo Standalone con Control Flow verifica lista, stato vuoto e selezione nel DOM: il conteggio corretto nell'esercizio breve da solo non dimostra che il template funzioni.
 
 ## Le parole da riconoscere
 
@@ -21,11 +23,7 @@ Non dare per scontato di conoscere i termini elencati sotto: la spiegazione li i
 - `@case`
 - `nuovo control flow`
 
-Non serve imparare questi termini a memoria. Concentrati inizialmente su **`@if`, `@else`** e cerca di osservarli all'interno del codice e degli esercizi pratici.
-
 ## Anatomia e Sintassi del Codice
-
-Leggi la spiegazione prima del codice. Quando compare una parola nuova, cerca il suo ruolo qui e prova a riconoscerla nell'esempio.
 
 ### Sintassi del Nuovo Control Flow nei Template:
 
@@ -44,15 +42,23 @@ Leggi la spiegazione prima del codice. Quando compare una parola nuova, cerca il
   @for (user of users(); track user.id) {
     <li>{{ user.name }}</li>
   } @empty {
-    <p>Nessun utente registrato.</p>
+    <li>Nessun utente registrato.</li>
   }
 </ul>
 ```
 > `track` è obbligatorio e descrive come associare gli elementi della lista alle viste. Usa un identificatore stabile se gli elementi possono cambiare o riordinarsi; `track $index` è adatto soprattutto a liste statiche. Questo aiuta Angular a riutilizzare le viste correttamente, senza garantire un numero minimo di aggiornamenti in ogni situazione.
 
-## Un esempio concreto
+### Scegliere una vista con `@switch`
+```html
+@switch (status) {
+  @case ('loading') { <p role="status">Caricamento…</p> }
+  @case ('error') { <p role="alert">Caricamento fallito</p> }
+  @default { <p>Pronto</p> }
+}
+```
+`status` è una proprietà della classe del componente, per esempio `status = 'loading'`. Se diventa un Signal, nel template leggilo con `status()`. Ogni caso mostra la propria vista; non serve `break`.
 
-Questo è un esempio o un estratto minimo. Potrebbe dipendere da import, classi o configurazioni dichiarate altrove; il blocco mostra la parte pertinente al concetto.
+## Un esempio concreto
 
 ```html
 @if (users().length > 0) {
@@ -73,7 +79,7 @@ Questo è un esempio o un estratto minimo. Potrebbe dipendere da import, classi 
 
 ## Pattern Guida per gli Esercizi
 
-La traccia seguente mostra un modo di applicare il concetto. Confrontala con il prompt e adatta i passaggi ai casi richiesti; potrebbe mostrare soltanto la parte centrale:
+La pratica breve isola una regola e non avvia l'applicazione Angular. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
 
 ```typescript
 export class UserListManager {
@@ -84,27 +90,11 @@ export class UserListManager {
 }
 ```
 
-Prima di iniziare, prova a indicare che cosa ricevi, quale risultato ti aspetti e un caso limite. Poi affronta un passaggio alla volta e usa i controlli disponibili per verificare la consegna.
-
 ## Dove ci si confonde spesso
 
 - Dimenticare la clausola `track` in `@for` (provoca errore del compilatore Angular)
 - usare `track $index` quando gli elementi hanno un ID stabile.
 
-Se qualcosa non funziona al primo tentativo, leggi il primo errore del compilatore o del test. Controlla una cosa alla volta: sintassi, tipo restituito, poi caso limite.
-
-## Controllo rapido
-
-- Riesco a spiegare il concetto principale con parole mie senza leggere?
-- So identificare input, output e almeno un caso limite o di errore?
-- Saprei applicare questa feature all'interno di un componente o di un'API reale?
-
 ## Domanda di verifica
 
 > Perché la clausola `track` è obbligatoria nel nuovo blocco `@for`?
-
-Prova a formulare una risposta chiara: prima definisci la regola generale, poi porta un esempio pratico, e infine cita un errore comune da evitare.
-
-## Prima di andare avanti
-
-Se una parte rimane poco chiara, torna al primo passaggio e spiega che cosa entra e che cosa esce dal codice. Passa all'esercizio quando riesci a prevedere almeno il caso normale e un caso limite.

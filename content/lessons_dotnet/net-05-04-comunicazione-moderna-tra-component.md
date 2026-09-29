@@ -6,10 +6,6 @@ L'obiettivo di questa lezione è passare dati e notificare eventi tra componenti
 
 `input()` dichiara un input leggibile come Signal; `output()` dichiara un evento che il componente può emettere. Sono API moderne alternative: i decoratori `@Input()` e `@Output()` restano supportati.
 
-### Prima di iniziare
-
-Non dare per scontato di conoscere i termini elencati sotto: la spiegazione li introduce nel contesto. Se un termine resta poco chiaro, consulta il glossario e torna all'esempio.
-
 ## Le parole da riconoscere
 
 - `input()`
@@ -20,11 +16,7 @@ Non dare per scontato di conoscere i termini elencati sotto: la spiegazione li i
 - `Output`
 - `comunicazione`
 
-Non serve imparare questi termini a memoria. Concentrati inizialmente su **`input()`, `input.required`** e cerca di osservarli all'interno del codice e degli esercizi pratici.
-
 ## Anatomia e Sintassi del Codice
-
-Leggi la spiegazione prima del codice. Quando compare una parola nuova, cerca il suo ruolo qui e prova a riconoscerla nell'esempio.
 
 ### Input basati su Signal ed eventi output:
 ```typescript
@@ -55,8 +47,6 @@ export class UserBadgeComponent {
 
 ## Un esempio concreto
 
-Questo è un esempio o un estratto minimo. Potrebbe dipendere da import, classi o configurazioni dichiarate altrove; il blocco mostra la parte pertinente al concetto.
-
 ```typescript
 export class CardComponent {
   title = input.required<string>();
@@ -74,7 +64,7 @@ export class CardComponent {
 
 ## Pattern Guida per gli Esercizi
 
-La traccia seguente mostra un modo di applicare il concetto. Confrontala con il prompt e adatta i passaggi ai casi richiesti; potrebbe mostrare soltanto la parte centrale:
+La pratica breve isola una regola e non avvia l'applicazione Angular. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
 
 ```typescript
 export class UserBadgeModel {
@@ -85,27 +75,11 @@ export class UserBadgeModel {
 }
 ```
 
-Prima di iniziare, prova a indicare che cosa ricevi, quale risultato ti aspetti e un caso limite. Poi affronta un passaggio alla volta e usa i controlli disponibili per verificare la consegna.
-
 ## Dove ci si confonde spesso
 
 - Trattare `output()` come un Signal: è un'API per emettere eventi, mentre `input()` fornisce un input leggibile come Signal. I decoratori `@Input()` e `@Output()` restano disponibili
 - in un componente bisogna seguire lo stile già adottato.
 
-Se qualcosa non funziona al primo tentativo, leggi il primo errore del compilatore o del test. Controlla una cosa alla volta: sintassi, tipo restituito, poi caso limite.
-
-## Controllo rapido
-
-- Riesco a spiegare il concetto principale con parole mie senza leggere?
-- So identificare input, output e almeno un caso limite o di errore?
-- Saprei applicare questa feature all'interno di un componente o di un'API reale?
-
 ## Domanda di verifica
 
 > Che cosa restituiscono `input()` e `output()`, e quale compito svolge ciascuno?
-
-Prova a formulare una risposta chiara: prima definisci la regola generale, poi porta un esempio pratico, e infine cita un errore comune da evitare.
-
-## Prima di andare avanti
-
-Se una parte rimane poco chiara, torna al primo passaggio e spiega che cosa entra e che cosa esce dal codice. Passa all'esercizio quando riesci a prevedere almeno il caso normale e un caso limite.

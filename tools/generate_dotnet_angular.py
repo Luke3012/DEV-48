@@ -371,7 +371,7 @@ public static class Greeter {
 var risultato = espressione switch {
     pattern1 => valore1,
     pattern2 when condizione_guardia => valore2,
-    _ => valore_default // Discard obbligatorio per esaustività
+    _ => valore_default // Caso restante per i valori non coperti
 };
 ```
 
@@ -563,7 +563,10 @@ public class InventoryTracker {
         "Interrogare e trasformare collezioni con sintassi dichiarativa LINQ e deferred execution.",
         "linq;where;select;orderby;firstordefault;tolist;deferred execution",
         "La query LINQ non viene eseguita nel momento in cui viene definita, ma solo quando i risultati vengono effettivamente enumerati (ad esempio con un foreach, un ToList() o un'aggregazione).",
-        """### I Metodi LINQ Più Utilizzati:
+        """### Leggere una lambda
+`n => n % 2 == 0` è una funzione breve: riceve `n` e restituisce un booleano. `Where` la chiama per ogni elemento e conserva quelli per cui il risultato è true. In `Select(n => n * 2)` la funzione restituisce invece il nuovo valore. Il tipo del parametro è inferito dalla collezione.
+
+### I Metodi LINQ Più Utilizzati:
 - **`Where(predicate)`**: Filtra gli elementi che soddisfano la condizione booleana.
 - **`Select(selector)`**: Mappa e trasforma ciascun elemento (proiezione).
 - **`OrderBy(key)` / `OrderByDescending(key)`**: Ordina gli elementi.
@@ -650,7 +653,7 @@ public class DataFetcher(HttpClient client) {
 
 In un'app ASP.NET Core configura il client con `IHttpClientFactory` e iniettalo, invece di creare un nuovo `HttpClient` per ogni richiesta.
 
-> **Regola d'oro**: Non usare mai `.Result` o `.Wait()`, poiché bloccano il thread sincronicamente e possono causare deadlock nei server web!""",
+Nei flussi asincroni usa `await` fino al chiamante. `.Result` e `.Wait()` bloccano il thread: sotto carico possono esaurire il thread pool. Il deadlock dipende dal contesto di sincronizzazione; ASP.NET Core non usa quello delle vecchie applicazioni ASP.NET.""",
         "public async Task<string> FetchDataAsync(int id, CancellationToken ct = default)\n{\n    try {\n        await Task.Delay(50, ct);\n        return $\"Dati per {id}\";\n    } catch (Exception ex) {\n        Console.Error.WriteLine(ex.Message);\n        throw;\n    }\n}",
         """using System.Threading.Tasks;
 
@@ -774,7 +777,7 @@ if (typeof input === "string") {
     return 0;
 }""",
         "Usare `any` per silenziare i messaggi del compilatore; dimenticare che `unknown` richiede un type guard.",
-        "Perché `unknown` è infinitamente più sicuro di `any` in TypeScript?",
+        "Quale controllo richiede unknown prima di usare un valore, e che cosa consente invece any?",
         {
             "kind": "typescript",
             "title": "Type Guard con Unknown",
@@ -809,7 +812,7 @@ export function safeUpperCase(value: unknown): string {
         "02_typescript", "Interfacce vs Type Alias e Contratti di Dati", 40, True,
         "Modellare contratti di dati coerenti tra client Angular e DTO del backend .NET.",
         "interface;type alias;extends;readonly;optional;contratto dati",
-        "Le interfacce e i type alias consentono di stabilire contratti rigorosi per gli oggetti scambiati via API, prevenendo errori di battitura nei nomi dei campi o incongruenze nei tipi.",
+        "Interfacce e type alias descrivono gli oggetti attesi e aiutano il compilatore a rilevare campi e tipi incoerenti. Non verificano i dati ricevuti a runtime: un JSON esterno può violare il contratto e richiedere validazione.",
         """### `interface` vs `type`:
 - **`interface`**: ideale per descrivere la forma di oggetti e dati DTO. Supporta l'estensione con `extends` e la dichiarazione incrementale.
 - **`type`**: ideale per unioni, tuple, tipi primitivi o tipi composti.
@@ -832,40 +835,46 @@ export type UserRole = "Admin" | "Manager" | "Guest";
 }""",
         "Creare interfacce con proprietà senza tipo esplicito; non sincronizzare i nomi dei campi tra backend C# e interfaccia TS.",
         "Qual è la differenza pratica tra una proprietà obbligatoria e una opzionale in un'interfaccia?",
-        {
-            "kind": "typescript",
-            "title": "Interfaccia DTO per Risposta API",
-            "prompt": "Definisci l'interfaccia `export interface ProductDto` con i campi: `readonly id: number`, `title: string`, `price: decimal` (in TS: `number`) e la proprietà opzionale `description?: string`. Assicurati che non contenga `any`.",
-            "starter": """// TODO: Definisci qui l'interfaccia ProductDto
-export interface ProductDto {
-    // Aggiungi qui i campi richiesti
-}""",
-            "solution": """export interface ProductDto {
-    readonly id: number;
-    title: string;
-    price: number;
-    description?: string;
-}""",
-            "tests": [
-                {"name": "Dichiarazione interfaccia ProductDto", "mode": "regex", "value": "interface\\s+ProductDto"},
-                {"name": "Proprietà readonly id", "mode": "contains", "value": "readonly id"},
-                {"name": "Proprietà opzionale description?", "mode": "contains", "value": "description?"},
-                {"name": "Nessun any", "mode": "not_contains", "value": "any"},
-            ],
-            "hints": [
-                "Usa la parola chiave `readonly` prima di `id: number`.",
-                "I numeri in TypeScript usano il tipo `number` sia per interi che decimali.",
-                "Aggiungi `?` dopo `description` per renderla opzionale: `description?: string;`."
-            ],
-            "creative_goals": ["Imposta id come readonly", "Rendi description opzionale con ?"],
-            "bonus_xp": 15
-        }
+        {'kind': 'typescript',
+ 'title': 'Interfaccia DTO per Risposta API',
+ 'prompt': "Definisci l'interfaccia `export interface ProductDto` con i campi: `readonly id: number`, "
+           '`title: string`, `price: decimal` (in TS: `number`) e la proprietà opzionale `description?: '
+           'string`. Assicurati che non contenga `any`. Il controllo è strutturale: riconosce le '
+           'dichiarazioni richieste, ma non sostituisce tsc. Nel laboratorio Modelli TypeScript e Contratti '
+           'Web verifica anche la compilazione.',
+ 'starter': "// TODO: Definisci qui l'interfaccia ProductDto\n"
+            'export interface ProductDto {\n'
+            '    // Aggiungi qui i campi richiesti\n'
+            '}',
+ 'solution': 'export interface ProductDto {\n'
+             '    readonly id: number;\n'
+             '    title: string;\n'
+             '    price: number;\n'
+             '    description?: string;\n'
+             '}',
+ 'tests': [{'name': 'Interfaccia esportata',
+            'mode': 'regex',
+            'value': 'export\\s+interface\\s+ProductDto\\b'},
+           {'name': 'Identificativo numerico readonly',
+            'mode': 'regex',
+            'value': 'readonly\\s+id\\s*:\\s*number\\b'},
+           {'name': 'Titolo testuale', 'mode': 'regex', 'value': 'title\\s*:\\s*string\\b'},
+           {'name': 'Prezzo numerico', 'mode': 'regex', 'value': 'price\\s*:\\s*number\\b'},
+           {'name': 'Descrizione opzionale testuale',
+            'mode': 'regex',
+            'value': 'description\\s*\\?\\s*:\\s*string\\b'},
+           {'name': 'Nessun any', 'mode': 'not_contains', 'value': 'any'}],
+ 'hints': ['Usa la parola chiave `readonly` prima di `id: number`.',
+           'I numeri in TypeScript usano il tipo `number` sia per interi che decimali.',
+           'Aggiungi `?` dopo `description` per renderla opzionale: `description?: string;`.'],
+ 'creative_goals': ['Imposta id come readonly', 'Rendi description opzionale con ?'],
+ 'bonus_xp': 15}
     ),
     (
         "02_typescript", "Union Discriminate e Type Narrowing", 45, True,
         "Gestire stati complessi (caricamento, successo, errore) con union discriminate eleganti e sicure.",
         "discriminated union;tag;switch;type narrowing;exhaustive check;never",
-        "Una union discriminata usa una proprietà comune (tag) per distinguere con certezza matematica quale forma di dato è presente, permettendo al compilatore di restringere il tipo automaticamente.",
+        "Una union discriminata usa una proprietà comune (tag) per distinguere quale variante del tipo è presente, permettendo al compilatore di restringere il tipo automaticamente.",
         """### Esempio di Union Discriminata per Stato di Caricamento:
 ```typescript
 export type RequestState<T> =
@@ -890,33 +899,35 @@ All'interno di ogni ramo del `switch`, TypeScript sa esattamente quali propriet�
     | { authenticated: false; reason: string };""",
         "Usare flag booleani multipli come `isLoading: boolean; isError: boolean; isSuccess: boolean` che possono generare stati impossibili.",
         "Perché una union discriminata evita bug rispetto a molteplici flag booleani indipendenti?",
-        {
-            "kind": "typescript",
-            "title": "Union Discriminata per Risultato Operazione",
-            "prompt": "Definisci il type `export type OperationResult<T>` come union discriminata con due varianti: `{ success: true; data: T }` e `{ success: false; error: string }`.",
-            "starter": """// TODO: Definisci la union discriminata OperationResult<T>
-export type OperationResult<T> =
-    | { success: true; /* ... */ }
-    | { success: false; /* ... */ };""",
-            "solution": """export type OperationResult<T> =
-    | { success: true; data: T }
-    | { success: false; error: string };""",
-            "tests": [
-                {"name": "Dichiarazione type OperationResult", "mode": "regex", "value": "type\\s+OperationResult<T>"},
-                {"name": "Variante success: true", "mode": "contains", "value": "success: true"},
-                {"name": "Variante success: false", "mode": "contains", "value": "success: false"},
-                {"name": "Dato presente solo nel successo", "mode": "contains", "value": "data: T"},
-                {"name": "Messaggio presente solo nell'errore", "mode": "contains", "value": "error: string"},
-                {"name": "Nessun any", "mode": "not_contains", "value": "any"},
-            ],
-            "hints": [
-                "Il campo discriminante comune è `success: true` nel primo caso e `success: false` nel secondo.",
-                "Associa `data: T` al successo ed `error: string` all'insuccesso.",
-                "Usa il pipe `|` tra le due definizioni di oggetto."
-            ],
-            "creative_goals": ["Usa il generico <T> per il payload", "Evita stati inconsistenti con il campo tag boolean"],
-            "bonus_xp": 15
-        }
+        {'kind': 'typescript',
+ 'title': 'Union Discriminata per Risultato Operazione',
+ 'prompt': 'Definisci il type `export type OperationResult<T>` come union discriminata con due varianti: `{ '
+           'success: true; data: T }` e `{ success: false; error: string }`. Il controllo è strutturale: '
+           'riconosce le dichiarazioni richieste, ma non sostituisce tsc. Nel laboratorio Modelli TypeScript '
+           'e Contratti Web verifica anche la compilazione.',
+ 'starter': '// TODO: Definisci la union discriminata OperationResult<T>\n'
+            'export type OperationResult<T> =\n'
+            '    | { success: true; /* ... */ }\n'
+            '    | { success: false; /* ... */ };',
+ 'solution': 'export type OperationResult<T> =\n'
+             '    | { success: true; data: T }\n'
+             '    | { success: false; error: string };',
+ 'tests': [{'name': 'Dichiarazione type OperationResult',
+            'mode': 'regex',
+            'value': 'type\\s+OperationResult\\s*<\\s*T\\s*>'},
+           {'name': 'Variante success: true', 'mode': 'regex', 'value': '\\bsuccess\\s*:\\s*true\\b'},
+           {'name': 'Variante success: false', 'mode': 'regex', 'value': '\\bsuccess\\s*:\\s*false\\b'},
+           {'name': 'Dato presente solo nel successo', 'mode': 'regex', 'value': '\\bdata\\s*:\\s*T\\b'},
+           {'name': "Messaggio presente solo nell'errore",
+            'mode': 'regex',
+            'value': '\\berror\\s*:\\s*string\\b'},
+           {'name': 'Nessun any', 'mode': 'not_contains', 'value': 'any'}],
+ 'hints': ['Il campo discriminante comune è `success: true` nel primo caso e `success: false` nel secondo.',
+           "Associa `data: T` al successo ed `error: string` all'insuccesso.",
+           'Usa il pipe `|` tra le due definizioni di oggetto.'],
+ 'creative_goals': ['Usa il generico <T> per il payload',
+                    'Evita stati inconsistenti con il campo tag boolean'],
+ 'bonus_xp': 15}
     ),
     (
         "02_typescript", "Generics essenziali per Collezioni e Risposte API", 45, True,
@@ -950,33 +961,33 @@ export function findById<T extends HasId>(list: T[], id: number): T | undefined 
 }""",
         "Scrivere codice duplicato per ogni modello invece di usare un wrapper generico; usare generics complessi non necessari.",
         "Cosa significa il parametro `<T>` nella dichiarazione di una funzione o interfaccia?",
-        {
-            "kind": "typescript",
-            "title": "Busta di Risposta Generica API",
-            "prompt": "Definisci l'interfaccia generica `export interface ApiResponseEnvelope<T>` con i campi: `data: T`, `status: number`, e `success: boolean`.",
-            "starter": """// TODO: Definisci qui l'interfaccia generica ApiResponseEnvelope<T>
-export interface ApiResponseEnvelope<T> {
-    // aggiungi i campi data, status e success
-}""",
-            "solution": """export interface ApiResponseEnvelope<T> {
-    data: T;
-    status: number;
-    success: boolean;
-}""",
-            "tests": [
-                {"name": "Dichiarazione interfaccia generica ApiResponseEnvelope<T>", "mode": "regex", "value": "interface\\s+ApiResponseEnvelope<T>"},
-                {"name": "Campo data: T", "mode": "contains", "value": "data: T"},
-                {"name": "Campo status: number", "mode": "contains", "value": "status: number"},
-                {"name": "Nessun any", "mode": "not_contains", "value": "any"},
-            ],
-            "hints": [
-                "Dichiara `<T>` subito dopo il nome dell'interfaccia: `export interface ApiResponseEnvelope<T>`.",
-                "Il campo `data` deve avere come tipo il parametro generico `T`.",
-                "Non usare `any`."
-            ],
-            "creative_goals": ["Parametro generico T pulito", "Interfaccia pienamente esportabile"],
-            "bonus_xp": 15
-        }
+        {'kind': 'typescript',
+ 'title': 'Busta di Risposta Generica API',
+ 'prompt': "Definisci l'interfaccia generica `export interface ApiResponseEnvelope<T>` con i campi: `data: "
+           'T`, `status: number`, e `success: boolean`. Il controllo è strutturale: riconosce le '
+           'dichiarazioni richieste, ma non sostituisce tsc. Nel laboratorio Modelli TypeScript e Contratti '
+           'Web verifica anche la compilazione.',
+ 'starter': "// TODO: Definisci qui l'interfaccia generica ApiResponseEnvelope<T>\n"
+            'export interface ApiResponseEnvelope<T> {\n'
+            '    // aggiungi i campi data, status e success\n'
+            '}',
+ 'solution': 'export interface ApiResponseEnvelope<T> {\n'
+             '    data: T;\n'
+             '    status: number;\n'
+             '    success: boolean;\n'
+             '}',
+ 'tests': [{'name': 'Dichiarazione interfaccia generica ApiResponseEnvelope<T>',
+            'mode': 'regex',
+            'value': 'interface\\s+ApiResponseEnvelope\\s*<\\s*T\\s*>'},
+           {'name': 'Campo data: T', 'mode': 'regex', 'value': '\\bdata\\s*:\\s*T\\b'},
+           {'name': 'Campo status: number', 'mode': 'regex', 'value': '\\bstatus\\s*:\\s*number\\b'},
+           {'name': 'Nessun any', 'mode': 'not_contains', 'value': 'any'},
+           {'name': 'Campo success booleano', 'mode': 'regex', 'value': 'success\\s*:\\s*boolean\\b'}],
+ 'hints': ["Dichiara `<T>` subito dopo il nome dell'interfaccia: `export interface ApiResponseEnvelope<T>`.",
+           'Il campo `data` deve avere come tipo il parametro generico `T`.',
+           'Non usare `any`.'],
+ 'creative_goals': ['Parametro generico T pulito', 'Interfaccia pienamente esportabile'],
+ 'bonus_xp': 15}
     ),
 
     # ==========================================
@@ -1198,7 +1209,7 @@ public static class ValidationHelper {
     }
 }""",
         "Restituire semplici stringhe di testo grezzo in caso di errore invece di una risposta strutturata JSON; usare status code 200 con messaggi di fallimento nel body.",
-        "Perché è fondamentale che un'API restituisca `ValidationProblem` anziché testo libero?",
+        "Quale vantaggio offre ValidationProblem al client che deve mostrare errori per campo?",
         {
             "kind": "csharp",
             "title": "Generatore Errori ProblemDetails",
@@ -1492,76 +1503,103 @@ export class UserCardComponent {
             "bonus_xp": 20
         }
     ),
-    (
-        "04_angular_core", "Nuovo Control Flow: @if, @else, @for e @switch", 45, True,
-        "Confrontare il Control Flow integrato (`@if`, `@for`, `@switch`) con le direttive strutturali più datate.",
-        "@if;@else;@for;track;@empty;@switch;@case;nuovo control flow",
-        "Il Control Flow integrato (`@if`, `@for`, `@switch`) è disponibile da Angular 17. Usa blocchi leggibili nel template e non richiede CommonModule per queste istruzioni; l'effetto sulle prestazioni dipende dall'applicazione e dal lavoro svolto.",
-        """### Sintassi del Nuovo Control Flow nei Template:
-
-#### 1. Condizionale `@if / @else`:
-```html
-@if (isLoggedIn()) {
-  <p>Benvenuto, {{ username() }}!</p>
-} @else {
-  <button (click)="login()">Accedi</button>
-}
-```
-
-#### 2. Ciclo `@for` (con `track` obbligatorio e `@empty`):
-```html
-<ul>
-  @for (user of users(); track user.id) {
-    <li>{{ user.name }}</li>
-  } @empty {
-    <p>Nessun utente registrato.</p>
-  }
-</ul>
-```
-> `track` è obbligatorio e descrive come associare gli elementi della lista alle viste. Usa un identificatore stabile se gli elementi possono cambiare o riordinarsi; `track $index` è adatto soprattutto a liste statiche. Questo aiuta Angular a riutilizzare le viste correttamente, senza garantire un numero minimo di aggiornamenti in ogni situazione.""",
-        "@if (users().length > 0) {\n  @for (user of users(); track user.id) {\n    <div>{{ user.name }}</div>\n  }\n} @else {\n  <p>Lista vuota</p>\n}",
-        """export class UserListManager {
-    users = signal<{ id: number; name: string }[]>([]);
-    addUser(id: number, name: string) {
-        this.users.update(list => [...list, { id, name }]);
-    }
-}""",
-        "Dimenticare la clausola `track` in `@for` (provoca errore del compilatore Angular); usare `track $index` quando gli elementi hanno un ID stabile.",
-        "Perché la clausola `track` è obbligatoria nel nuovo blocco `@for`?",
-        {
-            "kind": "angular",
-            "title": "Gestione Lista Utenti con Signals",
-            "prompt": "Implementa `UserListManager` con un segnale `users` inizializzato come array vuoto di `{ id: number; name: string }`, il metodo `addUser(id: number, name: string)` che aggiunge l'elemento in modo immutabile, e `count` come computed che restituisce la lunghezza della lista.",
-            "starter": """export class UserListManager {
-    users = signal<{ id: number; name: string }[]>([]);
-    // TODO: definisci count con computed()
-
-    addUser(id: number, name: string) {
-        // TODO: aggiungi l'elemento alla lista usando .update() in modo immutabile
-    }
-}""",
-            "solution": """export class UserListManager {
-    users = signal<{ id: number; name: string }[]>([]);
-    count = computed(() => this.users().length);
-
-    addUser(id: number, name: string) {
-        this.users.update(current => [...current, { id, name }]);
-    }
-}""",
-            "tests": [
-                {"name": "Conteggio iniziale zero", "expression": "(new UserListManager()).count()", "expected": 0},
-                {"name": "Aggiunta utente aggiorna lista", "expression": "(() => { const m = new UserListManager(); m.addUser(1, 'Mario'); return m.count(); })()", "expected": 1},
-                {"name": "Dato utente inserito correttamente", "expression": "(() => { const m = new UserListManager(); m.addUser(1, 'Mario'); return m.users()[0].name; })()", "expected": "Mario"},
-            ],
-            "hints": [
-                "Usa `computed(() => this.users().length)` per calcolare il totale in modo reattivo.",
-                "Per aggiungere elementi preservando l'immutabilità, usa `this.users.update(list => [...list, { id, name }]);`.",
-                "Non usare mai `.push()` diretto sull'array interno, per non rompere la reattività."
-            ],
-            "creative_goals": ["Aggiunta immutabile con spread operator `[...list]`", "Proprietà derivata con `computed()`"],
-            "bonus_xp": 20
-        }
-    ),
+    ('04_angular_core',
+ 'Nuovo Control Flow: @if, @else, @for e @switch',
+ 45,
+ True,
+ 'Confrontare il Control Flow integrato (`@if`, `@for`, `@switch`) con le direttive strutturali più datate.',
+ '@if;@else;@for;track;@empty;@switch;@case;nuovo control flow',
+ 'Il Control Flow integrato (`@if`, `@for`, `@switch`) è disponibile da Angular 17. Usa blocchi leggibili nel '
+ "template e non richiede CommonModule per queste istruzioni; l'effetto sulle prestazioni dipende "
+ "dall'applicazione e dal lavoro svolto.",
+ '### Sintassi del Nuovo Control Flow nei Template:\n'
+ '\n'
+ '#### 1. Condizionale `@if / @else`:\n'
+ '```html\n'
+ '@if (isLoggedIn()) {\n'
+ '  <p>Benvenuto, {{ username() }}!</p>\n'
+ '} @else {\n'
+ '  <button (click)="login()">Accedi</button>\n'
+ '}\n'
+ '```\n'
+ '\n'
+ '#### 2. Ciclo `@for` (con `track` obbligatorio e `@empty`):\n'
+ '```html\n'
+ '<ul>\n'
+ '  @for (user of users(); track user.id) {\n'
+ '    <li>{{ user.name }}</li>\n'
+ '  } @empty {\n'
+ '    <li>Nessun utente registrato.</li>\n'
+ '  }\n'
+ '</ul>\n'
+ '```\n'
+ '> `track` è obbligatorio e descrive come associare gli elementi della lista alle viste. Usa un identificatore '
+ 'stabile se gli elementi possono cambiare o riordinarsi; `track $index` è adatto soprattutto a liste statiche. '
+ 'Questo aiuta Angular a riutilizzare le viste correttamente, senza garantire un numero minimo di aggiornamenti '
+ 'in ogni situazione.\n'
+ '\n'
+ '### Scegliere una vista con `@switch`\n'
+ '```html\n'
+ '@switch (status) {\n'
+ '  @case (\'loading\') { <p role="status">Caricamento…</p> }\n'
+ '  @case (\'error\') { <p role="alert">Caricamento fallito</p> }\n'
+ '  @default { <p>Pronto</p> }\n'
+ '}\n'
+ '```\n'
+ "`status` è una proprietà della classe del componente, per esempio `status = 'loading'`. Se diventa un Signal, "
+ 'nel template leggilo con `status()`. Ogni caso mostra la propria vista; non serve `break`.',
+ '@if (users().length > 0) {\n'
+ '  @for (user of users(); track user.id) {\n'
+ '    <div>{{ user.name }}</div>\n'
+ '  }\n'
+ '} @else {\n'
+ '  <p>Lista vuota</p>\n'
+ '}',
+ 'export class UserListManager {\n'
+ '    users = signal<{ id: number; name: string }[]>([]);\n'
+ '    addUser(id: number, name: string) {\n'
+ '        this.users.update(list => [...list, { id, name }]);\n'
+ '    }\n'
+ '}',
+ 'Dimenticare la clausola `track` in `@for` (provoca errore del compilatore Angular); usare `track $index` quando '
+ 'gli elementi hanno un ID stabile.',
+ 'Perché la clausola `track` è obbligatoria nel nuovo blocco `@for`?',
+ {'kind': 'angular',
+  'title': 'Gestione Lista Utenti con Signals',
+  'prompt': 'Implementa `UserListManager` con un segnale `users` inizializzato come array vuoto di `{ id: number; '
+            "name: string }`, il metodo `addUser(id: number, name: string)` che aggiunge l'elemento in modo "
+            'immutabile, e `count` come computed che restituisce la lunghezza della lista.',
+  'starter': 'export class UserListManager {\n'
+             '    users = signal<{ id: number; name: string }[]>([]);\n'
+             '    // TODO: definisci count con computed()\n'
+             '\n'
+             '    addUser(id: number, name: string) {\n'
+             "        // TODO: aggiungi l'elemento alla lista usando .update() in modo immutabile\n"
+             '    }\n'
+             '}',
+  'solution': 'export class UserListManager {\n'
+              '    users = signal<{ id: number; name: string }[]>([]);\n'
+              '    count = computed(() => this.users().length);\n'
+              '\n'
+              '    addUser(id: number, name: string) {\n'
+              '        this.users.update(current => [...current, { id, name }]);\n'
+              '    }\n'
+              '}',
+  'tests': [{'name': 'Conteggio iniziale zero', 'expression': '(new UserListManager()).count()', 'expected': 0},
+            {'name': 'Aggiunta utente aggiorna lista',
+             'expression': "(() => { const m = new UserListManager(); m.addUser(1, 'Mario'); return m.count(); "
+                           '})()',
+             'expected': 1},
+            {'name': 'Dato utente inserito correttamente',
+             'expression': "(() => { const m = new UserListManager(); m.addUser(1, 'Mario'); return "
+                           'm.users()[0].name; })()',
+             'expected': 'Mario'}],
+  'hints': ['Usa `computed(() => this.users().length)` per calcolare il totale in modo reattivo.',
+            "Per aggiungere elementi preservando l'immutabilità, usa `this.users.update(list => [...list, { id, "
+            'name }]);`.',
+            "Non usare mai `.push()` diretto sull'array interno, per non rompere la reattività."],
+  'creative_goals': ['Aggiunta immutabile con spread operator `[...list]`', 'Proprietà derivata con `computed()`'],
+  'bonus_xp': 20}),
     (
         "04_angular_core", "Data Binding moderno: interpolazione, property ed event binding", 40, True,
         "Connettere classe e template con interpolazione `{{ }}`, property binding `[prop]` ed event binding `(event)`.",
@@ -1854,7 +1892,7 @@ export class ThemeComponent {
 }
 ```
 
-> **Attenzione**: Non modificare segnali all'interno di un `effect()` a meno di non abilitare esplicitamente `{ allowSignalWrites: true }`, poiché rischierebbe di creare loop infiniti di aggiornamento!""",
+In Angular 22 scrivere Signals dentro un effect è consentito; `allowSignalWrites` è deprecato e non serve ([riferimento Angular](https://angular.dev/api/core/CreateEffectOptions)). Il rischio di cicli rimane: per calcolare uno stato a partire da altro stato preferisci `computed()`. Usa effect per sincronizzare una risorsa esterna, prevedendo la pulizia quando necessario.""",
         "effect(() => {\n  console.log('Nuovo tema selezionato:', theme());\n});",
         """export class ThemeManager {
     isDark = signal(false);
@@ -1980,27 +2018,13 @@ export class UserBadgeComponent {
         "Far convivere la semplicità dei Signals con la potenza degli operatori asincroni di RxJS.",
         "rxjs;observable;tosignal;toobservable;interoperabilita;debounce",
         "I Signals rappresentano valori correnti dell'interfaccia; RxJS offre operatori per comporre flussi asincroni come debounce, retry e WebSocket. `@angular/core/rxjs-interop` fornisce API per integrarli quando il caso lo richiede.",
-        """### Le Due Funzioni di Interoperabilità:
-1. **`toSignal(observable$, options)`**:
-   - Converte un Observable (come una chiamata `httpClient.get()`) in un Signal!
-   - Sottoscrive e distrugge automaticamente l'Observable quando il componente si chiude.
-   ```typescript
-   users = toSignal(this.http.get<User[]>('/api/users'), { initialValue: [] });
-   ```
-2. **`toObservable(signal)`**:
-   - Converte un Signal in un Observable per applicare operatori potenti come `debounceTime`, `switchMap` o `distinctUntilChanged`.
-   ```typescript
-   query$ = toObservable(this.searchQuery).pipe(
-     debounceTime(300),
-     switchMap(q => this.api.search(q))
-   );
-   ```""",
-        "const searchSignal = signal('');\nconst resultsSignal = toSignal(\n  toObservable(searchSignal).pipe(\n    debounceTime(300),\n    switchMap(q => http.get('/api/search?q=' + q))\n  ),\n  { initialValue: [] }\n);",
+        "### Le Due Funzioni di Interoperabilità:\n1. **`toSignal(observable$, options)`**:\n   - Converte un Observable (come una chiamata `httpClient.get()`) in un Signal!\n   - Sottoscrive il flusso e rilascia la sottoscrizione alla distruzione del contesto Angular.\n   ```typescript\n   users = toSignal(this.http.get<User[]>('/api/users'), { initialValue: [] });\n   ```\n2. **`toObservable(signal)`**:\n   - Converte un Signal in un Observable per applicare operatori potenti come `debounceTime`, `switchMap` o `distinctUntilChanged`.\n   ```typescript\n   query$ = toObservable(this.searchQuery).pipe(\n     debounceTime(300),\n     switchMap(q => this.api.search(q))\n   );\n   ```\n\nNell’esempio il recupero dell’errore è dentro `switchMap`: una richiesta fallita produce una lista vuota ma lascia attive le ricerche successive. È una semplificazione per studiare il flusso; in un’interfaccia completa distingui errore e nessun risultato. `params` codifica il termine senza concatenarlo nell’URL.",
+        'import { Component, inject, signal } from \'@angular/core\';\nimport { HttpClient } from \'@angular/common/http\';\nimport { toObservable, toSignal } from \'@angular/core/rxjs-interop\';\nimport { catchError, debounceTime, distinctUntilChanged, of, switchMap } from \'rxjs\';\n\n@Component({\n  selector: \'app-search\',\n  template: `<input #field (input)="searchSignal.set(field.value)" aria-label="Ricerca" />\n    @for (name of resultsSignal(); track name) { <p>{{ name }}</p> }`\n})\nexport class SearchComponent {\n  private readonly http = inject(HttpClient);\n  readonly searchSignal = signal(\'\');\n  readonly resultsSignal = toSignal(\n    toObservable(this.searchSignal).pipe(\n      debounceTime(300),\n      distinctUntilChanged(),\n      switchMap(q => this.http.get<string[]>(\'/api/search\', { params: { q } }).pipe(\n        catchError(() => of([] as string[]))\n      ))\n    ),\n    { initialValue: [] as string[] }\n  );\n}\n// Registra provideHttpClient() in app.config.ts.\n// L’API GET /api/search?q=... deve restituire un array di nomi univoci.\n// L’URL relativo richiede stesso host o proxy verso il backend.',
         """export class SearchBridge {
     query = signal('');
     setQuery(text: string) { this.query.set(text); }
 }""",
-        "Dimenticare di passare `{ initialValue: ... }` a `toSignal` con Observable che non emettono istantaneamente, causando un tipo `T | undefined`.",
+        "Leggere il valore prima della prima emissione senza gestire `undefined` o fornire un valore iniziale; creare una nuova sottoscrizione toSignal a ogni lettura.",
         "Quando è preferibile usare RxJS rispetto a un semplice Signal?",
         {
             "kind": "angular",
@@ -2190,7 +2214,7 @@ var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 db.Database.Migrate();
 ```
 Usala soltanto per sviluppo locale. Per la produzione pianifica e rivedi l'applicazione delle migrazioni come parte della distribuzione, invece di farle partire automaticamente da ogni istanza dell'app.""",
-        "dotnet ef migrations add AddUserTable\ndotnet ef database update\n# Applica le modifiche strutturali senza toccare i dati esistenti.",
+        "dotnet ef migrations add AddUserTable\ndotnet ef database update\n# Esamina la migrazione: rimozioni di colonne o tabelle possono perdere dati.",
         """public static class MigrationNameHelper {
     public static string FormatMigrationName(string name) {
         var clean = System.Text.RegularExpressions.Regex.Replace(name ?? "", "[^a-zA-Z0-9]", "");
@@ -2254,7 +2278,7 @@ public static class MigrationNameHelper {
 ```csharp
 var orderWithItems = await db.Orders
     .AsNoTracking()
-    .Include(o => o.Items) // Carica le misure correlate in questa query.
+    .Include(o => o.Items) // Carica gli articoli correlati in questa query.
     .FirstOrDefaultAsync(o => o.Id == id);
 ```""",
         "var users = await db.Users\n    .AsNoTracking()\n    .Where(u => u.IsActive)\n    .ToListAsync();",
@@ -2361,7 +2385,7 @@ await db.SaveChangesAsync(); // Genera DELETE
         "Reactive Forms mantengono valori, stato e validatori in un modello TypeScript esplicito; sono ancora una scelta solida per form complessi e codice esistente. Angular 22 offre anche Signal Forms, stabili e vicine al modello basato su signals: qui le confrontiamo per riconoscere quale approccio usare.",
         """### Creazione di un FormGroup con FormBuilder:
 ```typescript
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 
 @Component({
@@ -2377,16 +2401,16 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
   `
 })
 export class LoginFormComponent {
-  loginForm = this.fb.group({
+  private readonly fb = inject(FormBuilder);
+  loginForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]]
   });
 
-  constructor(private fb: FormBuilder) {}
-
   onSubmit() {
     if (this.loginForm.valid) {
-      console.log('Dati form:', this.loginForm.value);
+      // Invia i dati al servizio di login; evita di registrare password nei log.
+      const credentials = this.loginForm.getRawValue();
     }
   }
 }
@@ -2546,7 +2570,7 @@ export function uniqueEmailValidator(checkApi: (email: string) => Observable<boo
     }
 }""",
         "Eseguire chiamate HTTP all'API a ogni singolo tasto premuto senza applicare `debounceTime` o `timer` (intasando la rete del server).",
-        "Perché è indispensabile inserire un debounce prima di effettuare la verifica asincrona su una chiamata API?",
+        "Quando conviene ritardare la verifica remota, e che cosa mostri mentre il controllo è pending?",
         {
             "kind": "angular",
             "title": "Verifica Disponibilità Username Asincrona",
@@ -2661,34 +2685,8 @@ export const routes: Routes = [
         "Bloccare accessi non autorizzati a pagine sensibili con funzioni canActivateFn.",
         "route guard;canactivatefn;inject;router;autenticazione;protezione rotte",
         "Le Route Guards funzionali decidono se Angular può completare una navigazione e possono restituire un UrlTree di reindirizzamento. Sono un controllo del flusso UI: l'API deve applicare l'autorizzazione sul server.",
-        """### Creazione di una Route Guard Funzionale in Angular:
-```typescript
-import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
-import { AuthService } from './auth.service';
-
-export const authGuard: CanActivateFn = (route, state) => {
-  const authService = inject(AuthService);
-  const router = inject(Router);
-
-  if (authService.isAuthenticated()) {
-    return true; // Navigazione consentita!
-  }
-
-  // Reindirizza al login memorizzando l'URL a cui voleva accedere
-  return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
-};
-```
-
-### Applicazione nella Rotta:
-```typescript
-{
-  path: 'admin',
-  loadComponent: () => import('./admin.component').then(m => m.AdminComponent),
-  canActivate: [authGuard]
-}
-```""",
-        "export const authGuard: CanActivateFn = () => {\n  const auth = inject(AuthService);\n  return auth.isLoggedIn() ? true : inject(Router).createUrlTree(['/login']);\n};",
+        "### Creazione di una Route Guard Funzionale in Angular:\n```typescript\nimport { inject } from '@angular/core';\nimport { CanActivateFn, Router } from '@angular/router';\nimport { AuthService } from './auth.service';\n\nexport const authGuard: CanActivateFn = (route, state) => {\n  const authService = inject(AuthService);\n  const router = inject(Router);\n\n  if (authService.isAuthenticated()) {\n    return true; // Navigazione consentita!\n  }\n\n  // Reindirizza al login memorizzando l'URL a cui voleva accedere\n  return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });\n};\n```\n\n### Applicazione nella Rotta:\n```typescript\n{\n  path: 'admin',\n  loadComponent: () => import('./admin.component').then(m => m.AdminComponent),\n  canActivate: [authGuard]\n}\n```\n\nIl servizio usato dalla guard, in `auth.service.ts`, rappresenta qui soltanto lo stato locale della sessione:\n```typescript\nimport { Injectable, signal } from '@angular/core';\n\n@Injectable({ providedIn: 'root' })\nexport class AuthService {\n  readonly authenticated = signal(false);\n  isAuthenticated(): boolean { return this.authenticated(); }\n}\n```\nIl login aggiorna questo stato; la sua presenza non autorizza una richiesta sul server. La rotta lazy presume un file `admin.component.ts` che esporta `AdminComponent`: nel laboratorio trovi pagine e rotte già predisposte.",
+        "export const authGuard: CanActivateFn = () => {\n  const auth = inject(AuthService);\n  return auth.isAuthenticated() ? true : inject(Router).createUrlTree(['/login']);\n};",
         """export class GuardSimulator {
     checkAccess(isAuthenticated: boolean, requiredRole?: string, userRole?: string): boolean {
         if (!isAuthenticated) return false;
@@ -2877,59 +2875,63 @@ GET /api/profile senza token -> 401
 GET /api/profile con token Reader -> 200
 GET /api/admin con token Reader -> 403
 POST /api/login con userName `admin` e password `demo`, poi GET /api/admin -> 200""",
-        """public static class AuthClaimHelper {
-    public static string ExtractUsername(string? emailClaim) =>
-        string.IsNullOrWhiteSpace(emailClaim) ? "Guest" : emailClaim.Split('@')[0];
-}""",
+        'public static class AccessDecision {\n    public static int StatusCode(bool authenticated, string role) {\n        // Prima chiediti se esiste un’identità verificata.\n        // Poi applica il requisito di ruolo della risorsa.\n        return 200; // comportamento da correggere nell’esercizio\n    }\n}',
         "Usare questa rotta demo come sistema di login reale; salvare chiavi o token nel repository; confondere `RequireAuthorization()` (serve un utente autenticato) con una policy di ruolo; fidarsi di una guard Angular al posto della policy API.",
         "Che differenza c'è tra `RequireAuthorization()` e `RequireAuthorization(\"AdminOnly\")` e quali risposte HTTP ti aspetti?",
-        {
-            "kind": "csharp",
-            "title": "Estrattore Username da Claim Email",
-            "prompt": "Implementa `AuthClaimHelper.ExtractUsername(string? emailClaim)` che estrae la parte precedente alla '@' da un'email, o restituisce \"Guest\" se l'email è nulla o priva di '@'.",
-            "starter": """public static class AuthClaimHelper {
-    public static string ExtractUsername(string? emailClaim) {
-        // TODO: restituisci la parte prima di '@' o "Guest"
-        return "Guest";
-    }
-}""",
-            "solution": """public static class AuthClaimHelper {
-    public static string ExtractUsername(string? emailClaim) {
-        if (string.IsNullOrWhiteSpace(emailClaim) || !emailClaim.Contains('@')) return "Guest";
-        return emailClaim.Split('@')[0].Trim();
-    }
-}""",
-            "tests": [
-                {"name": "Estrazione username da email", "expression": 'AuthClaimHelper.ExtractUsername("mario.rossi@dev48.it")', "expected": "mario.rossi"},
-                {"name": "Email nulla restituisce Guest", "expression": "AuthClaimHelper.ExtractUsername(null)", "expected": "Guest"},
-                {"name": "Stringa senza chiocciola restituisce Guest", "expression": 'AuthClaimHelper.ExtractUsername("invalidemail")', "expected": "Guest"},
-            ],
-            "hints": [
-                "Verifica `if (string.IsNullOrWhiteSpace(emailClaim) || !emailClaim.Contains('@')) return \"Guest\";`.",
-                "Estrai la prima parte con `emailClaim.Split('@')[0].Trim()`.",
-                "Questo consente di mostrare un nome utente leggibile derivato dall'indirizzo email."
-            ],
-            "creative_goals": ["Usa Split per estrarre la parte locale", "Protezione da stringhe invalide"],
-            "bonus_xp": 20
-        }
+        {'kind': 'csharp',
+ 'title': 'Distinguere autenticazione e autorizzazione',
+ 'prompt': 'Implementa `AccessDecision.StatusCode(bool authenticated, string role)` per una risorsa Admin: '
+           '401 se non autenticato, 403 se autenticato con ruolo diverso da Admin, 200 per Admin. Il '
+           'confronto del ruolo è esatto. Il runner controlla questa decisione isolata; il laboratorio JWT '
+           'verifica la vera policy ASP.NET Core con token firmati.',
+ 'starter': 'public static class AccessDecision {\n'
+            '    public static int StatusCode(bool authenticated, string role) {\n'
+            '        // TODO: verifica prima l’identità, poi il ruolo\n'
+            '        return 200;\n'
+            '    }\n'
+            '}',
+ 'solution': 'public static class AccessDecision {\n'
+             '    public static int StatusCode(bool authenticated, string role) {\n'
+             '        if (!authenticated) return 401;\n'
+             '        return role == "Admin" ? 200 : 403;\n'
+             '    }\n'
+             '}',
+ 'tests': [{'name': 'Anonimo senza ruolo',
+            'expression': 'AccessDecision.StatusCode(false, "")',
+            'expected': 401},
+           {'name': 'Un ruolo dichiarato non autentica',
+            'expression': 'AccessDecision.StatusCode(false, "Admin")',
+            'expected': 401},
+           {'name': 'Reader autenticato',
+            'expression': 'AccessDecision.StatusCode(true, "Reader")',
+            'expected': 403},
+           {'name': 'Admin autenticato',
+            'expression': 'AccessDecision.StatusCode(true, "Admin")',
+            'expected': 200},
+           {'name': 'Confronto esatto del ruolo',
+            'expression': 'AccessDecision.StatusCode(true, "admin")',
+            'expected': 403}],
+ 'hints': ['La verifica dell’identità deve precedere quella del ruolo.',
+           'Un utente autenticato può comunque non avere il permesso richiesto.',
+           'Restituisci 401 nel primo ramo, poi scegli tra 200 e 403.']}
     ),
     (
         "08_security_fullstack", "Consumo API autenticata con HttpClient e HttpInterceptor", 45, True,
-        "Inviare automaticamente il token Bearer in tutte le chiamate HTTP con un HttpInterceptorFn di Angular.",
+        "Inviare il token Bearer nelle chiamate dirette alla propria API con un HttpInterceptorFn di Angular.",
         "httpclient;httpinterceptorfn;bearer token;authorization header;req.clone;withinterceptors",
         "Un HttpInterceptor può aggiungere `Authorization: Bearer <token>` alle richieste verso la propria API. Limitare l'interceptor all'origine attesa evita di inviare il token a server di terze parti. Il servizio d'esempio lo conserva solo in memoria: un ricaricamento lo elimina; non spostarlo in `localStorage` come scorciatoia per renderlo persistente.",
         """### Creazione di un HttpInterceptor Funzionale in Angular:
 ```typescript
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { AuthService } from './auth.service';
+import { DOCUMENT } from '@angular/common';
+import { SessionService } from './session.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const authService = inject(AuthService);
-  const token = authService.getToken();
+  const token = inject(SessionService).token();
 
   const apiOrigin = 'https://localhost:5001';
-  const requestOrigin = new URL(req.url, apiOrigin).origin;
+  const requestOrigin = new URL(req.url, inject(DOCUMENT).baseURI).origin;
   if (token && requestOrigin === apiOrigin) {
     // La richiesta HTTP è immutabile: va clonata aggiungendo gli headers!
     const clonedReq = req.clone({
@@ -2943,6 +2945,17 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
 };
 ```
+
+### Servizio della sessione in `session.service.ts`:
+```typescript
+import { Injectable, signal } from '@angular/core';
+
+@Injectable({ providedIn: 'root' })
+export class SessionService {
+  readonly token = signal<string | null>(null);
+}
+```
+Dopo il login imposta `session.token.set(response.token)`. Un URL relativo è risolto rispetto alla pagina, non all'origine API: se client e server usano porte diverse, passa l'URL assoluto dell'API oppure configura un proxy di sviluppo.
 
 ### Registrazione in `app.config.ts`:
 ```typescript
@@ -2962,56 +2975,67 @@ Riferimento: [Configure JWT bearer authentication in ASP.NET Core](https://learn
 }""",
         "Modificare direttamente l'oggetto `HttpRequest`; aggiungere il token a URL esterni alla propria API; trattare una guard Angular come controllo di autorizzazione lato server; usare `localStorage` come soluzione automatica per mantenere un token.",
         "Perché un interceptor dovrebbe aggiungere il Bearer token solo alle richieste dirette all'API prevista?",
-        {
-            "kind": "angular",
-            "title": "Servizio di Memorizzazione Token",
-            "prompt": "Implementa `TokenStorageService` con i metodi `setToken(t: string | null)`, `getToken(): string | null`, e `hasToken(): boolean` che restituisce true solo se il token è valorizzato e non vuoto.",
-            "starter": """export class TokenStorageService {
-    private token: string | null = null;
-
-    setToken(t: string | null) {
-        // TODO: salva il token
-    }
-
-    getToken(): string | null {
-        // TODO: restituisci il token
-        return null;
-    }
-
-    hasToken(): boolean {
-        // TODO: restituisci true se il token non è vuoto
-        return false;
-    }
-}""",
-            "solution": """export class TokenStorageService {
-    private token: string | null = null;
-
-    setToken(t: string | null) {
-        this.token = t && t.trim().length > 0 ? t.trim() : null;
-    }
-
-    getToken(): string | null {
-        return this.token;
-    }
-
-    hasToken(): boolean {
-        return Boolean(this.token && this.token.length > 0);
-    }
-}""",
-            "tests": [
-                {"name": "Stato iniziale senza token", "expression": "(new TokenStorageService()).hasToken()", "expected": False},
-                {"name": "Salvataggio token valido", "expression": "(() => { const s = new TokenStorageService(); s.setToken('abc.123'); return s.hasToken(); })()", "expected": True},
-                {"name": "Lettura token corretto", "expression": "(() => { const s = new TokenStorageService(); s.setToken('my-token'); return s.getToken(); })()", "expected": "my-token"},
-                {"name": "Salvataggio null azzera token", "expression": "(() => { const s = new TokenStorageService(); s.setToken('token'); s.setToken(null); return s.hasToken(); })()", "expected": False},
-            ],
-            "hints": [
-                "Pulisci il token con `.trim()` se valorizzato.",
-                "Se `t` è nullo o vuoto, salva `null`.",
-                "In `hasToken()`, restituisci `Boolean(this.token)`."
-            ],
-            "creative_goals": ["Incapsulamento sicuro con campo privato", "Sanitizzazione token con .trim()"],
-            "bonus_xp": 20
-        }
+        {'kind': 'angular',
+ 'title': 'Token e origine della richiesta',
+ 'prompt': 'Completa `TokenStorageService` con setToken, getToken e hasToken. Aggiungi '
+           '`authorizationFor(url: string): string | null`: restituisce `Bearer <token>` soltanto se il '
+           'token è presente e l’origine dell’URL è https://localhost:5001, altrimenti null. Gli URL '
+           'dell’esercizio sono assoluti. Il runner verifica la selezione dell’header; il laboratorio usa un '
+           'vero HttpInterceptor.',
+ 'starter': 'export class TokenStorageService {\n'
+            '    private token: string | null = null;\n'
+            '    setToken(t: string | null) { /* TODO */ }\n'
+            '    getToken(): string | null { return null; }\n'
+            '    hasToken(): boolean { return false; }\n'
+            '    authorizationFor(url: string): string | null { return null; }\n'
+            '}',
+ 'solution': 'export class TokenStorageService {\n'
+             '    private token: string | null = null;\n'
+             '    setToken(t: string | null) { this.token = t; }\n'
+             '    getToken(): string | null { return this.token; }\n'
+             '    hasToken(): boolean { return Boolean(this.token); }\n'
+             '    authorizationFor(url: string): string | null {\n'
+             '        if (!this.hasToken() || new URL(url).origin !== "https://localhost:5001") return '
+             'null;\n'
+             '        return `Bearer ${this.token}`;\n'
+             '    }\n'
+             '}',
+ 'tests': [{'name': 'Stato iniziale senza token',
+            'expression': '(new TokenStorageService()).hasToken()',
+            'expected': False},
+           {'name': 'Salvataggio token valido',
+            'expression': "(() => { const s = new TokenStorageService(); s.setToken('abc.123'); return "
+                          's.hasToken(); })()',
+            'expected': True},
+           {'name': 'Lettura token corretto',
+            'expression': "(() => { const s = new TokenStorageService(); s.setToken('my-token'); return "
+                          's.getToken(); })()',
+            'expected': 'my-token'},
+           {'name': 'Salvataggio null azzera token',
+            'expression': "(() => { const s = new TokenStorageService(); s.setToken('token'); "
+                          's.setToken(null); return s.hasToken(); })()',
+            'expected': False},
+           {'name': 'Header per API configurata',
+            'expression': '(() => { const s = new TokenStorageService(); s.setToken("abc"); return '
+                          's.authorizationFor("https://localhost:5001/api/profile"); })()',
+            'expected': 'Bearer abc'},
+           {'name': 'Nessun token verso origini esterne',
+            'expression': '(() => { const s = new TokenStorageService(); s.setToken("abc"); return '
+                          's.authorizationFor("https://example.test/api/profile"); })()',
+            'expected': None},
+           {'name': 'Porta differente',
+            'expression': '(() => { const s = new TokenStorageService(); s.setToken("abc"); return '
+                          's.authorizationFor("https://localhost:4200/api/profile"); })()',
+            'expected': None},
+           {'name': 'Token assente',
+            'expression': '(new '
+                          'TokenStorageService()).authorizationFor("https://localhost:5001/api/profile")',
+            'expected': None}],
+ 'hints': ['Non usare startsWith per confrontare l’origine: schema, host e porta fanno parte del confronto.',
+           '`new URL(url).origin` estrae l’origine di un URL assoluto.',
+           'Controlla il token e l’origine prima di costruire l’header.'],
+ 'creative_goals': [],
+ 'bonus_xp': 20}
     ),
     (
         "08_security_fullstack", "CORS, Same-Origin, XSS e CSRF: scopi distinti", 40, True,
@@ -3096,69 +3120,30 @@ public static class CorsSecurityHelper {
         "Scrivere test unitari affidabili e manutenibili per i servizi e la logica di business .NET.",
         "xunit;[fact];[theory];assert;arrange act assert;red green refactor",
         "I test unitari verificano che singoli metodi o componenti producano il risultato atteso per diversi input, proteggendo il codice da regressioni durante i refactoring.",
-        """### Il Pattern Arrange - Act - Assert (AAA):
-Ogni test professionale segue 3 fasi distinte:
-1. **Arrange (Prepara)**: inizializza le variabili, crea gli oggetti e prepara l'ambiente di test.
-2. **Act (Esegui)**: invoca il metodo sotto test con i parametri stabiliti.
-3. **Assert (Verifica)**: controlla che il valore restituito o lo stato coincida con il risultato atteso.
-
-### Esempio con xUnit:
-```csharp
-using Xunit;
-
-public class CalculatorTests {
-    [Fact]
-    public void Add_TwoNumbers_ReturnsCorrectSum() {
-        // 1. Arrange
-        var calc = new Calculator();
-
-        // 2. Act
-        var result = calc.Add(10, 20);
-
-        // 3. Assert
-        Assert.Equal(30, result);
-    }
-
-    [Theory]
-    [InlineData(0, true)]
-    [InlineData(-5, false)]
-    public void IsPositive_VariousInputs_ReturnsExpected(int number, bool expected) {
-        var calc = new Calculator();
-        Assert.Equal(expected, calc.IsPositive(number));
-    }
-}
-```""",
-        "[Fact]\npublic void Calculate_ValidInput_ReturnsExpected() {\n    var result = Service.Process(5);\n    Assert.Equal(10, result);\n}",
-        """public static class TestEvaluationHelper {
-    public static bool EvaluateAssertion(int actual, int expected) => actual == expected;
-}""",
+        "### Il Pattern Arrange - Act - Assert (AAA):\nIl modello Arrange–Act–Assert rende distinguibili tre responsabilità:\n1. **Arrange (Prepara)**: inizializza le variabili, crea gli oggetti e prepara l'ambiente di test.\n2. **Act (Esegui)**: invoca il metodo sotto test con i parametri stabiliti.\n3. **Assert (Verifica)**: controlla che il valore restituito o lo stato coincida con il risultato atteso.\n\n### Esempio con xUnit:\n```csharp\nusing Xunit;\n\npublic class CalculatorTests {\n    [Fact]\n    public void Add_TwoNumbers_ReturnsCorrectSum() {\n        // 1. Arrange\n        var calc = new Calculator();\n\n        // 2. Act\n        var result = calc.Add(10, 20);\n\n        // 3. Assert\n        Assert.Equal(30, result);\n    }\n\n    [Theory]\n    [InlineData(0, false)]\n    [InlineData(-5, false)]\n    public void IsPositive_VariousInputs_ReturnsExpected(int number, bool expected) {\n        var calc = new Calculator();\n        Assert.Equal(expected, calc.IsPositive(number));\n    }\n}\n```\n\nNel progetto di test aggiungi la classe usata dall’esempio (oppure referenzia il progetto che la contiene):\n```csharp\npublic class Calculator {\n    public int Add(int a, int b) => a + b;\n    public bool IsPositive(int number) => number > 0;\n}\n```\nEsegui `dotnet test Tests/Server.Tests.csproj` dalla cartella `server/` del laboratorio Suite di Test xUnit e Vitest. Prima fai fallire un test con un difetto controllato, poi correggi il metodo e verifica di nuovo.",
+        'using Xunit;\n\npublic static class Service {\n    public static int Process(int value) => value * 2;\n}\n\npublic class ServiceTests {\n    [Fact]\n    public void Calculate_ValidInput_ReturnsExpected() {\n        var result = Service.Process(5);\n        Assert.Equal(10, result);\n    }\n}',
+        '// Test che espone il difetto nel metodo da correggere:\n[Theory]\n[InlineData(5, true)]\n[InlineData(0, false)]\n[InlineData(-5, false)]\npublic void Positive_rule_matches_contract(int value, bool expected) {\n    Assert.Equal(expected, NumberRules.IsPositive(value));\n}',
         "Scrivere test che dipendono dal database reale o dalla rete (rallentano la suite e falliscono a intermittenza); inserire troppe verifiche non correlate nello stesso test.",
         "Qual è la differenza fondamentale tra l'attributo `[Fact]` e `[Theory]` in xUnit?",
-        {
-            "kind": "csharp",
-            "title": "Verificatore Asserzioni di Test",
-            "prompt": "Implementa `TestEvaluationHelper.EvaluateAssertion(int actual, int expected)` che restituisce true se actual coincide con expected, altrimenti false.",
-            "starter": """public static class TestEvaluationHelper {
-    public static bool EvaluateAssertion(int actual, int expected) {
-        // TODO: confronta actual ed expected
-        return false;
-    }
-}""",
-            "solution": """public static class TestEvaluationHelper {
-    public static bool EvaluateAssertion(int actual, int expected) => actual == expected;
-}""",
-            "tests": [
-                {"name": "Asserzione vera per valori uguali", "expression": "TestEvaluationHelper.EvaluateAssertion(42, 42)", "expected": True},
-                {"name": "Asserzione falsa per valori diversi", "expression": "TestEvaluationHelper.EvaluateAssertion(42, 99)", "expected": False},
-            ],
-            "hints": [
-                "Un confronto di uguaglianza `actual == expected` restituisce direttamente il booleano.",
-                "In C# puoi scriverlo con expression-body: `=> actual == expected;`.",
-                "Questo riflette il comportamento interno di `Assert.Equal()`."
-            ],
-            "creative_goals": ["Usa expression-bodied member sintetico", "Confronto immediato per valori interi"],
-            "bonus_xp": 20
-        }
+        {'kind': 'csharp',
+ 'title': 'Debugging di un caso limite scoperto da un test',
+ 'prompt': 'Una Theory dichiara IsPositive(5) = true, IsPositive(0) = false e IsPositive(-5) = false. Lo '
+           'starter fallisce soltanto il caso zero. Correggi `NumberRules.IsPositive(int number)` senza '
+           'cambiare gli esiti attesi. Poi, nel laboratorio Suite di Test xUnit e Vitest, traduci questi tre '
+           'casi in InlineData: qui il runner verifica il metodo C#, non gli attributi xUnit.',
+ 'starter': 'public static class NumberRules {\n'
+            '    public static bool IsPositive(int number) => number >= 0;\n'
+            '}',
+ 'solution': 'public static class NumberRules {\n'
+             '    public static bool IsPositive(int number) => number > 0;\n'
+             '}',
+ 'tests': [{'name': 'Numero positivo', 'expression': 'NumberRules.IsPositive(5)', 'expected': True},
+           {'name': 'Zero non positivo', 'expression': 'NumberRules.IsPositive(0)', 'expected': False},
+           {'name': 'Numero negativo', 'expression': 'NumberRules.IsPositive(-5)', 'expected': False},
+           {'name': 'Minimo positivo', 'expression': 'NumberRules.IsPositive(1)', 'expected': True}],
+ 'hints': ['Confronta il risultato del caso zero con la specifica, prima di cambiare il test.',
+           'Il termine positivo esclude lo zero.',
+           'La differenza è nel confronto > rispetto a >=.']}
     ),
     (
         "09_quality_testing", "Testare componenti Angular con Vitest e TestBed", 45, True,
@@ -3439,7 +3424,7 @@ mio-progetto/
     finishError() { this.status.set('error'); }
 }""",
         "Non mostrare alcuno stato di caricamento lasciando credere all'utente che il click non sia stato registrato.",
-        "Perché disabilitare il pulsante di invio durante una chiamata HTTP è una best-practice essenziale di UX?",
+        "Quali problemi previeni disabilitando il pulsante durante una richiesta, e che cosa devi fare se fallisce?",
         {
             "kind": "angular",
             "title": "Gestore Stato UI per Feedback Visivo",
@@ -3557,7 +3542,7 @@ Per provare il documento con un'interfaccia web, scegli e installa una UI separa
         "10_portfolio_monorepo", "Presentare il progetto: Git, README professionale e Portfolio", 45, True,
         "Documentare architettura, comandi e decisioni tecniche in modo che un'altra persona possa avviare e valutare il progetto.",
         "readme professionale;architettura;compromessi tecnici;openapi;swagger;portfolio github",
-        "Un progetto brillante viene valorizzato solo se spiegato chiaramente: un README eccellente illustra l'architettura, le decisioni tecniche prese, i comandi di avvio e le future estensioni possibili.",
+        "Un README permette di avviare e comprendere il progetto. Documenta l'architettura, le decisioni tecniche prese, i comandi di avvio e le future estensioni possibili.",
         """### Sezioni Indispensabili di un README Professionale:
 1. **Titolo & Badge**: nome del progetto, versione di .NET e Angular.
 2. **Architettura della Soluzione**: diagramma concettuale o elenco delle tecnologie adottate.
@@ -3626,7 +3611,7 @@ def infer_code_language(source: str) -> str:
         code,
     ):
         return "csharp"
-    if re.search(r"\b(interface|type|export|import|signal|computed|inject|Routes|FormGroup)\b|:\s*(string|number|boolean|unknown)\b", code):
+    if re.search(r"\b(interface|type|export|import|signal|computed|inject|Routes|FormGroup|effect|bootstrapApplication|Validators)\b|:\s*(string|number|boolean|unknown)\b", code):
         return "typescript"
     if re.search(r"\b(public|private|record|var|builder\.|app\.Map|using System)\b|=>\s*Results\.", code):
         return "csharp"
@@ -3649,16 +3634,25 @@ def lesson_markdown(
     pitfalls: str,
     review_question: str,
     guided_walkthrough: str,
+    study_context: str,
+    practice_context: str,
 ) -> str:
     concept_items = [f"- `{x.strip()}`" for x in concepts.split(";")]
     concept_list = "\n".join(concept_items)
     pitfall_items = [f"- {x.strip()}" for x in pitfalls.split(";")]
     pitfalls_list = "\n".join(pitfall_items)
-    first_terms = ", ".join(f"`{x.strip()}`" for x in concepts.split(";")[:2])
     example_lang = infer_code_language(example)
     pattern_lang = infer_code_language(pattern_guide)
+    # Early practice has a nearby syntax reference. Later modules rely on the
+    # worked framework example and the exercise's own starter, so the lesson
+    # does not reveal the short exercise's implementation before the attempt.
+    show_pattern = module[:2] in {"00", "01", "02", "03", "04", "05"} or title in {
+        "Principi SOLID applicati allo sviluppo Full-Stack",
+        "Architettura Pulita: separazione di Domain, Application e API",
+    }
+    pattern_block = f"```{pattern_lang}\n{pattern_guide}\n```" if show_pattern else ""
 
-    return f"""# {title}
+    markdown = f"""# {title}
 
 ## In parole semplici
 
@@ -3666,25 +3660,17 @@ L'obiettivo di questa lezione è {summary[0].lower() + summary[1:]}
 
 {simple_explanation}
 
-### Prima di iniziare
-
-Non dare per scontato di conoscere i termini elencati sotto: la spiegazione li introduce nel contesto. Se un termine resta poco chiaro, consulta il glossario e torna all'esempio.
+{study_context}
 
 ## Le parole da riconoscere
 
 {concept_list}
 
-Non serve imparare questi termini a memoria. Concentrati inizialmente su **{first_terms}** e cerca di osservarli all'interno del codice e degli esercizi pratici.
-
 ## Anatomia e Sintassi del Codice
-
-Leggi la spiegazione prima del codice. Quando compare una parola nuova, cerca il suo ruolo qui e prova a riconoscerla nell'esempio.
 
 {syntax_anatomy}
 
 ## Un esempio concreto
-
-Questo è un esempio o un estratto minimo. Potrebbe dipendere da import, classi o configurazioni dichiarate altrove; il blocco mostra la parte pertinente al concetto.
 
 ```{example_lang}
 {example}
@@ -3696,36 +3682,20 @@ Questo è un esempio o un estratto minimo. Potrebbe dipendere da import, classi 
 
 ## Pattern Guida per gli Esercizi
 
-La traccia seguente mostra un modo di applicare il concetto. Confrontala con il prompt e adatta i passaggi ai casi richiesti; potrebbe mostrare soltanto la parte centrale:
+{practice_context}
 
-```{pattern_lang}
-{pattern_guide}
-```
-
-Prima di iniziare, prova a indicare che cosa ricevi, quale risultato ti aspetti e un caso limite. Poi affronta un passaggio alla volta e usa i controlli disponibili per verificare la consegna.
+{pattern_block}
 
 ## Dove ci si confonde spesso
 
 {pitfalls_list}
 
-Se qualcosa non funziona al primo tentativo, leggi il primo errore del compilatore o del test. Controlla una cosa alla volta: sintassi, tipo restituito, poi caso limite.
-
-## Controllo rapido
-
-- Riesco a spiegare il concetto principale con parole mie senza leggere?
-- So identificare input, output e almeno un caso limite o di errore?
-- Saprei applicare questa feature all'interno di un componente o di un'API reale?
-
 ## Domanda di verifica
 
 > {review_question}
 
-Prova a formulare una risposta chiara: prima definisci la regola generale, poi porta un esempio pratico, e infine cita un errore comune da evitare.
-
-## Prima di andare avanti
-
-Se una parte rimane poco chiara, torna al primo passaggio e spiega che cosa entra e che cosa esce dal codice. Passa all'esercizio quando riesci a prevedere almeno il caso normale e un caso limite.
 """
+    return re.sub(r"\n{3,}", "\n\n", markdown).rstrip() + "\n"
 
 
 LABS_DATA = [
@@ -3733,14 +3703,14 @@ LABS_DATA = [
     ("lab-ts-angular-models", "02_typescript", "Modelli TypeScript e Contratti Web", 45, "Progetta un set completo di interfacce e union discriminate per un'applicazione di gestione ordini.", "angular"),
     ("lab-aspnet-minimal-api", "03_aspnet_api", "Web API con Minimal API e DTO", 60, "Costruisci da zero un servizio RESTful con Minimal API, dependency injection e validazione DTO.", "dotnet"),
     ("lab-angular-standalone", "04_angular_core", "Catalogo Standalone con Control Flow", 65, "Sviluppa una pagina catalogo con i nuovi blocchi @if, @for (track) e visualizzazione a schede.", "angular"),
-    ("lab-angular-signals-state", "05_angular_signals", "Dashboard Reattiva con Angular Signals", 70, "Costruisci una dashboard di metriche che calcola totali e percentuali tramite computed() ed effect().", "angular"),
-    ("lab-efcore-sqlite-db", "06_efcore", "Persistenza con EF Core e SQLite", 75, "Configura DbContext, relazioni 1:N tra soggetti e misure, e applica migrazioni automatiche.", "dotnet"),
+    ("lab-angular-signals-state", "05_angular_signals", "Dashboard Reattiva con Angular Signals", 70, "Costruisci una dashboard di metriche che calcola totali e percentuali tramite computed(); usa effect solo per sincronizzare risorse esterne quando serve.", "angular"),
+    ("lab-efcore-sqlite-db", "06_efcore", "Persistenza con EF Core e SQLite", 75, "Configura DbContext, relazioni 1:N tra soggetti e misure, e crea e applica migrazioni dalla CLI in sviluppo locale.", "dotnet"),
     ("lab-angular-reactive-forms", "07_angular_forms_routing", "Form Reattivo con Validazione Remota", 70, "Implementa un form Angular completo di controlli, validatori sincroni e verifica asincrona.", "angular"),
     ("lab-angular-routing-guard", "07_angular_forms_routing", "Navigazione SPA e Route Guard Funzionali", 60, "Configura le rotte con lazy-loading e proteggi le pagine sensibili con canActivateFn.", "angular"),
     ("lab-fullstack-jwt-auth", "08_security_fullstack", "Autenticazione JWT Full-Stack", 90, "Genera token Bearer nel backend ASP.NET Core e collegali tramite HttpInterceptor in Angular.", "monorepo"),
     ("lab-testing-xunit-vitest", "09_quality_testing", "Suite di Test xUnit e Vitest", 75, "Scrivi test unitari su metodi di business C# e test comportamentali su componenti Angular.", "monorepo"),
     ("lab-fullstack-monorepo-crud", "10_portfolio_monorepo", "Gestionale Full-Stack Monorepo", 110, "Collega client Angular Standalone e server .NET Web API con operazioni CRUD complete.", "monorepo"),
-    ("lab-portfolio-enterprise", "10_portfolio_monorepo", "Progetto Finale di Portfolio Enterprise", 130, "Realizza un'applicazione completa con architettura pulita, documentazione OpenAPI, styling moderno e bonus creativi.", "monorepo"),
+    ("lab-portfolio-enterprise", "10_portfolio_monorepo", "Progetto Finale di Portfolio Enterprise", 130, "Realizza un'applicazione completa con architettura pulita, documentazione OpenAPI, un’interfaccia comprensibile e decisioni progettuali motivate.", "monorepo"),
 ]
 
 LAB_CRITERIA = {
@@ -3777,7 +3747,7 @@ LAB_CRITERIA = {
         ["La rotta pubblica resta raggiungibile.", "La rotta privata reindirizza chi non è autenticato.", "La lezione chiarisce che la guard migliora il flusso UI e non protegge l'API."]
     ),
     "lab-fullstack-jwt-auth": (
-        ["Configura validazione JWT lato server con firma, issuer, audience e scadenza.", "Leggi la chiave da User Secrets o variabile d'ambiente, mai da un file committato.", "Proteggi un endpoint per utenti autenticati e uno con policy Admin; verifica 401, 403 e 200 con test.", "Aggiungi il Bearer token dal client solo verso l'origine dell'API."],
+        ["Completa l’emissione del token nella rotta login didattica e configura la validazione di firma, issuer, audience e scadenza.", "Leggi la chiave da User Secrets o variabile d'ambiente, mai da un file committato.", "Proteggi un endpoint per utenti autenticati e uno con policy Admin; verifica 401, 403 e 200 con test.", "Aggiungi il Bearer token dal client solo verso l'origine dell'API."],
         ["Una richiesta senza token riceve 401; un ruolo Reader non accede alla rotta Admin (403); Admin accede (200).", "Il token valido è verificato dal backend e le policy di ruolo vengono applicate lì.", "Nessun segreto o token viene inserito nel repository."]
     ),
     "lab-testing-xunit-vitest": (
@@ -3795,10 +3765,10 @@ LAB_CRITERIA = {
 }
 
 SIMULATIONS_DATA = [
-    ("sim-csharp-30", "Live coding C# Moderno — 30 minuti", 30, "Ricevi una collezione di transazioni. Devi filtrarla con LINQ, calcolare totali raggruppati per categoria e gestire input non validi senza generare eccezioni non gestite.", ["Ripeti i requisiti con parole tue", "Usa record immutabili per i DTO", "Implementa filtri con LINQ senza alterare la collezione originale", "Verifica casi limite come lista vuota o valori nulli", "Spiega la complessità computazionale della soluzione"]),
-    ("sim-angular-signals-45", "Live coding Angular Signals — 45 minuti", 45, "Costruisci un componente standalone reattivo che gestisce un carrello spesa: aggiunta, rimozione, calcolo subtotale e sconto con computed(), e salvataggio su localStorage con effect().", ["Inizializza i segnali con valori di default coerenti", "Usa computed() per i prezzi derivati evitando ricalcoli manuali", "Applica il nuovo blocco @for con clausola track obbligatoria", "Gestisci lo stato di carrello vuoto con il blocco @empty", "Dimostra il funzionamento reattivo delle modifiche"]),
+    ("sim-csharp-30", "Pratica autonoma C# — circa 30 minuti", 30, "Ricevi una collezione di transazioni. Devi filtrarla con LINQ, calcolare totali raggruppati per categoria e gestire input non validi senza generare eccezioni non gestite.", ["Ripeti i requisiti con parole tue", "Usa record immutabili per i DTO", "Implementa filtri con LINQ senza alterare la collezione originale", "Verifica casi limite come lista vuota o valori nulli", "Spiega la complessità computazionale della soluzione"]),
+    ("sim-angular-signals-45", "Pratica autonoma Angular Signals — circa 45 minuti", 45, "Costruisci un componente standalone reattivo che gestisce un carrello spesa: aggiunta, rimozione, calcolo subtotale e sconto con computed(), e salvataggio su localStorage con effect().", ["Inizializza i segnali con valori di default coerenti", "Usa computed() per i prezzi derivati evitando ricalcoli manuali", "Applica il nuovo blocco @for con clausola track obbligatoria", "Gestisci lo stato di carrello vuoto con il blocco @empty", "Dimostra il funzionamento reattivo delle modifiche"]),
     ("sim-debug-fullstack-45", "Debugging Full-Stack .NET & Angular — 45 minuti", 45, "Un'applicazione esistente non riceve i dati dal backend: analizza log C#, errori CORS del browser, status code HTTP e interceptor per correggere i bug in modo sistematico.", ["Isola se l'errore è nel server o nel client", "Controlla la configurazione della policy CORS in Program.cs", "Verifica che l'URL dell'API e le porte corrispondano", "Controlla il parsing dei tipi DTO JSON", "Esegui nuovamente i test per confermare la risoluzione"]),
-    ("sim-portfolio-interview-60", "Simulazione Colloquio Tecnico Full-Stack — 60 minuti", 60, "Simula un colloquio per una posizione Full-Stack: spiega la separazione delle responsabilità, la gestione di sicurezza e JWT, il ruolo dei Signals nello stato Angular e le scelte architetturali del tuo portfolio.", ["Sintetizza l'architettura della tua soluzione in 2 minuti", "Giustifica perché hai scelto Minimal API anziché Controller tradizionali", "Spiega come hai garantito la sicurezza dei token JWT", "Racconta un compromesso tecnico reale affrontato", "Rispondi alle domande di approfondimento con esempi concreti"]),
+    ("sim-portfolio-interview-60", "Revisione del progetto Full-Stack — circa 60 minuti", 60, "Avvia il progetto seguendo il README, segui una richiesta dal componente al database e scegli una piccola modifica da implementare. Usa il tempo come riferimento: completa il ciclo implementazione, debugging e verifica anche se richiede più di un’ora.", ["Avvia client e server usando i comandi documentati", "Segui una richiesta e descrivi dove vengono validati input e autorizzazioni", "Implementa una piccola estensione e verifica un caso valido e uno di errore", "Annota il difetto incontrato e come hai individuato la causa", "Aggiorna il README con la decisione presa e un limite ancora presente"]),
 ]
 
 LEGACY_LESSON_TITLES = {
@@ -4002,7 +3972,7 @@ GUIDED_WALKTHROUGHS = {
 2. `then(m => m.CatalogComponent)` seleziona l'export da mostrare; il componente deve comparire in un `<router-outlet>` presente nell'app.
 3. Visitando `/catalog`, il Router carica il componente e mantiene la navigazione nella SPA. Un `routerLink` evita il ricaricamento completo della pagina.
 4. Prova un percorso inesistente e aggiungi una route di fallback. Poi osserva nel Network quando viene scaricato il chunk del catalogo.""",
-    "Route Guards funzionali: Proteggere le rotte con canActivate": """1. La guard inietta il servizio di autenticazione e legge `isLoggedIn()` prima di consentire la navigazione.
+    "Route Guards funzionali: Proteggere le rotte con canActivate": """1. La guard inietta il servizio di autenticazione e legge `isAuthenticated()` prima di consentire la navigazione.
 2. Se la persona è autenticata, restituisce `true`; altrimenti crea un `UrlTree` per `/login`, così il Router esegue il reindirizzamento.
 3. La guard migliora il flusso dell'interfaccia, ma non è un confine di sicurezza: il backend deve autorizzare ogni richiesta protetta.
 4. Prova entrambi gli stati e aggiungi un ruolo richiesto. Poi invia direttamente una richiesta HTTP all'API per verificare che il server applichi la propria autorizzazione.""",
@@ -4057,6 +4027,110 @@ GUIDED_WALKTHROUGHS = {
 }
 
 
+REVIEW_ANSWERS = {
+    "Setup dell'ambiente moderno per Angular e .NET": "Usa dotnet --list-sdks per trovare l'SDK 10 e node --version per leggere la versione Node; verifica anche npm e Angular CLI. La presenza del solo runtime .NET non dimostra che puoi compilare.",
+    "Anatomia di una soluzione Full-Stack Client-Server": "Il client raccoglie l'azione, invia una richiesta HTTP e mostra la risposta. Il server valida dati e permessi, applica le regole e accede al database; il browser non deve essere la fonte delle autorizzazioni.",
+    "Metodo di debugging per API e Frontend": "Controlla prima in Network se parte la richiesta e che risposta riceve, poi nei log server dove fallisce o quali dati restituisce, infine lo stato e il template Angular. Se non parte alcuna richiesta, indaga già l'evento del pulsante: non cercare un errore nel database senza evidenza.",
+    "Il primo metodo C#: parametri, variabili e valore restituito": "Il parametro riceve l'argomento della chiamata; return consegna il risultato al chiamante e termina il metodo. SayHello riceve un nome e restituisce il saluto, che il chiamante può stampare o conservare.",
+    "Tipi primitivi, tipi riferimento e nullable in C#": "Assegnare un tipo valore copia il valore; assegnare un riferimento copia il riferimento all'oggetto. Due riferimenti possono osservare le modifiche dello stesso oggetto; questo non significa che ogni tipo valore sia sempre sullo stack.",
+    "Controllo di flusso, Pattern Matching e Switch Expressions": "La switch expression restituisce direttamente un valore scegliendo il primo pattern corrispondente. È adatta a una classificazione o un calcolo; un blocco switch può essere più leggibile quando ogni ramo esegue più istruzioni.",
+    "Classi, Record e Costruttori Primari": "Un record è utile per dati con uguaglianza per valore, come un DTO, e permette una copia modificata con with. Una class è adatta a un oggetto con identità e comportamento; un record non rende immutabili gli oggetti mutabili che contiene.",
+    "Collezioni moderne: List, Dictionary e Array": "Preferisci Dictionary quando cerchi spesso un elemento per una chiave univoca, per esempio la quantità di un articolo per codice. List è utile per una sequenza ordinata da attraversare; la ricerca per chiave in un Dictionary ha costo medio vicino a O(1).",
+    "LINQ fondamentale: Where, Select e Aggregazioni": "Where e Select costruiscono una sequenza da enumerare: definire la query non materializza il risultato. ToList, un foreach o un'aggregazione la eseguono; enumerarla di nuovo può osservare dati cambiati.",
+    "Programmazione Asincrona: Task, async/await ed Eccezioni": "Durante attese I/O realmente asincrone, await permette al thread di lavorare su altre richieste. Non rende più veloce il calcolo CPU e non elimina gli errori: occorre attendere il Task e gestire cancellazione ed eccezioni.",
+    "TypeScript di base: variabili, funzioni e array": "number[] descrive un array di numeri; : number dopo la firma dichiara il tipo del risultato. Queste annotazioni sono verificate dal compilatore, non convertono valori non validi ricevuti da una API.",
+    "Tipi primitivi, Any vs Unknown e Type Inference": "unknown impone di restringere il tipo prima di usarne proprietà o metodi; any disattiva quel controllo. Prima di toUpperCase, typeof value === 'string' dimostra al compilatore che il metodo esiste.",
+    "Interfacce vs Type Alias e Contratti di Dati": "Una proprietà obbligatoria deve essere presente quando TypeScript controlla un oggetto conforme al tipo; una proprietà con ? può mancare e richiede di gestire undefined. Il contratto statico non valida da solo il JSON della rete.",
+    "Union Discriminate e Type Narrowing": "Il discriminante collega uno stato ai dati ammessi: success porta data, mentre error porta un messaggio. Flag indipendenti permetterebbero combinazioni contraddittorie, come successo ed errore insieme.",
+    "Generics essenziali per Collezioni e Risposte API": "T è un parametro di tipo: ApiResponse<User> sostituisce T con User e conserva il contratto di data. Permette di riusare una struttura senza sostituire i dati con any.",
+    "Minimal API da zero: Program.cs e WebApplication": "Valuta organizzazione degli endpoint, convenzioni del team, filtri e funzionalità richieste, oltre al codice di contorno. Entrambi i modelli possono servire un'applicazione reale: nessuno garantisce da solo prestazioni migliori.",
+    "Dependency Injection: Transient, Scoped e Singleton": "Scoped fornisce normalmente un DbContext per richiesta HTTP e ne limita la durata all'unità di lavoro. Non lo rende thread-safe: evita operazioni parallele sulla stessa istanza e non conservarlo in un singleton.",
+    "Routing, Parametri e Binding di Record DTO": "Nome presente nel pattern della rotta, tipo del parametro e regole di binding determinano la sorgente; un record complesso può arrivare dal body JSON. FromRoute, FromQuery e FromBody rendono esplicita una scelta quando serve. Il binding non sostituisce le regole di validazione.",
+    "Validazione degli input e ProblemDetails standard": "ValidationProblem fornisce una struttura coerente e un dizionario di errori per campo, che il client può visualizzare senza interpretare testo libero. Altri contratti di errore sono possibili, ma vanno documentati e gestiti in modo coerente.",
+    "Gestione globale delle eccezioni e Logging strutturato": "Il messaggio interno può rivelare query, percorsi o dettagli di configurazione. Restituisci un errore pubblico comprensibile e conserva i dettagli nei log server, collegandoli alla richiesta quando possibile.",
+    "HTML essenziale e CSS per leggere i template Angular": "Il for della label deve corrispondere all'id del campo. CSS cambia l'aspetto, mentre elementi e attributi conservano struttura, associazioni e significato per browser e tecnologie assistive.",
+    "Progetto Angular Standalone e Bootstrap applicazione": "Il decoratore associa classe, selettore e template e dichiara negli imports le dipendenze del template. Bootstrap crea la radice; i provider applicativi registrano i servizi: sono responsabilità diverse.",
+    "Creazione di componenti Standalone con @Component": "Angular non può riconoscere il figlio come dipendenza del template e normalmente segnala un elemento sconosciuto in compilazione. Aggiungi il componente agli imports del genitore, senza aggirare l'errore con uno schema permissivo.",
+    "Nuovo Control Flow: @if, @else, @for e @switch": "track dichiara l'identità che collega dati e viste. Una chiave stabile permette di mantenere la riga giusta dopo aggiunte o riordini; l'indice è adatto soprattutto a una lista statica.",
+    "Data Binding moderno: interpolazione, property ed event binding": "Un Signal è una funzione getter: count() legge il valore e registra la dipendenza della vista. count senza parentesi indica la funzione stessa, non il numero da mostrare.",
+    "Deferrable Views: ottimizzazione con @defer": "placeholder mostra contenuto leggero prima dell'attivazione del blocco differito. loading copre invece il caricamento delle dipendenze dopo l'attivazione; un placeholder con dimensioni sensate può anche ridurre salti visivi.",
+    "Introduzione a signal() e aggiornamento stato con set() e update()": "set riceve il nuovo valore; update riceve una funzione che lo calcola dal valore corrente. Per incrementare un contatore, update(value => value + 1) esplicita questa relazione.",
+    "Valori derivati intelligenti con computed()": "Angular può memorizzare e rieseguire il calcolo secondo le dipendenze lette e le richieste del valore. Una funzione pura produce lo stesso risultato dagli stessi dati senza invii HTTP o modifiche esterne; quegli effetti richiedono un punto di esecuzione distinto.",
+    "Effetti collaterali controllati con effect()": "computed restituisce un valore derivato da leggere; effect sincronizza un effetto esterno quando cambiano le dipendenze. Il nome del tema è un valore derivato, scriverlo nello storage è un effetto; copiare valori tra Signals con effect rischia cicli e stato duplicato.",
+    "Comunicazione moderna tra componenti: input() e output()": "input restituisce un InputSignal che legge il dato fornito dal genitore. output restituisce un OutputEmitterRef per emettere eventi con emit; non è un Signal da leggere con parentesi.",
+    "Integrazione tra Signals e RxJS: toSignal e toObservable": "RxJS è utile per emissioni nel tempo, debounce, cancellazione di richieste precedenti e composizione di operazioni asincrone. Un valore corrente o un totale locale si rappresentano più semplicemente con signal e computed; le conversioni collegano i due modelli.",
+    "Introduzione a EF Core e DbContext": "DbContext coordina query, tracking e salvataggio delle entità configurate. Rappresenta un'unità di lavoro, non un database globale da condividere tra tutte le richieste.",
+    "Modellazione Entità e Relazioni 1:N e N:N": "Una navigation property collega oggetti correlati, per esempio Order.Items. La foreign key conserva il riferimento nel modello relazionale; la navigation non garantisce che i dati correlati siano già stati caricati.",
+    "Migrazioni di Database: Creazione e Applicazione": "La tabella registra quali migrazioni sono già state applicate a quel database. EF può così applicare soltanto quelle pendenti; la cronologia non è una copia di backup dei dati.",
+    "Query con LINQ su Database: Tracking e AsNoTracking": "AsNoTracking è adatto a entità lette per visualizzazione senza salvarne modifiche nel contesto. Rinunci al rilevamento automatico delle modifiche e all'identity resolution del tracking; il beneficio va valutato sulla query concreta.",
+    "Scrittura atomica, Transazioni e SaveChangesAsync": "Restituisce un Task<int> il cui risultato conta le voci di stato scritte, non un ID e non necessariamente il numero di righe SQL. Per una chiave generata dal database leggi la proprietà dell'entità dopo il salvataggio.",
+    "Reactive Forms: FormGroup e FormControl": "Reactive Forms definisce controlli e validatori esplicitamente in TypeScript; Template-Driven Forms costruisce il modello soprattutto attraverso direttive nel template. Il primo approccio facilita il controllo di form articolati e i test del modello; entrambi richiedono feedback accessibile.",
+    "Validatori sincroni nativi e personalizzati": "Il contratto è ValidationErrors oppure null: null indica assenza di errori, un oggetto ne descrive i codici. true e false non rispettano quel contratto e non permettono ad Angular di associare i messaggi ai campi.",
+    "Validatori asincroni: verifica remota via API": "Un ritardo può ridurre le richieste mentre la persona digita; updateOn blur è un'altra scelta. Durante pending mostra la verifica in corso e impedisci l'invio se la regola lo richiede. Un errore di rete non dimostra che il valore sia disponibile.",
+    "Angular Router moderno e Lazy Loading": "L'import dinamico permette di caricare il codice del componente quando la navigazione lo richiede, riducendo il lavoro iniziale quando quella pagina non serve. Introduce un caricamento successivo, da valutare secondo l'esperienza utente.",
+    "Route Guards funzionali: Proteggere le rotte con canActivate": "Una funzione esprime direttamente la decisione e usa inject per ottenere servizi, con meno codice di contorno. Il beneficio è organizzativo: l'autorizzazione deve comunque essere verificata dall'API.",
+    "Principi di sicurezza Web e architettura JWT": "Il payload del token firmato usato qui è codificato, non cifrato: chi possiede il token può leggerlo. La firma protegge l'integrità; non rende riservati password o altri dati inseriti nel payload.",
+    "Generazione e convalida token JWT in ASP.NET Core": "RequireAuthorization richiede un'identità autenticata; AdminOnly richiede anche il ruolo Admin. Per queste rotte, senza token valido ottieni 401, con Reader sulla rotta Admin 403, con Admin 200. La policy del server è distinta dalla guard Angular.",
+    "Consumo API autenticata con HttpClient e HttpInterceptor": "Il Bearer token permette a chi lo possiede di presentare la sessione: inviarlo a un host esterno lo espone. Confronta l'origine completa, compresa la porta, e risolvi gli URL relativi rispetto al documento prima di decidere se aggiungere l'header.",
+    "CORS, Same-Origin, XSS e CSRF: scopi distinti": "Il browser impedisce al codice della pagina di leggere una risposta cross-origin non autorizzata. Questo non sostituisce autenticazione, autorizzazione o protezione CSRF; una richiesta può essere eseguita dal server anche se poi la lettura della risposta è bloccata.",
+    "Test unitari in C# con xUnit": "Fact descrive un caso senza dati parametrizzati; Theory esegue lo stesso test su più insiemi di dati, per esempio InlineData. Per una regola numerica includi zero e un valore negativo oltre al caso normale.",
+    "Testare componenti Angular con Vitest e TestBed": "TestBed prepara il contesto Angular con import e provider e crea una fixture del componente. La fixture permette di attivare change detection e osservare il DOM; le dipendenze esterne possono essere sostituite con mock espliciti.",
+    "Principi SOLID applicati allo sviluppo Full-Stack": "La responsabilità singola è compromessa quando calcolo e persistenza cambiano per ragioni diverse nella stessa classe. Un caso d'uso può coordinarli, delegando le regole e l'accesso ai dati a responsabilità riconoscibili; non occorre una classe per ogni istruzione.",
+    "Architettura Pulita: separazione di Domain, Application e API": "Le dipendenze dei layer di business puntano verso le regole centrali: Domain non dipende da EF Core o ASP.NET Core. Infrastructure implementa contratti del centro; il punto di composizione può conoscerne le implementazioni per registrarle.",
+    "Organizzazione Monorepo: client/ e server/": "Una modifica collegata a client e server può essere revisionata e versionata nella stessa storia. Il monorepo non condivide automaticamente tipi, dipendenze o processi di build e non garantisce da solo il rilascio simultaneo.",
+    "Progettazione dell'esperienza utente e feedback visivo": "Disabilitare l'invio e mostrare lo stato in corso evita duplicazioni accidentali e rende visibile l'attesa. Ripristina l'interazione anche quando la richiesta fallisce; il server deve comunque gestire correttamente richieste ripetute.",
+    "Documentazione delle API con OpenAPI": "AddOpenApi registra i servizi che generano la descrizione, MapOpenApi espone il documento JSON. Una UI come Swagger UI o Scalar visualizza quel documento ed è un'integrazione separata, non il documento stesso.",
+    "Presentare il progetto: Git, README professionale e Portfolio": "Documenta scopo, prerequisiti, comandi riproducibili per avvio e test, configurazione locale, decisioni e limiti noti. Un'altra persona deve poter avviare il progetto senza conoscere la tua macchina; non inserire segreti o token nel README.",
+}
+
+STUDY_CONNECTIONS = {
+    "Setup dell'ambiente moderno per Angular e .NET": ([], "Il percorso procede da metodi e dati a endpoint HTTP, componenti, stato, database e integrazione. I laboratori sono il punto in cui proverai framework e browser reali. Le sessioni finali servono a consolidare il lavoro; il tempo indicato è una stima, non una soglia di valutazione."),
+    "Il primo metodo C#: parametri, variabili e valore restituito": ([], "Per eseguire l'esempio fuori dall'editor, crea un progetto con `dotnet new console -n FirstMethod`, entra con `cd FirstMethod`, sostituisci `Program.cs` con il codice dell'esempio ed esegui `dotnet run`. Nell'editor dell'esercizio scrivi soltanto la classe richiesta: il runner fornisce il chiamante."),
+    "TypeScript di base: variabili, funzioni e array": ([], "Qui impari funzioni e array prima di usarli nei componenti. Il runner breve esegue la logica rimuovendo le annotazioni: nel laboratorio Modelli TypeScript e Contratti Web userai anche il compilatore per verificare i tipi."),
+    "Minimal API da zero: Program.cs e WebApplication": (["Il primo metodo C#: parametri, variabili e valore restituito", "Anatomia di una soluzione Full-Stack Client-Server"], "Crea un progetto con `dotnet new web -n FirstApi`, entra con `cd FirstApi` e sostituisci `Program.cs` con l'esempio. Avvia con `dotnet run --urls http://localhost:5000`, poi apri `http://localhost:5000/api/hello`. Il terminale resta occupato dal server; usa una seconda finestra per le richieste e Ctrl+C per fermarlo. Il laboratorio Web API con Minimal API e DTO estenderà questa risposta a operazioni CRUD."),
+    "Dependency Injection: Transient, Scoped e Singleton": (["Classi, Record e Costruttori Primari", "Minimal API da zero: Program.cs e WebApplication"], "La scelta del ciclo di vita dipende dallo stato del servizio. Un repository che usa DbContext deve restare nella richiesta; un singleton condiviso richiede stato sicuro per accessi concorrenti. Evita di scegliere Singleton soltanto per risparmiare istanze."),
+    "Progetto Angular Standalone e Bootstrap applicazione": (["TypeScript di base: variabili, funzioni e array", "HTML essenziale e CSS per leggere i template Angular"], "Le basi di `signal()` e `computed()` precedono questa lezione: nei componenti useremo subito valori reattivi. Ripassale dai richiami qui sotto se necessario. Nel laboratorio Catalogo Standalone con Control Flow i file sono `src/main.ts`, `src/app/app.ts` e `src/app/app.config.ts`; gli esempi con `AppComponent` usano un nome illustrativo, da adattare all'export del tuo file."),
+    "Nuovo Control Flow: @if, @else, @for e @switch": (["Introduzione a signal() e aggiornamento stato con set() e update()", "Valori derivati intelligenti con computed()"], "Il modello TypeScript prepara i dati; il template decide che cosa mostrare. Nel laboratorio Catalogo Standalone con Control Flow verifica lista, stato vuoto e selezione nel DOM: il conteggio corretto nell'esercizio breve da solo non dimostra che il template funzioni."),
+    "Introduzione a signal() e aggiornamento stato con set() e update()": (["TypeScript di base: variabili, funzioni e array"], "Puoi leggere questa lezione prima del bootstrap Angular: l'esercizio breve richiede soltanto una classe e i valori reattivi. La registrazione del componente e il rendering verranno provati nel laboratorio Angular. Nel codice reale importa `signal` da `@angular/core`; l'editor breve lo mette a disposizione tramite un mock."),
+    "Valori derivati intelligenti con computed()": (["Introduzione a signal() e aggiornamento stato con set() e update()"], "Un totale dipende dagli elementi: mantenere due valori modificabili separati obbliga a sincronizzarli. Il laboratorio Dashboard Reattiva con Angular Signals verifica l'aggiornamento dei totali quando la lista cambia."),
+    "Integrazione tra Signals e RxJS: toSignal e toObservable": (["Valori derivati intelligenti con computed()", "Effetti collaterali controllati con effect()"], "Un Observable descrive emissioni nel tempo; `subscribe` avvia l'ascolto e `unsubscribe` lo interrompe. `pipe` compone operatori; `switchMap` sostituisce l'ascolto della richiesta precedente. Le richieste HttpClient partono alla sottoscrizione. `toSignal` e `toObservable` vanno creati in un contesto di iniezione, per esempio nei campi di un componente. La conversione è utile per ricerca remota e flussi asincroni; per un totale locale basta `computed`."),
+    "Introduzione a EF Core e DbContext": (["LINQ fondamentale: Where, Select e Aggregazioni", "Dependency Injection: Transient, Scoped e Singleton"], "Il laboratorio Persistenza con EF Core e SQLite usa soggetti e misure: ritroverai lo stesso contesto nel gestionale full-stack. Il contesto segue l'unità di lavoro; non condividerlo tra richieste o operazioni parallele."),
+    "Reactive Forms: FormGroup e FormControl": (["Data Binding moderno: interpolazione, property ed event binding"], "Il laboratorio Form Reattivo con Validazione Remota collega le regole allo stato reale dei controlli. La panoramica Signal Forms è facoltativa: puoi proseguire con Reactive Forms senza implementare un secondo form."),
+    "Consumo API autenticata con HttpClient e HttpInterceptor": (["Generazione e convalida token JWT in ASP.NET Core", "Interfacce vs Type Alias e Contratti di Dati"], "Prima dell'interceptor serve una richiesta reale: `provideHttpClient()` registra il servizio, `inject(HttpClient)` lo ottiene e `http.get<Profile>(url).subscribe(...)` avvia la GET. Il tipo `Profile` descrive il risultato atteso ma non valida il JSON ricevuto. Nel laboratorio Autenticazione JWT Full-Stack collegherai la sessione all'header; nel Gestionale Full-Stack Monorepo seguirai il caricamento dei dati."),
+    "Architettura Pulita: separazione di Domain, Application e API": (["Dependency Injection: Transient, Scoped e Singleton", "Principi SOLID applicati allo sviluppo Full-Stack"], "Usa questa separazione quando regole e integrazioni cambiano in modo indipendente. Un CRUD piccolo può iniziare con cartelle e servizi nello stesso progetto: creare quattro progetti subito aggiunge configurazione senza necessariamente migliorare lo studio. Angular comunica con l'API via HTTP e non è un assembly dipendente da Domain. L'esercizio considera i riferimenti tra layer di business; il punto di composizione dell'API può conoscere Infrastructure per registrare le implementazioni."),
+    "Organizzazione Monorepo: client/ e server/": (["Minimal API da zero: Program.cs e WebApplication", "Progetto Angular Standalone e Bootstrap applicazione"], "Ora collega il contesto dei soggetti: GET `/api/subjects` restituisce la lista, POST crea, PUT modifica e DELETE rimuove. Nel laboratorio Gestionale Full-Stack Monorepo completa prima la lettura dal server, poi collega al servizio i comandi di modifica della UI. Le suite separate non dimostrano da sole la comunicazione tra i due processi: prova anche un'operazione dal browser."),
+}
+
+
+def study_context(title: str, mandatory: bool, lesson_files: dict[str, str]) -> str:
+    prerequisites, context = STUDY_CONNECTIONS.get(title, ([], ""))
+    if title == "Progetto Angular Standalone e Bootstrap applicazione":
+        prerequisites = prerequisites + [
+            "Introduzione a signal() e aggiornamento stato con set() e update()",
+            "Valori derivati intelligenti con computed()",
+        ]
+    parts = []
+    if not mandatory:
+        parts.append("Approfondimento facoltativo: puoi riprenderlo dopo aver completato la pratica essenziale del modulo.")
+    if prerequisites:
+        links = [f"[{item}]({lesson_files[item]})" for item in prerequisites]
+        parts.append("Da conoscere: " + "; ".join(links) + ".")
+    if context:
+        parts.append(context)
+    return "### Nel percorso\n\n" + "\n\n".join(parts) if parts else ""
+
+
+def practice_context(module: str, exercise: dict) -> str:
+    if exercise["kind"] == "reflection":
+        return "Annota ciò che osservi sul tuo computer. Il confronto automatico è concettuale: non esegue i comandi al posto tuo."
+    if module in {"00_fondamenti", "00_orientamento", "01_csharp", "02_typescript"}:
+        return "Usa il frammento come riferimento iniziale. Prima di aprire gli indizi, prova a prevedere un caso della consegna; dopo la soluzione, riscrivi il passaggio che ti mancava."
+    framework = "Angular" if exercise["kind"] in {"angular", "typescript"} else ".NET"
+    return (f"La pratica breve isola una regola e non avvia l'applicazione {framework}. "
+            "Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. "
+            "Nel laboratorio del modulo verifica anche il comportamento del framework.")
+
+
 def lesson_difficulty(title: str, mandatory: bool) -> str:
     if not mandatory:
         return "approfondimento"
@@ -4073,6 +4147,17 @@ def build() -> None:
     lessons = []
     exercises = []
     flashcards = []
+
+    # Compute references before rendering; IDs still follow the original authored
+    # sequence, independently from the study order.
+    lesson_files = {}
+    reference_counts: dict[str, int] = {}
+    for topic in TOPICS:
+        module, title = topic[:2]
+        reference_counts[module] = reference_counts.get(module, 0) + 1
+        id_title = LEGACY_LESSON_TITLES.get(title, title)
+        lesson_id = f"net-{module[:2]}-{reference_counts[module]:02d}-{slugify(id_title)[:35]}"
+        lesson_files[title] = f"{lesson_id}.md"
 
     for index, topic in enumerate(TOPICS):
         (
@@ -4091,7 +4176,8 @@ def build() -> None:
 
         content_md = lesson_markdown(
             module, title, summary, concepts, simple_exp, syntax_anatomy,
-            example, pattern_guide, pitfalls, review_q, GUIDED_WALKTHROUGHS[title]
+            example, pattern_guide, pitfalls, review_q, GUIDED_WALKTHROUGHS[title],
+            study_context(title, mandatory, lesson_files), practice_context(module, code_ex)
         )
         (CONTENT / body_file).write_text(content_md, encoding="utf-8")
 
@@ -4107,14 +4193,13 @@ def build() -> None:
         recall_id = f"ex-{lesson_id}-recall"
         k1 = keywords[0] if keywords else "concetto"
         recall_solution = (
-            f"{simple_exp}\n\n"
-            f"Nell'esempio della lezione puoi osservare `{k1}` in questo contesto: {example.splitlines()[0].strip()}\n\n"
+            f"Concetto di riferimento: `{k1}`.\n\n{REVIEW_ANSWERS[title]}\n\n"
             f"Un caso o errore da tenere presente: {pitfalls.split(';')[0].strip()}"
         )
         exercises.append({
             "id": recall_id, "lesson_id": lesson_id, "title": f"Richiamo Concettuale: {title}", "kind": "reflection",
             "difficulty": "breve", "minutes": 8, "xp": 15,
-            "prompt": f"In 2–4 frasi, spiega con parole tue **{title}**. Nomina il concetto centrale `{k1}`, collegalo a un esempio della lezione e cita un errore da evitare. Il controllo automatico verifica solo che il termine compaia, non la correttezza della spiegazione: confronta la tua risposta con il modello dopo l'esecuzione.",
+            "prompt": f"{review_q}\n\nRispondi con un esempio o una previsione sul codice della lezione e usa il termine `{k1}`. Il controllo cerca soltanto questo termine: confronta il ragionamento con il modello, anche se risulta superato.",
             "starter": "", "solution": recall_solution,
             "hints": [
                 f"Definisci chiaramente il ruolo di `{k1}` nel contesto di questa lezione.",
@@ -4159,7 +4244,7 @@ def build() -> None:
             {
                 "id": f"fc-{lesson_id}-2", "module": module,
                 "question": review_q,
-                "answer": f"{simple_exp}\n\nEsempio della lezione: {example.splitlines()[0].strip()}"
+                "answer": recall_solution
             },
             {
                 "id": f"fc-{lesson_id}-3", "module": module,
@@ -4168,8 +4253,19 @@ def build() -> None:
             }
         ])
 
-    initial_order = {title: index for index, title in enumerate(INITIAL_LESSON_SEQUENCE)}
-    lessons.sort(key=lambda item: initial_order.get(item["title"], len(initial_order)))
+    ordered_titles = INITIAL_LESSON_SEQUENCE + [
+        topic[1] for topic in TOPICS if topic[1] not in INITIAL_LESSON_SEQUENCE
+    ]
+    signals_intro = [
+        "Introduzione a signal() e aggiornamento stato con set() e update()",
+        "Valori derivati intelligenti con computed()",
+    ]
+    for title in signals_intro:
+        ordered_titles.remove(title)
+    angular_start = ordered_titles.index("Progetto Angular Standalone e Bootstrap applicazione")
+    ordered_titles[angular_start:angular_start] = signals_intro
+    study_order = {title: index for index, title in enumerate(ordered_titles)}
+    lessons.sort(key=lambda item: study_order[item["title"]])
     lesson_positions = {lesson["id"]: index for index, lesson in enumerate(lessons)}
     exercises.sort(key=lambda item: lesson_positions[item["lesson_id"]])
 

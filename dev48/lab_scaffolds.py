@@ -14,6 +14,27 @@ XUNIT_VERSION = "2.9.3"
 XUNIT_RUNNER_VERSION = "3.1.5"
 
 
+def course_lab_notes(lab: Lab) -> str:
+    """Study instructions for new workspaces; never replace learner files."""
+    steps = {
+        "lab-net-csharp-crud": "Completa prima Search, poi Add, Update e Remove in SubjectCatalog.cs. Esegui un test alla volta e prova anche lista vuota e ID assente. I test xUnit sono già forniti: puoi leggerli qui prima della lezione dedicata; scriverne di nuovi sarà il passo successivo.",
+        "lab-ts-angular-models": "Apri i modelli dell'ordine e segui ogni variante fino alla funzione di riepilogo. Correggi il caso cancelled senza ricorrere ad any. Esegui anche `npx tsc --noEmit -p tsconfig.app.json`: il runner breve delle lezioni non controlla questi tipi.",
+        "lab-aspnet-minimal-api": "Segui una POST da Program.cs a SubjectStore e alla risposta 201. Lo starter contiene già rotte e DTO: completa la logica mancante, poi aggiungi un caso limite a Tests/LabTests.cs. Prova la stessa richiesta contro il server avviato.",
+        "lab-angular-standalone": "Completa il filtro di visibleProducts in src/app/app.ts, poi verifica il template in src/app/app.html. Prova query senza risultati e selezione tramite pulsante. Aggiungi un test DOM: il filtro TypeScript corretto da solo non verifica i collegamenti del template.",
+        "lab-angular-signals-state": "Correggi il totale che conta le righe invece di sommare i valori. Deriva gli altri indicatori con computed e prova aggiunta, rimozione e lista vuota. Usa effect soltanto per un effetto esterno, se necessario: i totali sono dati derivati.",
+        "lab-efcore-sqlite-db": "Completa FindWithMeasuresAsync nel repository e verifica la relazione usando il database SQLite isolato dei test. Il test con EnsureCreated controlla il modello, ma non esegue le migrazioni. Per la migrazione, dalla cartella server esegui `dotnet tool restore`, `dotnet ef migrations add InitialSubjects`, poi `dotnet ef database update`. Non usare EnsureCreated sul database gestito dalle migrazioni.",
+        "lab-angular-reactive-forms": "Completa il validatore remoto simulato e controlla invalid, pending e valid nel form reale. La disponibilità è simulata: il laboratorio non chiama un servizio esterno. Prova i messaggi vicino ai campi e l'invio da tastiera, oltre ai test automatici.",
+        "lab-angular-routing-guard": "Completa la guard e verifica utente anonimo, ruolo errato e ruolo ammesso. Poi naviga tra le pagine dal browser: testare la funzione isolata non prova tutti i collegamenti. L'autorizzazione della risorsa deve comunque essere applicata nell'API.",
+        "lab-fullstack-jwt-auth": "Il backend fornisce validazione e policy, ma la rotta login restituisce ancora 501 per le credenziali valide. Completa la generazione del token in Program.cs usando la lezione JWT, poi l'interceptor del client. Dalla cartella server configura la chiave con User Secrets come nella lezione JWT, avvia il server e ottieni un token demo. Imposta la sessione nel client e controlla l'header nel browser. I test backend verificano 401/403/200; quelli Angular usano un backend HTTP di test e non eseguono il login tra i due processi.",
+        "lab-testing-xunit-vitest": "Completa la regola C# e la modifica di stato del componente. Prima osserva i test falliti, poi esegui le due suite separatamente. Aggiungi un caso limite per la regola e un'interazione DOM; modifica temporaneamente la logica per verificare che i tuoi test rilevino il difetto.",
+        "lab-fullstack-monorepo-crud": "Completa la GET in SubjectsService e segui i dati fino alla lista. Le API e i metodi di scrittura del servizio sono forniti; aggiungi tu form e azioni UI per creare, modificare e rimuovere. Prova un ciclo completo dal browser e aggiungi test di loading, errore e lista vuota: i test iniziali non coprono l'intero CRUD dalla UI.",
+        "lab-portfolio-enterprise": "Parti dalla base del gestionale e scegli una funzionalità piccola da completare in autonomia. Separa responsabilità dove il cambiamento lo richiede, aggiungi OpenAPI al backend e documenta comandi e decisioni. Lo starter non fornisce già tutti i layer o l'autorizzazione: applicali ai requisiti della tua funzionalità e verifica un caso di accesso negato quando ci sono risorse protette.",
+    }
+    if lab.id not in steps:
+        return ""
+    return "\n## Come affrontare questo laboratorio\n\n" + steps[lab.id] + "\n"
+
+
 def ensure_course_scaffold(workspace: Path, lab: Lab) -> None:
     """Create genuine .NET and Angular workspaces for the corresponding lab."""
     _preserve_legacy_mock(workspace)
@@ -83,6 +104,7 @@ def _ensure_dotnet_project(server: Path, lab: Lab) -> None:
     additional_packages = ""
     if ef_lab:
         additional_packages += '    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.12" />\n'
+        additional_packages += '    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12"><PrivateAssets>all</PrivateAssets></PackageReference>\n'
     if lab.id == "lab-fullstack-jwt-auth":
         additional_packages += '    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.12" />\n'
 
@@ -502,6 +524,11 @@ public class SubjectsApiTests : IClassFixture<WebApplicationFactory<Program>>
     source_files["Server.csproj"] = server_csproj
     source_files["Tests/Server.Tests.csproj"] = test_project
     source_files["Tests/LabTests.cs"] = "using Xunit;\n\n" + test_source
+    if ef_lab:
+        source_files[".config/dotnet-tools.json"] = json.dumps({
+            "version": 1, "isRoot": True,
+            "tools": {"dotnet-ef": {"version": "10.0.12", "commands": ["dotnet-ef"]}},
+        }, indent=2)
     _write_missing(server, source_files)
 
 
@@ -1066,6 +1093,7 @@ export class SessionService {
 }
 '''
         extras["src/app/auth.interceptor.ts"] = '''import { inject } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { HttpInterceptorFn } from '@angular/common/http';
 import { SessionService } from './session.service';
 
@@ -1073,13 +1101,14 @@ export const API_ORIGIN = 'http://localhost:5000';
 
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const token = inject(SessionService).token();
-  const isApiRequest = new URL(request.url, API_ORIGIN).origin === API_ORIGIN;
+  const isApiRequest = new URL(request.url, inject(DOCUMENT).baseURI).origin === API_ORIGIN;
   if (!token || !isApiRequest) return next(request);
   // TODO: clona la richiesta impostando Authorization: Bearer <token>.
   return next(request);
 };
 '''
         extras["src/app/auth.interceptor.spec.ts"] = '''import { TestBed } from '@angular/core/testing';
+import { DOCUMENT } from '@angular/common';
 import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { authInterceptor, API_ORIGIN } from './auth.interceptor';
@@ -1087,7 +1116,8 @@ import { SessionService } from './session.service';
 
 describe('JWT HTTP interceptor', () => {
   beforeEach(() => TestBed.configureTestingModule({ providers: [
-    provideHttpClient(withInterceptors([authInterceptor])), provideHttpClientTesting()
+    provideHttpClient(withInterceptors([authInterceptor])), provideHttpClientTesting(),
+    { provide: DOCUMENT, useValue: { baseURI: 'http://localhost:4200/' } }
   ] }));
   afterEach(() => TestBed.inject(HttpTestingController).verify());
 
@@ -1103,6 +1133,19 @@ describe('JWT HTTP interceptor', () => {
     TestBed.inject(SessionService).token.set('demo-token');
     TestBed.inject(HttpClient).get('https://example.test/profile').subscribe();
     const request = TestBed.inject(HttpTestingController).expectOne('https://example.test/profile');
+    expect(request.request.headers.has('Authorization')).toBe(false);
+    request.flush({});
+  });
+  it('resolves relative URLs against the page, not the API origin', () => {
+    TestBed.inject(SessionService).token.set('demo-token');
+    TestBed.inject(HttpClient).get('/api/profile').subscribe();
+    const request = TestBed.inject(HttpTestingController).expectOne('/api/profile');
+    expect(request.request.headers.has('Authorization')).toBe(false);
+    request.flush({});
+  });
+  it('keeps the request unchanged when no token is available', () => {
+    TestBed.inject(HttpClient).get(`${API_ORIGIN}/api/profile`).subscribe();
+    const request = TestBed.inject(HttpTestingController).expectOne(`${API_ORIGIN}/api/profile`);
     expect(request.request.headers.has('Authorization')).toBe(false);
     request.flush({});
   });

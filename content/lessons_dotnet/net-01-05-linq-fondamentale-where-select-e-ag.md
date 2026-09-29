@@ -6,10 +6,6 @@ L'obiettivo di questa lezione è interrogare e trasformare collezioni con sintas
 
 La query LINQ non viene eseguita nel momento in cui viene definita, ma solo quando i risultati vengono effettivamente enumerati (ad esempio con un foreach, un ToList() o un'aggregazione).
 
-### Prima di iniziare
-
-Non dare per scontato di conoscere i termini elencati sotto: la spiegazione li introduce nel contesto. Se un termine resta poco chiaro, consulta il glossario e torna all'esempio.
-
 ## Le parole da riconoscere
 
 - `linq`
@@ -20,11 +16,10 @@ Non dare per scontato di conoscere i termini elencati sotto: la spiegazione li i
 - `tolist`
 - `deferred execution`
 
-Non serve imparare questi termini a memoria. Concentrati inizialmente su **`linq`, `where`** e cerca di osservarli all'interno del codice e degli esercizi pratici.
-
 ## Anatomia e Sintassi del Codice
 
-Leggi la spiegazione prima del codice. Quando compare una parola nuova, cerca il suo ruolo qui e prova a riconoscerla nell'esempio.
+### Leggere una lambda
+`n => n % 2 == 0` è una funzione breve: riceve `n` e restituisce un booleano. `Where` la chiama per ogni elemento e conserva quelli per cui il risultato è true. In `Select(n => n * 2)` la funzione restituisce invece il nuovo valore. Il tipo del parametro è inferito dalla collezione.
 
 ### I Metodi LINQ Più Utilizzati:
 - **`Where(predicate)`**: Filtra gli elementi che soddisfano la condizione booleana.
@@ -46,8 +41,6 @@ var activeUsers = users
 
 ## Un esempio concreto
 
-Questo è un esempio o un estratto minimo. Potrebbe dipendere da import, classi o configurazioni dichiarate altrove; il blocco mostra la parte pertinente al concetto.
-
 ```csharp
 var numbers = new List<int> { 1, 2, 3, 4, 5, 6 };
 var evensDoubled = numbers
@@ -65,7 +58,7 @@ var evensDoubled = numbers
 
 ## Pattern Guida per gli Esercizi
 
-La traccia seguente mostra un modo di applicare il concetto. Confrontala con il prompt e adatta i passaggi ai casi richiesti; potrebbe mostrare soltanto la parte centrale:
+Usa il frammento come riferimento iniziale. Prima di aprire gli indizi, prova a prevedere un caso della consegna; dopo la soluzione, riscrivi il passaggio che ti mancava.
 
 ```csharp
 using System.Linq;
@@ -77,27 +70,11 @@ public static class OrderAnalytics {
 }
 ```
 
-Prima di iniziare, prova a indicare che cosa ricevi, quale risultato ti aspetti e un caso limite. Poi affronta un passaggio alla volta e usa i controlli disponibili per verificare la consegna.
-
 ## Dove ci si confonde spesso
 
 - Dimenticare che LINQ usa la valutazione ritardata (deferred execution) e richiamare query multiple senza materializzarle
 - usare First() invece di FirstOrDefault() provocando crash se vuoto.
 
-Se qualcosa non funziona al primo tentativo, leggi il primo errore del compilatore o del test. Controlla una cosa alla volta: sintassi, tipo restituito, poi caso limite.
-
-## Controllo rapido
-
-- Riesco a spiegare il concetto principale con parole mie senza leggere?
-- So identificare input, output e almeno un caso limite o di errore?
-- Saprei applicare questa feature all'interno di un componente o di un'API reale?
-
 ## Domanda di verifica
 
 > Che cosa si intende per esecuzione differita (deferred execution) in LINQ?
-
-Prova a formulare una risposta chiara: prima definisci la regola generale, poi porta un esempio pratico, e infine cita un errore comune da evitare.
-
-## Prima di andare avanti
-
-Se una parte rimane poco chiara, torna al primo passaggio e spiega che cosa entra e che cosa esce dal codice. Passa all'esercizio quando riesci a prevedere almeno il caso normale e un caso limite.

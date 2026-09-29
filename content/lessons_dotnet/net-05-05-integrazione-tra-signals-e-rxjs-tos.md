@@ -6,9 +6,13 @@ L'obiettivo di questa lezione è far convivere la semplicità dei Signals con la
 
 I Signals rappresentano valori correnti dell'interfaccia; RxJS offre operatori per comporre flussi asincroni come debounce, retry e WebSocket. `@angular/core/rxjs-interop` fornisce API per integrarli quando il caso lo richiede.
 
-### Prima di iniziare
+### Nel percorso
 
-Non dare per scontato di conoscere i termini elencati sotto: la spiegazione li introduce nel contesto. Se un termine resta poco chiaro, consulta il glossario e torna all'esempio.
+Approfondimento facoltativo: puoi riprenderlo dopo aver completato la pratica essenziale del modulo.
+
+Da conoscere: [Valori derivati intelligenti con computed()](net-05-02-valori-derivati-intelligenti-con-co.md); [Effetti collaterali controllati con effect()](net-05-03-effetti-collaterali-controllati-con.md).
+
+Un Observable descrive emissioni nel tempo; `subscribe` avvia l'ascolto e `unsubscribe` lo interrompe. `pipe` compone operatori; `switchMap` sostituisce l'ascolto della richiesta precedente. Le richieste HttpClient partono alla sottoscrizione. `toSignal` e `toObservable` vanno creati in un contesto di iniezione, per esempio nei campi di un componente. La conversione è utile per ricerca remota e flussi asincroni; per un totale locale basta `computed`.
 
 ## Le parole da riconoscere
 
@@ -19,16 +23,12 @@ Non dare per scontato di conoscere i termini elencati sotto: la spiegazione li i
 - `interoperabilita`
 - `debounce`
 
-Non serve imparare questi termini a memoria. Concentrati inizialmente su **`rxjs`, `observable`** e cerca di osservarli all'interno del codice e degli esercizi pratici.
-
 ## Anatomia e Sintassi del Codice
-
-Leggi la spiegazione prima del codice. Quando compare una parola nuova, cerca il suo ruolo qui e prova a riconoscerla nell'esempio.
 
 ### Le Due Funzioni di Interoperabilità:
 1. **`toSignal(observable$, options)`**:
    - Converte un Observable (come una chiamata `httpClient.get()`) in un Signal!
-   - Sottoscrive e distrugge automaticamente l'Observable quando il componente si chiude.
+   - Sottoscrive il flusso e rilascia la sottoscrizione alla distruzione del contesto Angular.
    ```typescript
    users = toSignal(this.http.get<User[]>('/api/users'), { initialValue: [] });
    ```
@@ -41,19 +41,38 @@ Leggi la spiegazione prima del codice. Quando compare una parola nuova, cerca il
    );
    ```
 
+Nell’esempio il recupero dell’errore è dentro `switchMap`: una richiesta fallita produce una lista vuota ma lascia attive le ricerche successive. È una semplificazione per studiare il flusso; in un’interfaccia completa distingui errore e nessun risultato. `params` codifica il termine senza concatenarlo nell’URL.
+
 ## Un esempio concreto
 
-Questo è un esempio o un estratto minimo. Potrebbe dipendere da import, classi o configurazioni dichiarate altrove; il blocco mostra la parte pertinente al concetto.
-
 ```typescript
-const searchSignal = signal('');
-const resultsSignal = toSignal(
-  toObservable(searchSignal).pipe(
-    debounceTime(300),
-    switchMap(q => http.get('/api/search?q=' + q))
-  ),
-  { initialValue: [] }
-);
+import { Component, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { catchError, debounceTime, distinctUntilChanged, of, switchMap } from 'rxjs';
+
+@Component({
+  selector: 'app-search',
+  template: `<input #field (input)="searchSignal.set(field.value)" aria-label="Ricerca" />
+    @for (name of resultsSignal(); track name) { <p>{{ name }}</p> }`
+})
+export class SearchComponent {
+  private readonly http = inject(HttpClient);
+  readonly searchSignal = signal('');
+  readonly resultsSignal = toSignal(
+    toObservable(this.searchSignal).pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(q => this.http.get<string[]>('/api/search', { params: { q } }).pipe(
+        catchError(() => of([] as string[]))
+      ))
+    ),
+    { initialValue: [] as string[] }
+  );
+}
+// Registra provideHttpClient() in app.config.ts.
+// L’API GET /api/search?q=... deve restituire un array di nomi univoci.
+// L’URL relativo richiede stesso host o proxy verso il backend.
 ```
 
 ### Seguilo passo per passo
@@ -65,7 +84,7 @@ const resultsSignal = toSignal(
 
 ## Pattern Guida per gli Esercizi
 
-La traccia seguente mostra un modo di applicare il concetto. Confrontala con il prompt e adatta i passaggi ai casi richiesti; potrebbe mostrare soltanto la parte centrale:
+La pratica breve isola una regola e non avvia l'applicazione Angular. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
 
 ```typescript
 export class SearchBridge {
@@ -74,26 +93,11 @@ export class SearchBridge {
 }
 ```
 
-Prima di iniziare, prova a indicare che cosa ricevi, quale risultato ti aspetti e un caso limite. Poi affronta un passaggio alla volta e usa i controlli disponibili per verificare la consegna.
-
 ## Dove ci si confonde spesso
 
-- Dimenticare di passare `{ initialValue: ... }` a `toSignal` con Observable che non emettono istantaneamente, causando un tipo `T | undefined`.
-
-Se qualcosa non funziona al primo tentativo, leggi il primo errore del compilatore o del test. Controlla una cosa alla volta: sintassi, tipo restituito, poi caso limite.
-
-## Controllo rapido
-
-- Riesco a spiegare il concetto principale con parole mie senza leggere?
-- So identificare input, output e almeno un caso limite o di errore?
-- Saprei applicare questa feature all'interno di un componente o di un'API reale?
+- Leggere il valore prima della prima emissione senza gestire `undefined` o fornire un valore iniziale
+- creare una nuova sottoscrizione toSignal a ogni lettura.
 
 ## Domanda di verifica
 
 > Quando è preferibile usare RxJS rispetto a un semplice Signal?
-
-Prova a formulare una risposta chiara: prima definisci la regola generale, poi porta un esempio pratico, e infine cita un errore comune da evitare.
-
-## Prima di andare avanti
-
-Se una parte rimane poco chiara, torna al primo passaggio e spiega che cosa entra e che cosa esce dal codice. Passa all'esercizio quando riesci a prevedere almeno il caso normale e un caso limite.

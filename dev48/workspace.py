@@ -7,7 +7,7 @@ import subprocess
 
 from .models import Lab
 from .amazon_scaffolds import ensure_amazon_repo_scaffold
-from .lab_scaffolds import ensure_course_scaffold
+from .lab_scaffolds import ensure_course_scaffold, course_lab_notes
 
 
 def ensure_lab_workspace(root: Path, lab: Lab) -> Path:
@@ -33,14 +33,19 @@ def ensure_lab_workspace(root: Path, lab: Lab) -> Path:
         commands = {
             "amazon_node": "Esegui `npm test` da questa cartella; non servono pacchetti esterni.",
             "amazon_cpp": "Apri `CMakeLists.txt`; il test runner dell'app compila con GCC o Clang in C++20.",
+            "dotnet": "Dalla cartella `server/` esegui `dotnet restore`, poi `dotnet test Tests/Server.Tests.csproj`. Per i progetti API avvia `dotnet run --urls http://localhost:5000`.",
+            "angular": "Dalla cartella `client/` esegui `npm install`, poi `npm test`. Avvia la pagina con `npm start` e apri l'URL indicato nel terminale.",
+            "monorepo": "In un terminale entra in `server/`, esegui `dotnet restore` e `dotnet run --urls http://localhost:5000`. In un secondo entra in `client/`, esegui `npm install` e `npm start`. Per i test usa `dotnet test Tests/Server.Tests.csproj` da `server/` e `npm test` da `client/`.",
         }.get(lab.workspace_template, "Per il server: `dotnet test Tests/Server.Tests.csproj`. Per Angular: `npm test`.")
+        if lab.id == "lab-testing-xunit-vitest":
+            commands = "Questo laboratorio verifica codice isolato: da `server/` esegui `dotnet test Tests/Server.Tests.csproj`; da `client/` esegui `npm install` e `npm test`. Per osservare il componente avvia `npm start` da `client/`."
         readme.write_text(
             f"# {lab.title}\n\n{lab.description}\n\n"
             "Questo workspace contiene uno starter da completare. I test automatici verificano soltanto i comportamenti dichiarati dai test presenti; leggi anche i criteri e controlla manualmente i requisiti che non sono coperti.\n\n"
             "## Requisiti\n\n" f"{requirements}\n\n## Criteri di qualità\n\n{rubric}{creative}\n\n"
             "## Avvio e test\n\n"
             "Usa il pulsante **Esegui test** nell'app dopo ogni modifica.\n\n"
-            f"{commands}\n",
+            f"{commands}\n{course_lab_notes(lab)}",
             encoding="utf-8",
         )
 

@@ -6,9 +6,11 @@ L'obiettivo di questa lezione è creare endpoint RESTful con Minimal API in C# e
 
 Minimal API permette di dichiarare endpoint HTTP con poco codice di contorno. Controller e Minimal API sono entrambi adatti a progetti reali; la sintassi scelta, da sola, non determina il throughput dell'applicazione.
 
-### Prima di iniziare
+### Nel percorso
 
-Non dare per scontato di conoscere i termini elencati sotto: la spiegazione li introduce nel contesto. Se un termine resta poco chiaro, consulta il glossario e torna all'esempio.
+Da conoscere: [Il primo metodo C#: parametri, variabili e valore restituito](net-00-01-il-primo-metodo-c-parametri-variabi.md); [Anatomia di una soluzione Full-Stack Client-Server](net-00-02-anatomia-di-una-soluzione-full-stac.md).
+
+Crea un progetto con `dotnet new web -n FirstApi`, entra con `cd FirstApi` e sostituisci `Program.cs` con l'esempio. Avvia con `dotnet run --urls http://localhost:5000`, poi apri `http://localhost:5000/api/hello`. Il terminale resta occupato dal server; usa una seconda finestra per le richieste e Ctrl+C per fermarlo. Il laboratorio Web API con Minimal API e DTO estenderà questa risposta a operazioni CRUD.
 
 ## Le parole da riconoscere
 
@@ -20,11 +22,7 @@ Non dare per scontato di conoscere i termini elencati sotto: la spiegazione li i
 - `status codes`
 - `typedresults`
 
-Non serve imparare questi termini a memoria. Concentrati inizialmente su **`minimal api`, `webapplication`** e cerca di osservarli all'interno del codice e degli esercizi pratici.
-
 ## Anatomia e Sintassi del Codice
-
-Leggi la spiegazione prima del codice. Quando compare una parola nuova, cerca il suo ruolo qui e prova a riconoscerla nell'esempio.
 
 ### Anatomia di un'applicazione Minimal API in Program.cs:
 ```csharp
@@ -36,8 +34,6 @@ app.Run();
 ```
 
 ## Un esempio concreto
-
-Questo è un esempio o un estratto minimo. Potrebbe dipendere da import, classi o configurazioni dichiarate altrove; il blocco mostra la parte pertinente al concetto.
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -55,7 +51,7 @@ app.Run();
 
 ## Pattern Guida per gli Esercizi
 
-La traccia seguente mostra un modo di applicare il concetto. Confrontala con il prompt e adatta i passaggi ai casi richiesti; potrebbe mostrare soltanto la parte centrale:
+La pratica breve isola una regola e non avvia l'applicazione .NET. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
 
 ```csharp
 public static class RouteRegistry {
@@ -64,27 +60,11 @@ public static class RouteRegistry {
 }
 ```
 
-Prima di iniziare, prova a indicare che cosa ricevi, quale risultato ti aspetti e un caso limite. Poi affronta un passaggio alla volta e usa i controlli disponibili per verificare la consegna.
-
 ## Dove ci si confonde spesso
 
 - Confondere la registrazione dei servizi (`builder.Services`) con la configurazione della pipeline (`app.Use...`)
 - pensare che Minimal API o TypedResults siano obbligatori per ogni progetto.
 
-Se qualcosa non funziona al primo tentativo, leggi il primo errore del compilatore o del test. Controlla una cosa alla volta: sintassi, tipo restituito, poi caso limite.
-
-## Controllo rapido
-
-- Riesco a spiegare il concetto principale con parole mie senza leggere?
-- So identificare input, output e almeno un caso limite o di errore?
-- Saprei applicare questa feature all'interno di un componente o di un'API reale?
-
 ## Domanda di verifica
 
 > Quali criteri, oltre alla quantità di codice, useresti per scegliere tra Minimal API e Controller?
-
-Prova a formulare una risposta chiara: prima definisci la regola generale, poi porta un esempio pratico, e infine cita un errore comune da evitare.
-
-## Prima di andare avanti
-
-Se una parte rimane poco chiara, torna al primo passaggio e spiega che cosa entra e che cosa esce dal codice. Passa all'esercizio quando riesci a prevedere almeno il caso normale e un caso limite.

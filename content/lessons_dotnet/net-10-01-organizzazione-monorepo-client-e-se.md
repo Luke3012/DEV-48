@@ -6,9 +6,11 @@ L'obiettivo di questa lezione è gestire l'architettura monorepo unificando fron
 
 Un monorepo racchiude client e server nello stesso repository e permette di versionare insieme modifiche collegate. Dipendenze, build e contratti tra i progetti restano da configurare e verificare.
 
-### Prima di iniziare
+### Nel percorso
 
-Non dare per scontato di conoscere i termini elencati sotto: la spiegazione li introduce nel contesto. Se un termine resta poco chiaro, consulta il glossario e torna all'esempio.
+Da conoscere: [Minimal API da zero: Program.cs e WebApplication](net-03-01-minimal-api-da-zero-programcs-e-web.md); [Progetto Angular Standalone e Bootstrap applicazione](net-04-01-progetto-angular-standalone-e-boots.md).
+
+Ora collega il contesto dei soggetti: GET `/api/subjects` restituisce la lista, POST crea, PUT modifica e DELETE rimuove. Nel laboratorio Gestionale Full-Stack Monorepo completa prima la lettura dal server, poi collega al servizio i comandi di modifica della UI. Le suite separate non dimostrano da sole la comunicazione tra i due processi: prova anche un'operazione dal browser.
 
 ## Le parole da riconoscere
 
@@ -19,11 +21,7 @@ Non dare per scontato di conoscere i termini elencati sotto: la spiegazione li i
 - `git`
 - `struttura cartelle`
 
-Non serve imparare questi termini a memoria. Concentrati inizialmente su **`monorepo`, `client`** e cerca di osservarli all'interno del codice e degli esercizi pratici.
-
 ## Anatomia e Sintassi del Codice
-
-Leggi la spiegazione prima del codice. Quando compare una parola nuova, cerca il suo ruolo qui e prova a riconoscerla nell'esempio.
 
 ### Struttura Standard di un Monorepo Full-Stack:
 ```text
@@ -42,8 +40,6 @@ mio-progetto/
 
 ## Un esempio concreto
 
-Questo è un esempio o un estratto minimo. Potrebbe dipendere da import, classi o configurazioni dichiarate altrove; il blocco mostra la parte pertinente al concetto.
-
 ```text
 # Terminale 1, dalla cartella server/:
 dotnet run
@@ -61,35 +57,13 @@ npm start
 
 ## Pattern Guida per gli Esercizi
 
-La traccia seguente mostra un modo di applicare il concetto. Confrontala con il prompt e adatta i passaggi ai casi richiesti; potrebbe mostrare soltanto la parte centrale:
-
-```csharp
-public static class MonorepoStructureValidator {
-    public static bool HasClientAndServer(bool hasClient, bool hasServer) => hasClient && hasServer;
-}
-```
-
-Prima di iniziare, prova a indicare che cosa ricevi, quale risultato ti aspetti e un caso limite. Poi affronta un passaggio alla volta e usa i controlli disponibili per verificare la consegna.
+La pratica breve isola una regola e non avvia l'applicazione .NET. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
 
 ## Dove ci si confonde spesso
 
 - Dare per scontato che il monorepo condivida automaticamente tipi o dipendenze
 - mantenere i manifest nei progetti corretti e verificare il contratto HTTP tra client e server.
 
-Se qualcosa non funziona al primo tentativo, leggi il primo errore del compilatore o del test. Controlla una cosa alla volta: sintassi, tipo restituito, poi caso limite.
-
-## Controllo rapido
-
-- Riesco a spiegare il concetto principale con parole mie senza leggere?
-- So identificare input, output e almeno un caso limite o di errore?
-- Saprei applicare questa feature all'interno di un componente o di un'API reale?
-
 ## Domanda di verifica
 
 > Quale vantaggio pratico offre un Monorepo per il rilascio congiunto di modifiche a client e server?
-
-Prova a formulare una risposta chiara: prima definisci la regola generale, poi porta un esempio pratico, e infine cita un errore comune da evitare.
-
-## Prima di andare avanti
-
-Se una parte rimane poco chiara, torna al primo passaggio e spiega che cosa entra e che cosa esce dal codice. Passa all'esercizio quando riesci a prevedere almeno il caso normale e un caso limite.

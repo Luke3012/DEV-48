@@ -6,10 +6,6 @@ L'obiettivo di questa lezione è seguire una richiesta tra client Angular nel br
 
 Il frontend Angular mostra l'interfaccia nel browser; il backend ASP.NET Core applica regole e accesso ai dati. Si scambiano richieste e risposte HTTP, spesso con dati JSON. Nel primo esercizio C# si usano metodi e parametri già introdotti nella lezione precedente.
 
-### Prima di iniziare
-
-Non dare per scontato di conoscere i termini elencati sotto: la spiegazione li introduce nel contesto. Se un termine resta poco chiaro, consulta il glossario e torna all'esempio.
-
 ## Le parole da riconoscere
 
 - `architettura client server`
@@ -19,11 +15,7 @@ Non dare per scontato di conoscere i termini elencati sotto: la spiegazione li i
 - `porta di ascolto`
 - `stato della sessione`
 
-Non serve imparare questi termini a memoria. Concentrati inizialmente su **`architettura client server`, `richiesta http`** e cerca di osservarli all'interno del codice e degli esercizi pratici.
-
 ## Anatomia e Sintassi del Codice
-
-Leggi la spiegazione prima del codice. Quando compare una parola nuova, cerca il suo ruolo qui e prova a riconoscerla nell'esempio.
 
 ### Flusso della Richiesta Full-Stack:
 1. **Client (Browser/Angular)**:
@@ -48,8 +40,6 @@ var endpoint = $"{baseClean}/{resourceClean}";
 
 ## Un esempio concreto
 
-Questo è un esempio o un estratto minimo. Potrebbe dipendere da import, classi o configurazioni dichiarate altrove; il blocco mostra la parte pertinente al concetto.
-
 ```text
 // Frontend (Angular) invia richiesta GET a https://localhost:5001/api/items
 // Backend (ASP.NET Core) elabora, legge dal DB e risponde con JSON [ { id: 1, name: 'Item' } ]
@@ -64,7 +54,7 @@ Questo è un esempio o un estratto minimo. Potrebbe dipendere da import, classi 
 
 ## Pattern Guida per gli Esercizi
 
-La traccia seguente mostra un modo di applicare il concetto. Confrontala con il prompt e adatta i passaggi ai casi richiesti; potrebbe mostrare soltanto la parte centrale:
+Usa il frammento come riferimento iniziale. Prima di aprire gli indizi, prova a prevedere un caso della consegna; dopo la soluzione, riscrivi il passaggio che ti mancava.
 
 ```csharp
 public static class EndpointMapper {
@@ -74,27 +64,11 @@ public static class EndpointMapper {
 }
 ```
 
-Prima di iniziare, prova a indicare che cosa ricevi, quale risultato ti aspetti e un caso limite. Poi affronta un passaggio alla volta e usa i controlli disponibili per verificare la consegna.
-
 ## Dove ci si confonde spesso
 
 - Credere che Angular esegua codice C# nel browser
 - ignorare che client e server girano su porte e processi separati.
 
-Se qualcosa non funziona al primo tentativo, leggi il primo errore del compilatore o del test. Controlla una cosa alla volta: sintassi, tipo restituito, poi caso limite.
-
-## Controllo rapido
-
-- Riesco a spiegare il concetto principale con parole mie senza leggere?
-- So identificare input, output e almeno un caso limite o di errore?
-- Saprei applicare questa feature all'interno di un componente o di un'API reale?
-
 ## Domanda di verifica
 
 > Qual è il ruolo rispettivo del client Angular e del server .NET nel ciclo di vita di una richiesta?
-
-Prova a formulare una risposta chiara: prima definisci la regola generale, poi porta un esempio pratico, e infine cita un errore comune da evitare.
-
-## Prima di andare avanti
-
-Se una parte rimane poco chiara, torna al primo passaggio e spiega che cosa entra e che cosa esce dal codice. Passa all'esercizio quando riesci a prevedere almeno il caso normale e un caso limite.

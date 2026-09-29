@@ -6,9 +6,11 @@ L'obiettivo di questa lezione è conoscere i tre cicli di vita del contenitore D
 
 La Dependency Injection disaccoppia le classi fornendo le dipendenze richieste dall'esterno, facilitando il testing e la gestione del ciclo di vita degli oggetti.
 
-### Prima di iniziare
+### Nel percorso
 
-Non dare per scontato di conoscere i termini elencati sotto: la spiegazione li introduce nel contesto. Se un termine resta poco chiaro, consulta il glossario e torna all'esempio.
+Da conoscere: [Classi, Record e Costruttori Primari](net-01-03-classi-record-e-costruttori-primari.md); [Minimal API da zero: Program.cs e WebApplication](net-03-01-minimal-api-da-zero-programcs-e-web.md).
+
+La scelta del ciclo di vita dipende dallo stato del servizio. Un repository che usa DbContext deve restare nella richiesta; un singleton condiviso richiede stato sicuro per accessi concorrenti. Evita di scegliere Singleton soltanto per risparmiare istanze.
 
 ## Le parole da riconoscere
 
@@ -19,11 +21,7 @@ Non dare per scontato di conoscere i termini elencati sotto: la spiegazione li i
 - `singleton`
 - `disposable`
 
-Non serve imparare questi termini a memoria. Concentrati inizialmente su **`dependency injection`, `ioc container`** e cerca di osservarli all'interno del codice e degli esercizi pratici.
-
 ## Anatomia e Sintassi del Codice
-
-Leggi la spiegazione prima del codice. Quando compare una parola nuova, cerca il suo ruolo qui e prova a riconoscerla nell'esempio.
 
 ### I Tre Lifetimes di ASP.NET Core:
 1. **`Transient` (`AddTransient<TService, TImpl>()`)**:
@@ -37,8 +35,6 @@ Leggi la spiegazione prima del codice. Quando compare una parola nuova, cerca il
    - Ideale per cache in memoria, logger o servizi di background thread-safe.
 
 ## Un esempio concreto
-
-Questo è un esempio o un estratto minimo. Potrebbe dipendere da import, classi o configurazioni dichiarate altrove; il blocco mostra la parte pertinente al concetto.
 
 ```csharp
 builder.Services.AddSingleton<ICache, MemoryCache>();
@@ -55,7 +51,7 @@ builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 ## Pattern Guida per gli Esercizi
 
-La traccia seguente mostra un modo di applicare il concetto. Confrontala con il prompt e adatta i passaggi ai casi richiesti; potrebbe mostrare soltanto la parte centrale:
+La pratica breve isola una regola e non avvia l'applicazione .NET. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
 
 ```csharp
 public interface ICounterService { int Next(); }
@@ -65,26 +61,10 @@ public class CounterService : ICounterService {
 }
 ```
 
-Prima di iniziare, prova a indicare che cosa ricevi, quale risultato ti aspetti e un caso limite. Poi affronta un passaggio alla volta e usa i controlli disponibili per verificare la consegna.
-
 ## Dove ci si confonde spesso
 
 - Iniettare un servizio Scoped (come il DbContext) dentro un Singleton senza creare e gestire uno scope esplicito: il servizio conserva una dipendenza più breve del proprio lifetime.
 
-Se qualcosa non funziona al primo tentativo, leggi il primo errore del compilatore o del test. Controlla una cosa alla volta: sintassi, tipo restituito, poi caso limite.
-
-## Controllo rapido
-
-- Riesco a spiegare il concetto principale con parole mie senza leggere?
-- So identificare input, output e almeno un caso limite o di errore?
-- Saprei applicare questa feature all'interno di un componente o di un'API reale?
-
 ## Domanda di verifica
 
 > Perché `DbContext` ha normalmente durata Scoped in una Web API, e che cosa non garantisce questo lifetime?
-
-Prova a formulare una risposta chiara: prima definisci la regola generale, poi porta un esempio pratico, e infine cita un errore comune da evitare.
-
-## Prima di andare avanti
-
-Se una parte rimane poco chiara, torna al primo passaggio e spiega che cosa entra e che cosa esce dal codice. Passa all'esercizio quando riesci a prevedere almeno il caso normale e un caso limite.
