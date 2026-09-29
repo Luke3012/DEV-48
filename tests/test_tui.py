@@ -1,13 +1,89 @@
 import asyncio
+from pathlib import Path
 
 from textual.widgets import Button, DataTable, Input, Static, TextArea
 from textual.containers import ScrollableContainer
 
 from dev48.app import (
-    CurriculumScreen, DashboardScreen, Dev48App, ExerciseScreen, FlashcardsScreen,
-    ChallengesScreen, GlossaryScreen, LabScreen, LabsScreen, LessonScreen,
-    SimulationScreen, TrackSelectionScreen,
+    CodingSimulationScreen, CurriculumScreen, DashboardScreen, Dev48App, ExerciseScreen,
+    FlashcardsScreen, FullMockScreen, ChallengesScreen, GlossaryScreen, LabScreen,
+    LabsScreen, LessonScreen, SimulationScreen, TrackSelectionScreen,
+    WorkScenarioScreen, WorkStyleScreen, assessment_prompt,
 )
+from dev48.models import Catalog
+
+
+def test_coding_simulation_starts_fresh_and_locks_clock(tmp_path):
+    async def scenario():
+        app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=False)
+        try:
+            async with app.run_test(size=(150, 40)) as pilot:
+                app.catalog = Catalog(Path(__file__).resolve().parents[1] / "content", track="amazon-sde-oa")
+                screen = CodingSimulationScreen(app.catalog.simulations[0])
+                app.push_screen(screen)
+                await pilot.pause()
+                editor = screen.query_one("#coding-sim-editor", TextArea)
+                assert not editor.display
+                assert not screen.query_one("#coding-sim-prompt").display
+                assert editor.text == screen.variant()["starter"]
+                screen.action_toggle()
+                language = screen.language
+                screen.remaining = 2
+                screen.action_toggle()
+                screen.action_reset()
+                screen.action_toggle_language()
+                assert screen.running and screen.remaining == 2
+                assert screen.language == language
+                screen.tick()
+                screen.tick()
+                assert screen.remaining == 0 and not screen.running
+                assert editor.read_only
+                assert screen.query_one("#run", Button).disabled
+        finally:
+            app.shutdown_resources()
+    asyncio.run(scenario())
+
+
+def test_assessment_prompts_withhold_pattern_without_changing_contract():
+    catalog = Catalog(Path(__file__).resolve().parents[1] / "content", track="amazon-sde-oa")
+    for exercise in catalog.exercises:
+        assert exercise.prompt.startswith("**Pattern:**")
+        assert assessment_prompt(exercise) == exercise.prompt.split("\n\n", 1)[1]
+        assert "**Pattern:**" not in assessment_prompt(exercise)
+
+
+def test_full_mock_timer_advances_while_coding_runner_is_busy(monkeypatch, tmp_path):
+    import time
+    from dev48.runners import RunResult
+
+    def slow_runner(*args, **kwargs):
+        time.sleep(0.2)
+        return RunResult(True, 100, "late coding result", ())
+
+    monkeypatch.setattr("dev48.app.run_exercise", slow_runner)
+
+    async def scenario():
+        app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=False)
+        try:
+            app.catalog = Catalog(Path(__file__).resolve().parents[1] / "content", track="amazon-sde-oa")
+            async with app.run_test(size=(160, 48)) as pilot:
+                app.push_screen(FullMockScreen(app.catalog.simulations[-1]))
+                await pilot.pause()
+                screen = app.screen
+                screen.start_coding()
+                task = asyncio.create_task(screen.action_run_coding())
+                await asyncio.sleep(0.03)
+                assert not task.done()
+                screen.remaining = 1
+                screen.tick()
+                assert screen.phase == 1 and screen.remaining == 3600
+                await task
+                assert "late coding result" not in str(screen.query_one("#mock-result", Static).content)
+                screen.finish_mock()
+        finally:
+            app.shutdown_resources()
+
+    asyncio.run(scenario())
 
 
 def test_dashboard_smoke(tmp_path):
@@ -62,7 +138,13 @@ def test_every_screen_remains_operable_in_short_terminal(tmp_path):
             async with app.run_test(size=(150, 16)) as pilot:
                 await pilot.pause()
                 assert app.has_class("compact-height")
-                lesson = app.catalog.lessons[0]
+                app.catalog = Catalog(Path(__file__).resolve().parents[1] / "content", track="amazon-sde-oa")
+                app.store.set_active_track("amazon-sde-oa")
+                app.sync_app_title()
+                lesson = next(
+                    item for item in app.catalog.lessons
+                    if app.catalog.exercises_for(item.id)
+                )
                 exercise = app.catalog.exercises_for(lesson.id)[0]
                 lab = app.catalog.labs[0]
                 simulation = app.catalog.simulations[0]
@@ -75,11 +157,14 @@ def test_every_screen_remains_operable_in_short_terminal(tmp_path):
                     (FlashcardsScreen(), "#card", True),
                     (GlossaryScreen(), "#glossary-scroll", False),
                     (ChallengesScreen(), "#table", False),
-                    (SimulationScreen(simulation), "#lab-scroll", True),
+                    (CodingSimulationScreen(simulation), "#coding-sim-editor", True),
                 )
                 for screen, main_selector, has_actions in cases:
                     app.push_screen(screen)
                     await pilot.pause()
+                    if isinstance(screen, CodingSimulationScreen):
+                        screen.action_toggle()
+                        await pilot.pause()
                     main = app.screen.query_one(main_selector)
                     assert main.region.height > 0, type(screen).__name__
                     assert main.region.y < app.size.height - 1, type(screen).__name__
@@ -329,25 +414,292 @@ def test_track_selection_screen_interaction(tmp_path):
                 assert "Angular & .NET" in app.title
                 assert "Signals" in app.sub_title
 
-                # Press 'ctrl+t' on Dashboard to switch to JS & React
+                # Ctrl+T opens the track chooser; the track changes after selection.
                 await pilot.press("ctrl+t")
                 await pilot.pause()
+                assert isinstance(app.screen, TrackSelectionScreen)
+                await pilot.press("2")
+                await pilot.pause()
+                assert isinstance(app.screen, DashboardScreen)
                 assert app.catalog.track == "web-js-react"
                 assert "Web Development Academy" in app.title
                 assert "React 19" in app.sub_title
+
+                await pilot.press("ctrl+t")
+                await pilot.pause()
+                assert isinstance(app.screen, TrackSelectionScreen)
+                await pilot.press("3")
+                await pilot.pause()
+                assert isinstance(app.screen, DashboardScreen)
+                assert app.catalog.track == "amazon-sde-oa"
+                assert "Amazon SDE-I OA" in app.title
+                assert len(app.catalog.work_scenarios) == 36
+
+                await pilot.press("ctrl+t")
+                await pilot.pause()
+                assert isinstance(app.screen, TrackSelectionScreen)
+                await pilot.press("2")
+                await pilot.pause()
 
                 # Open curriculum screen
                 await pilot.press("ctrl+k")
                 await pilot.pause()
                 assert isinstance(app.screen, CurriculumScreen)
-                # Press ctrl+t while not in Dashboard -> should not switch track
+                # The global shortcut opens the chooser from the curriculum; Escape restores it.
                 await pilot.press("ctrl+t")
                 await pilot.pause()
+                assert isinstance(app.screen, TrackSelectionScreen)
+                await pilot.press("escape")
+                await pilot.pause()
+                assert isinstance(app.screen, CurriculumScreen)
                 assert app.catalog.track == "web-js-react"
         finally:
             app.shutdown_resources()
 
     asyncio.run(scenario())
+
+
+def test_three_track_cards_fit_responsive_terminal_sizes(tmp_path):
+    async def scenario():
+        app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=True)
+        try:
+            async with app.run_test(size=(110, 35)) as pilot:
+                await pilot.pause()
+                assert isinstance(app.screen, TrackSelectionScreen)
+                for track in ("dotnet-angular", "web-js-react", "amazon-sde-oa"):
+                    card = app.screen.query_one(f"#track-card-{track}")
+                    button = app.screen.query_one(f"#btn-track-{track}", Button)
+                    assert card.region.width > 0 and card.region.width <= app.size.width
+                    assert button.region.width > 0 and button.region.right <= app.size.width
+
+                await pilot.resize_terminal(82, 20)
+                await pilot.pause()
+                assert isinstance(app.screen, TrackSelectionScreen)
+                assert app.screen.query_one("#track-card-list").region.height > 0
+                await pilot.press("3")
+                await pilot.pause()
+                assert isinstance(app.screen, DashboardScreen)
+                assert app.catalog.track == "amazon-sde-oa"
+        finally:
+            app.shutdown_resources()
+
+    asyncio.run(scenario())
+
+
+def test_amazon_work_screens_and_full_mock_sequence(tmp_path):
+    async def scenario():
+        app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=False)
+        try:
+            app.catalog = Catalog(Path(__file__).resolve().parents[1] / "content", track="amazon-sde-oa")
+            app.store.set_active_track("amazon-sde-oa")
+            async with app.run_test(size=(160, 48)) as pilot:
+                scenario_screen = WorkScenarioScreen(app.catalog.work_scenarios[0])
+                app.push_screen(scenario_screen)
+                await pilot.pause()
+                assert isinstance(app.screen, WorkScenarioScreen)
+                assert app.screen.query_one("#scenario-answer", TextArea)
+                assert "Filo conduttore:" in app.screen.feedback_text("A > B > C > D")
+                app.screen.query_one("#scenario-answer", TextArea).text = "B > A > C > D"
+                await pilot.click("#submit")
+                await pilot.pause()
+                assert app.screen.query_one("#scenario-feedback")
+                assert app.store.get(app.catalog.work_scenarios[0].id)["answer"] == "B > A > C > D"
+                app.pop_screen()
+                await pilot.pause()
+
+                app.push_screen(WorkScenarioScreen(app.catalog.work_scenarios[0]))
+                await pilot.pause()
+                assert app.screen.query_one("#scenario-answer", TextArea).text == "B > A > C > D"
+                app.pop_screen()
+                app.store.set_setting(f"scenario_revision:{app.catalog.work_scenarios[0].id}", "old-content")
+                app.push_screen(WorkScenarioScreen(app.catalog.work_scenarios[0]))
+                await pilot.pause()
+                assert app.screen.query_one("#scenario-answer", TextArea).text == ""
+                assert app.store.get(app.catalog.work_scenarios[0].id)["answer"] == "B > A > C > D"
+                app.pop_screen()
+                await pilot.pause()
+
+                app.push_screen(WorkStyleScreen())
+                await pilot.pause()
+                app.screen.query_one("#work-style-answer", TextArea).text = "Nota personale di prova"
+                await pilot.click("#save")
+                await pilot.pause()
+                assert app.store.get("sde-style-01")["answer"] == "Nota personale di prova"
+                app.pop_screen()
+                await pilot.pause()
+
+                simulation = app.catalog.simulations[-1]
+                app.push_screen(FullMockScreen(simulation))
+                await pilot.pause()
+                screen = app.screen
+                assert isinstance(screen, FullMockScreen)
+                assert not screen.query_one("#mock-coding-prompt", ScrollableContainer).display
+                await pilot.click("#repository-language")
+                await pilot.pause()
+                assert screen.lab.workspace_template == "amazon_cpp"
+                assert screen.lab.id.endswith("-cpp")
+                screen.query_one("#repository-language", Button).press()
+                await pilot.pause()
+                assert screen.lab.workspace_template == "amazon_node"
+                repository_prompt = screen.repository_prompt_text()
+                assert screen.lab.description not in repository_prompt
+                assert all(requirement not in repository_prompt for requirement in screen.lab.requirements)
+                assert "README" in repository_prompt and "suite di test" in repository_prompt
+                await pilot.click("#start")
+                await pilot.pause()
+                assert screen.locked and screen.phase == 0 and screen.remaining == 40 * 60
+                assert screen.query_one("#mock-coding-prompt", ScrollableContainer).display
+                await pilot.press("ctrl+t")
+                await pilot.pause()
+                assert app.screen is screen
+                await pilot.press("escape")
+                await pilot.press("ctrl+d")
+                await pilot.pause()
+                assert app.screen is screen
+                screen.remaining = 1
+                screen.running = True
+                screen.tick()
+                assert screen.phase == 1 and screen.remaining == 60 * 60
+                await pilot.pause()
+                assert screen.phase == 1
+                assert (tmp_path / "workspace" / "lab-amazon-mock-repository" / "package.json").is_file()
+                await pilot.press("escape")
+                await pilot.pause()
+                assert app.screen is screen and screen.locked
+                screen.remaining = 1
+                screen.running = True
+                screen.tick()
+                await pilot.pause()
+                assert screen.phase == 2 and not screen.locked
+                await pilot.click("#finish-mock")
+                await pilot.pause()
+                assert isinstance(app.screen, DashboardScreen)
+                app.store.set_setting("amazon_repository_language", "cpp")
+                app.push_screen(FullMockScreen(simulation))
+                await pilot.pause()
+                cpp_screen = app.screen
+                cpp_screen.start_coding()
+                cpp_screen.start_repository()
+                await pilot.pause()
+                assert (tmp_path / "workspace" / "lab-amazon-mock-repository-cpp" / "CMakeLists.txt").is_file()
+                assert cpp_screen.query_one("#repository-language", Button).disabled
+                cpp_screen.finish_mock()
+                app.pop_screen()
+        finally:
+            app.shutdown_resources()
+
+    asyncio.run(scenario())
+
+
+def test_amazon_exercise_hides_hints_and_saves_language_variants(tmp_path):
+    async def scenario():
+        app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=False)
+        try:
+            app.catalog = Catalog(Path(__file__).resolve().parents[1] / "content", track="amazon-sde-oa")
+            app.store.set_active_track("amazon-sde-oa")
+            exercise = app.catalog.exercise_by_id["sde-e-two-sum"]
+            async with app.run_test(size=(160, 48)) as pilot:
+                app.push_screen(ExerciseScreen(exercise.id))
+                await pilot.pause()
+                screen = app.screen
+                editor = screen.query_one("#editor", TextArea)
+                editor.text = "python attempt"
+                screen.action_toggle_language()
+                await pilot.pause()
+                assert screen.coding_language == "cpp"
+                editor = screen.query_one("#editor", TextArea)
+                editor.text = "cpp attempt"
+                screen.action_toggle_language()
+                await pilot.pause()
+                assert screen.coding_language == "python"
+                assert screen.query_one("#editor", TextArea).text == "python attempt"
+                screen.show_solution()
+                await pilot.pause()
+                assert "SOLUZIONE BLOCCATA" in str(screen.query_one("#result", Static).content)
+                for _ in range(2):
+                    app.store.record_attempt(screen.progress_id, "exercise", "tentativo", False, 0)
+                screen.show_solution()
+                await pilot.pause()
+                assert "SOLUZIONE COMMENTATA" in str(screen.query_one("#result", Static).content)
+        finally:
+            app.shutdown_resources()
+
+    asyncio.run(scenario())
+
+
+def test_amazon_hints_and_theory_answers_are_saved_per_language(tmp_path):
+    async def scenario():
+        app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=False)
+        try:
+            app.catalog = Catalog(Path(__file__).resolve().parents[1] / "content", track="amazon-sde-oa")
+            app.store.set_active_track("amazon-sde-oa")
+            exercise = app.catalog.exercise_by_id["sde-e-two-sum"]
+            async with app.run_test(size=(160, 48)) as pilot:
+                app.push_screen(ExerciseScreen(exercise.id))
+                await pilot.pause()
+                screen = app.screen
+                screen.query_one("#editor", TextArea).text = "python answer"
+                screen.action_hint()
+                assert app.store.get("sde-e-two-sum@python")["hint_level"] == 1
+                assert app.store.get(exercise.id) == {}
+
+                screen.action_toggle_language()
+                await pilot.pause()
+                assert screen.coding_language == "cpp"
+                assert app.store.get("sde-e-two-sum@python")["answer"] == "python answer"
+                screen.query_one("#editor", TextArea).text = "cpp answer"
+                screen.action_hint()
+                screen.action_toggle_theory()
+                assert app.store.get("sde-e-two-sum@cpp")["answer"] == "cpp answer"
+                assert app.store.get("sde-e-two-sum@cpp")["hint_level"] == 1
+                assert app.store.get(exercise.id) == {}
+
+                screen.action_toggle_theory()
+                screen.action_toggle_language()
+                await pilot.pause()
+                assert screen.coding_language == "python"
+                assert screen.query_one("#editor", TextArea).text == "python answer"
+        finally:
+            app.shutdown_resources()
+
+    asyncio.run(scenario())
+
+
+def test_active_track_persists_and_progress_stats_stay_separate(tmp_path):
+    content = Path(__file__).resolve().parents[1] / "content"
+    data_dir = tmp_path / "data"
+    workspace_dir = tmp_path / "workspace"
+    app = Dev48App(data_dir, workspace_dir, select_track=False)
+    try:
+        react = Catalog(content, track="web-js-react")
+        react_lesson = react.lessons[0]
+        react_exercise = react.exercises[0]
+        app.store.complete_lesson(react_lesson.id)
+        app.store.record_attempt(react_exercise.id, "exercise", react_exercise.solution, True, react_exercise.xp)
+
+        amazon = Catalog(content, track="amazon-sde-oa")
+        amazon_lesson = amazon.lesson_by_id["sde-l-oa-format"]
+        amazon_exercise = amazon.exercise_by_id["sde-e-two-sum"]
+        app.store.complete_lesson(amazon_lesson.id)
+        app.store.record_attempt("sde-e-two-sum@python", "exercise", "python code", True, amazon_exercise.xp)
+        app.catalog = amazon
+        app.coding_language = "python"
+        app.store.set_active_track("amazon-sde-oa")
+        assert app.stats()["completed_lessons"] == 1
+        assert app.stats()["completed_exercises"] == 1
+    finally:
+        app.shutdown_resources()
+
+    restarted = Dev48App(data_dir, workspace_dir, select_track=False)
+    try:
+        assert restarted.catalog.track == "amazon-sde-oa"
+        assert restarted.stats()["completed_lessons"] == 1
+        assert restarted.stats()["completed_exercises"] == 1
+        restarted.catalog = Catalog(content, track="web-js-react")
+        assert restarted.stats()["completed_lessons"] == 1
+        assert restarted.stats()["completed_exercises"] == 1
+    finally:
+        restarted.shutdown_resources()
 
 
 def test_lesson_and_action_buttons_arrows_and_enter(tmp_path):

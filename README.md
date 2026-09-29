@@ -2,11 +2,15 @@
 
 DEV//48 è una piattaforma di studio in italiano per lo sviluppo web e software. L'interfaccia è una TUI Python/Textual pensata per PowerShell; codice, test e laboratori restano file normali sul computer.
 
-La piattaforma supporta ora **due percorsi completi da zero**, commutabili all'istante con `Ctrl+T`:
+La piattaforma contiene tre percorsi, selezionabili all'avvio o con `Ctrl+T` da qualsiasi schermata non bloccata dal Full Mock:
+
 1. **Angular & .NET Enterprise Academy:** basi di C#, TypeScript, HTML e CSS, poi ASP.NET Core Minimal API, Entity Framework Core, Angular 22 Standalone, Signals e Control Flow, fino ai laboratori full-stack (`client/` + `server/`).
 2. **JavaScript & React Academy:** JavaScript da zero, React 19, Node.js, Express, SQLite e test con Vitest.
+3. **Amazon SDE-I OA Bootcamp:** piano essenziale di sei giorni, 44 lezioni distinte e navigabili, 67 esercizi DSA con varianti Python e C++ (22 Easy, 35 Medium, 10 Hard), sei repository lab, 160 flashcard, quattro simulazioni, 36 scenari Work Simulation e otto prompt Work Style.
 
-Ciascun percorso include **50 lezioni**, **100 esercizi interattivi**, **12 laboratori**, **150 flashcard** e **4 sfide/simulazioni**. Il percorso Angular & .NET include inoltre **3 lezioni di fondamenti**: in totale sono 53 lezioni, 106 esercizi e 159 flashcard.
+Ogni percorso mantiene catalogo e progresso separati. Alla prima schermata scegli `1`, `2` o `3`; anche le frecce e Invio funzionano. `Ctrl+T` riapre la selezione. Il piano essenziale Amazon distribuisce tutte le lezioni e attività scelte in circa 34 ore e mezza; il catalogo completo dichiara circa 54,7 ore includendo anche esercizi, laboratori e simulazioni facoltativi. Gli scenari singoli non hanno una durata predefinita.
+
+Il bootcamp include simulazioni da 25, 40 e 60 minuti e un mock sequenziale da 40 minuti di coding più 60 minuti su una repository. I due timer sono indipendenti: il tempo inutilizzato non passa alla sezione successiva. È un formato di pratica richiesto; ruolo, paese e invito ricevuto determinano il processo Amazon effettivo.
 
 ## Sistema di Valutazione Intelligente e Creatività
 
@@ -45,7 +49,7 @@ Le estensioni creative sono facoltative e non assegnano XP automatici.
 
 1. Fai doppio clic su **`Avvia DEV48.bat`**.
 2. Solo al primo avvio attendi la creazione di `.venv` e l'installazione delle dipendenze Python.
-3. Al primo avvio scegli **Inizia il percorso**. Usa **`Ctrl+T`** in qualsiasi momento per cambiare tra il percorso Angular & .NET e il percorso JS & React: la dashboard mostrerà solo i contenuti dello stack attivo senza alcun sovraccarico visivo.
+3. Scegli `1`, `2` o `3` nella schermata iniziale. Usa **`Ctrl+T`** per tornare al selettore dei tre percorsi.
 
 Requisiti di sistema: Windows 10/11, Python 3.11+, .NET SDK 10 e Node.js. Per Angular 22 usa Node.js `22.22.3` o superiore nella linea 22, `24.15.0` o superiore nella linea 24, oppure la linea 26 supportata. Git e VS Code sono raccomandati per i laboratori. Esegui **`Diagnostica DEV48.bat`** per verificare automaticamente l'ambiente locale. Vedi la [tabella ufficiale di compatibilità Angular](https://angular.dev/reference/versions) e il [ciclo di supporto .NET](https://learn.microsoft.com/dotnet/core/releases-and-support).
 
@@ -62,7 +66,7 @@ cd "C:\percorso\DEV48"
 |---|---|
 | Frecce | Navigano subito nella schermata: selezione nelle tabelle, scorrimento nei testi, cursore nell'editor e cambio flashcard |
 | `Invio` | Apre la voce selezionata / continua |
-| `Ctrl+T` | **Cambia traccia attiva** (Angular & .NET ⇄ JS & React) |
+| `Ctrl+T` | Apre il selettore dei tre percorsi, tranne durante il Full Mock bloccato |
 | `Ctrl+S` | Salva la risposta o completa una lezione |
 | `F5` | Esegue l'esercizio corrente nel runner dedicato |
 | `F1` | Alterna traccia dell'esercizio e teoria della lezione, conservando risposta e posizione di lettura |
@@ -77,6 +81,16 @@ cd "C:\percorso\DEV48"
 
 La soluzione completa di un esercizio breve si sblocca dopo due tentativi falliti. Quando consulti la teoria con `F1`, l'editor e la posizione di lettura restano nella schermata dell'esercizio.
 
+## Amazon SDE-I OA Bootcamp
+
+Il piano Core distribuisce la scelta del linguaggio e le due demo repository nel Giorno 1; pattern lineari e primo sprint da 25 minuti nel Giorno 2; stack/ricerca e lab intermedio nel Giorno 3; liste, alberi e grafi nel Giorno 4; heap, greedy, backtracking, DP e coding da 40 minuti nel Giorno 5; debugging, behavioral e Full Mock nel Giorno 6. Dopo il confronto, usa un linguaggio DSA e uno stack repository: il piano cambia con le scelte salvate. I lab demo hanno il pulsante **USA QUESTO STACK**; il mock finale offre Node.js e C++.
+
+Il Core richiede circa 5h56–6h01, 6h10–6h30, 6h05–6h10, 6h50, 6h40 e 5h35 al giorno, includendo 15 minuti di flashcard e 20 di error review quotidiani, senza pause. Gli esercizi fuori dal piano e lo stack non scelto sono Extra. Le 67 famiglie di problemi hanno varianti Python/C++ e sono 21 Easy, 34 Medium e 10 Hard; i sei lab logici includono due implementazioni del mock finale.
+
+I sei repository lab passano da due demo equivalenti C++ e Node.js a Promise/controller, inventario C++, contratto API sugli ordini e mock finale con sei famiglie di difetti fra route, service e repository. Il mock finale non indica i file da correggere. La demo HackerRank può offrire anche Django e Spring Boot; il bootcamp fornisce pratica eseguibile in C++ e Node.js e non presume che l'esame riusi la stessa repository. Node usa `npm test`; C++ richiede GCC o Clang con C++20. La diagnostica rileva il compilatore, che resta facoltativo per gli altri contenuti.
+
+Le simulazioni coding e repository hanno timer indipendenti e non mostrano indizi o soluzioni durante il tentativo. La Full Mock pratica passa dal coding di 40 minuti al repository di 60 minuti e poi mostra il riepilogo. I 36 scenari Work Simulation e le otto domande Work Style offrono feedback formativo, non un punteggio di selezione o una previsione dell'esito di candidatura.
+
 ## Laboratori
 
 Dalla scheda di un laboratorio:
@@ -84,9 +98,9 @@ Dalla scheda di un laboratorio:
 1. premi **Apri VS Code** per creare e aprire lo starter project;
 2. premi **Installa dipendenze** per ripristinare i pacchetti .NET e Angular/Node necessari;
 3. modifica i file nella cartella `workspace/<id-lab>`;
-4. premi **Esegui test** nell'app oppure esegui `dotnet test Tests/Server.Tests.csproj` da `server/` e `npm test` da `client/`.
+4. premi **Esegui test** nell'app oppure usa il comando indicato nel README del laboratorio, fra cui `dotnet test Tests/Server.Tests.csproj`, `npm test` o la suite C++20.
 
-DEV//48 crea solo i file mancanti. Il vecchio starter simulato viene conservato in cartelle `*-legacy` quando viene sostituito con un progetto Angular CLI o .NET reale. I laboratori Angular usano Angular CLI 22, Vitest e TestBed; i laboratori .NET usano .NET 10 e xUnit. Le versioni dei pacchetti sono definite nei file `package.json` e `.csproj` del laboratorio.
+DEV//48 crea solo i file mancanti. Il vecchio starter simulato viene conservato in cartelle `*-legacy` quando viene sostituito con un progetto Angular CLI o .NET reale. I laboratori Angular usano Angular CLI 22, Vitest e TestBed; quelli .NET usano .NET 10 e xUnit. I repository del bootcamp usano Node.js integrato o compilazione C++20 senza dipendenze scaricate. Le versioni dei pacchetti sono definite nei file `package.json` e `.csproj` del laboratorio.
 
 ## Salvataggio, backup e privacy
 
@@ -100,7 +114,8 @@ Per conservare uno snapshot personale basta copiare `data/progress.sqlite3` e `d
 
 ## Come vengono corretti gli esercizi
 
-- **JavaScript:** Node viene avviato in una cartella temporanea, con timeout di 5 secondi e output limitato.
+- **JavaScript e Python:** Node o Python vengono avviati in una cartella temporanea con timeout e output limitato; i problemi Amazon eseguono i casi comportamentali dichiarati per il linguaggio selezionato.
+- **C++:** gli esercizi Amazon vengono compilati come C++20 con GCC o Clang, poi eseguiti con timeout e limite di output. Senza compilatore, il runner riporta che C++ non è disponibile.
 - **C#:** il codice viene compilato dal .NET SDK 10 in un progetto temporaneo.
 - **TypeScript e Angular brevi:** Node rimuove i tipi e controlla il modello di logica. Il controllo non sostituisce il compilatore TypeScript né il runtime Angular.
 - **SQL:** le query girano su un database SQLite temporaneo ricreato per ogni prova.
@@ -108,7 +123,7 @@ Per conservare uno snapshot personale basta copiare `data/progress.sqlite3` e `d
 - **Richiami teorici:** checklist trasparente dei termini richiesti e confronto con risposta modello.
 - **Laboratori .NET/Angular:** xUnit e il test runner Angular eseguono le suite presenti nei rispettivi workspace.
 
-Il codice scritto nell'editor viene eseguito localmente sul computer. Usa il runner solo per gli esercizi del corso e per codice di cui conosci la provenienza.
+Il runner impone timeout e limite di output, ma non è una sandbox del sistema operativo: il codice può accedere ai file e alla rete con i permessi del tuo account. Il codice scritto nell'editor viene eseguito localmente.
 
 ## Mappa dei file
 
@@ -127,20 +142,20 @@ Il codice scritto nell'editor viene eseguito localmente sul computer. Usa il run
 | `dev48/runners.py` | Correttori JavaScript, SQL, HTML, React e lab | Solo per sviluppo |
 | `dev48/workspace.py` | Creazione starter project, npm e apertura VS Code | Solo per sviluppo |
 | `content/catalog.json` | Manifest del percorso JavaScript & React | Non modificare a mano |
-| `content/catalog_dotnet_angular.json` | Manifest del percorso Angular & .NET | Non modificare a mano |
-| `content/lessons/*.md`, `content/lessons_dotnet/*.md` | Testi completi delle lezioni dei due percorsi | Sì, con cautela |
-| `tools/generate_content.py`, `tools/generate_dotnet_angular.py` | Sorgenti editoriali che rigenerano i cataloghi | Solo per manutenzione |
+| `content/catalog_dotnet_angular.json`, `content/catalog_amazon_sde.json` | Manifest dei relativi percorsi | Non modificare a mano |
+| `content/lessons/*.md`, `content/lessons_dotnet/*.md`, `content/lessons_amazon/*.md` | Testi delle lezioni | Sì, con cautela |
+| `tools/generate_content.py`, `tools/generate_dotnet_angular.py`, `tools/generate_amazon_sde.py` | Sorgenti editoriali che rigenerano i cataloghi | Solo per manutenzione |
 | `tools/doctor.py` | Diagnostica richiamata dal file `.bat` | Solo per sviluppo |
 | `tests/` | Test automatici del catalogo, DB, runner e TUI | Sì, per sviluppo |
 | `data/` | Stato personale e backup, creati a runtime | Non mentre l'app è aperta |
-| `workspace/` | Codice modificabile dei 12 laboratori | **Sì: è il tuo lavoro** |
+| `workspace/` | Codice modificabile dei laboratori e repository di pratica | **Sì: è il tuo lavoro** |
 | `.venv/` | Ambiente Python isolato, ricreabile | Non modificare |
 
 Attenzione: i due generatori riscrivono il relativo catalogo e i Markdown generati. Falli soltanto se stai mantenendo il contenuto editoriale.
 
 ## Diagnostica e test
 
-In caso di dubbio esegui **`Diagnostica DEV48.bat`**. Verifica Python, Textual, Node/npm, catalogo, permessi di scrittura e un'esecuzione JavaScript reale; Git e VS Code vengono segnalati come opzionali.
+In caso di dubbio esegui **`Diagnostica DEV48.bat`**. Verifica Python, Textual, Node/npm, tutti i cataloghi, permessi di scrittura e runner disponibili; Git, VS Code e il compilatore C++ vengono segnalati come opzionali.
 
 Suite completa per chi modifica il programma:
 
@@ -149,7 +164,7 @@ cd "C:\percorso\DEV48"
 .\.venv\Scripts\python.exe -m pytest -q
 ```
 
-Il test delle soluzioni esegue tutte le 206 soluzioni ufficiali dei due percorsi contro i rispettivi controlli e verifica anche il rifiuto di una soluzione errata e l'arresto di codice infinito.
+La suite esegue le 65 soluzioni di riferimento Python del bootcamp contro i rispettivi casi; quelle C++ vengono compilate e verificate quando GCC o Clang è installato. Include anche test per sintassi e runtime errati, risposte sbagliate, timeout, output e compilazione C++ facoltativa.
 
 ## Risoluzione dei problemi
 

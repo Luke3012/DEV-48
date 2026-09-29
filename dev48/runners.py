@@ -11,6 +11,8 @@ import re
 import shutil
 import sqlite3
 import subprocess
+import sys
+import threading
 
 from .models import Exercise
 
@@ -86,27 +88,261 @@ def _strip_js_comments(source: str) -> str:
     return "".join(result)
 
 
-def run_exercise(exercise: Exercise, answer: str, project_root: Path) -> RunResult:
-    if exercise.kind == "csharp":
-        result = run_csharp(answer, exercise.tests)
+def run_exercise(
+    exercise: Exercise,
+    answer: str,
+    project_root: Path,
+    language: str = "python",
+) -> RunResult:
+    variant = exercise.variants.get(language)
+    kind = str(variant.get("kind", language)) if variant else exercise.kind
+    tests = tuple(variant.get("tests", ())) if variant else exercise.tests
+    if kind == "python":
+        result = run_python(answer, tests)
+    elif kind == "cpp":
+        result = run_cpp(answer, tests)
+    elif kind == "csharp":
+        result = run_csharp(answer, tests)
     elif exercise.kind == "angular":
-        result = run_angular(answer, exercise.tests)
+        result = run_angular(answer, tests)
     elif exercise.kind == "typescript":
-        result = run_typescript(answer, exercise.tests)
+        result = run_typescript(answer, tests)
     elif exercise.kind == "javascript":
-        result = run_javascript(answer, exercise.tests)
+        result = run_javascript(answer, tests)
     elif exercise.kind == "sql":
-        result = run_sql(answer, exercise.tests)
+        result = run_sql(answer, tests)
     elif exercise.kind in {"html", "css"}:
-        result = run_markup(answer, exercise.tests)
+        result = run_markup(answer, tests)
     elif exercise.kind in {"quiz", "short", "reflection", "architecture", "git"}:
-        result = run_semantic_text(answer, exercise.tests)
+        result = run_semantic_text(answer, tests)
     elif exercise.kind == "react":
-        result = run_react_check(answer, exercise.tests)
+        result = run_react_check(answer, tests)
     else:
         result = RunResult(False, 0, "Tipo di esercizio non supportato.", ())
 
     return result
+
+
+def _run_process_limited(
+    command: list[str],
+    cwd: str | Path,
+    timeout: float,
+    env: dict[str, str] | None = None,
+) -> tuple[int, str, str, bool, bool]:
+    """Run a child process with a wall-clock and combined output cap."""
+    process = subprocess.Popen(
+        command,
+        cwd=cwd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env=env,
+    )
+    output_lock = threading.Lock()
+    captured = {"stdout": bytearray(), "stderr": bytearray()}
+    total_bytes = 0
+    output_limited = threading.Event()
+
+    def drain(name: str, stream) -> None:
+        nonlocal total_bytes
+        while True:
+            chunk = stream.read(4096)
+            if not chunk:
+                return
+            with output_lock:
+                remaining = max(0, MAX_OUTPUT - total_bytes)
+                if remaining:
+                    captured[name].extend(chunk[:remaining])
+                total_bytes += len(chunk)
+                if len(chunk) > remaining:
+                    output_limited.set()
+            if output_limited.is_set() and process.poll() is None:
+                process.kill()
+
+    readers = [
+        threading.Thread(target=drain, args=(name, stream), daemon=True)
+        for name, stream in (("stdout", process.stdout), ("stderr", process.stderr))
+    ]
+    for reader in readers:
+        reader.start()
+    timed_out = False
+    try:
+        process.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        timed_out = True
+        process.kill()
+        process.wait()
+    for reader in readers:
+        reader.join(timeout=2)
+    stdout = bytes(captured["stdout"]).decode("utf-8", errors="replace")
+    stderr = bytes(captured["stderr"]).decode("utf-8", errors="replace")
+    if output_limited.is_set():
+        stderr += "\n… output interrotto al limite configurato"
+    return process.returncode or 0, stdout, stderr, timed_out, output_limited.is_set()
+
+
+def run_python(source: str, tests: tuple[dict[str, Any], ...]) -> RunResult:
+    """Execute Python interview solutions against behavioral expressions."""
+    if not tests:
+        return RunResult(False, 0, "Questo esercizio non ha verifiche automatiche configurate.", ())
+    harness = r'''import json, pathlib, sys, traceback
+
+source_path, tests_path = map(pathlib.Path, sys.argv[1:])
+tests = json.loads(tests_path.read_text(encoding="utf-8"))
+scope = {"__name__": "__dev48_solution__"}
+
+def report(value):
+    sys.__stdout__.write("DEV48_RESULT:" + json.dumps(value, ensure_ascii=False) + "\n")
+
+try:
+    source = source_path.read_text(encoding="utf-8")
+    exec(compile(source, str(source_path), "exec"), scope)
+except BaseException as error:
+    report({"fatal": type(error).__name__ + ": " + str(error), "trace": traceback.format_exc(limit=5)})
+    raise SystemExit(2)
+
+results = []
+for test in tests:
+    try:
+        actual = eval(test["expression"], scope)
+        expected = test.get("expected")
+        results.append({"name": test.get("name", "Test"), "passed": actual == expected,
+                        "actual": actual, "expected": expected})
+    except BaseException as error:
+        results.append({"name": test.get("name", "Test"), "passed": False,
+                        "error": type(error).__name__ + ": " + str(error),
+                        "trace": traceback.format_exc(limit=3), "expected": test.get("expected")})
+report({"results": results})
+'''
+    with TemporaryDirectory(prefix="dev48_py_") as temporary:
+        root = Path(temporary)
+        source_file = root / "solution.py"
+        test_file = root / "tests.json"
+        harness_file = root / "runner.py"
+        source_file.write_text(source, encoding="utf-8")
+        test_file.write_text(json.dumps(tests, ensure_ascii=False), encoding="utf-8")
+        harness_file.write_text(harness, encoding="utf-8")
+        try:
+            code, stdout, stderr, timed_out, limited = _run_process_limited(
+                [sys.executable, str(harness_file), str(source_file), str(test_file)],
+                cwd=root,
+                timeout=6,
+                env={**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"},
+            )
+        except OSError as error:
+            return RunResult(False, 0, f"Impossibile avviare il runner Python: {error}", ())
+    if timed_out:
+        return RunResult(False, 0, "Tempo scaduto: il codice Python ha superato il limite di 6 secondi.", ())
+    marker = next((line for line in reversed(stdout.splitlines()) if line.startswith("DEV48_RESULT:")), "")
+    if not marker:
+        detail = (stderr or stdout).strip()
+        if limited:
+            detail = "Il processo ha superato il limite di output. " + detail
+        return RunResult(False, 0, f"Errore di sintassi o esecuzione Python:\n{detail or 'Il processo non ha prodotto risultati.'}", ())
+    try:
+        payload = json.loads(marker.removeprefix("DEV48_RESULT:"))
+    except json.JSONDecodeError:
+        return RunResult(False, 0, "Il runner Python non ha prodotto un risultato leggibile.", ())
+    if "fatal" in payload:
+        prefix = "Errore di sintassi Python" if payload["fatal"].startswith("SyntaxError:") else "Errore di esecuzione Python"
+        return RunResult(False, 0, f"{prefix}:\n{payload.get('trace', payload['fatal'])}", ())
+    results = payload.get("results", [])
+    passed_count = sum(bool(result.get("passed")) for result in results)
+    details = []
+    for result in results:
+        if result.get("passed"):
+            details.append(f"✓ {result.get('name', 'Test')}")
+        else:
+            actual = result.get("error", repr(result.get("actual")))
+            details.append(f"✗ {result.get('name', 'Test')} — ottenuto {actual}; atteso {result.get('expected')!r}")
+    score = int(100 * passed_count / max(1, len(results)))
+    user_output = "\n".join(line for line in stdout.splitlines() if not line.startswith("DEV48_RESULT:"))
+    summary = f"{passed_count}/{len(results)} test Python superati"
+    if stderr.strip():
+        summary += "\n\n" + _trim(stderr)
+    if user_output.strip():
+        summary += "\n\nOutput del programma:\n" + _trim(user_output)
+    return RunResult(passed_count == len(results), score, summary, tuple(details))
+
+
+def run_cpp(source: str, tests: tuple[dict[str, Any], ...]) -> RunResult:
+    """Compile C++20 code and evaluate boolean assertions in a temporary directory."""
+    if not tests:
+        return RunResult(False, 0, "Questo esercizio non ha verifiche automatiche configurate.", ())
+    compiler = next((shutil.which(name) for name in ("g++", "clang++") if shutil.which(name)), None)
+    if not compiler:
+        return RunResult(False, 0, "Compilatore C++ non trovato: installa GCC o Clang per eseguire questa soluzione.", ())
+    expressions = [test.get("assertion", "") for test in tests]
+    if any(not expression for expression in expressions):
+        return RunResult(False, 0, "Test C++ incompleto: manca un'asserzione comportamentale.", ())
+    harness = [
+        "#include <iostream>",
+        "#include <exception>",
+        source,
+        "\nint main() {",
+    ]
+    for index, expression in enumerate(expressions):
+        harness.append(
+            f'  try {{ std::cout << "DEV48_RESULT:{index}:" << (static_cast<bool>({expression}) ? 1 : 0) << "\\n"; }} '
+            f'catch (const std::exception& error) {{ std::cout << "DEV48_RUNTIME:{index}:" << error.what() << "\\n"; }} '
+            f'catch (...) {{ std::cout << "DEV48_RUNTIME:{index}:unknown\\n"; }}'
+        )
+    harness.append("  return 0;\n}")
+    with TemporaryDirectory(prefix="dev48_cpp_") as temporary:
+        root = Path(temporary)
+        source_file = root / "solution.cpp"
+        binary_file = root / ("solution.exe" if os.name == "nt" else "solution")
+        source_file.write_text("\n".join(harness), encoding="utf-8")
+        try:
+            code, stdout, stderr, timed_out, limited = _run_process_limited(
+                [compiler, "-std=c++20", "-O0", str(source_file), "-o", str(binary_file)],
+                cwd=root,
+                timeout=30,
+                env={**os.environ, "NO_COLOR": "1"},
+            )
+        except OSError as error:
+            return RunResult(False, 0, f"Impossibile avviare il compilatore C++: {error}", ())
+        if timed_out:
+            return RunResult(False, 0, "Tempo scaduto durante la compilazione C++ (30 secondi).", ())
+        if code != 0 or not binary_file.is_file():
+            detail = _trim(stderr or stdout or "Il compilatore non ha creato l'eseguibile.")
+            return RunResult(False, 0, f"Errore del compilatore C++:\n{detail}", ())
+        try:
+            code, stdout, stderr, timed_out, limited = _run_process_limited(
+                [str(binary_file)], cwd=root, timeout=6, env={**os.environ, "NO_COLOR": "1"},
+            )
+        except OSError as error:
+            return RunResult(False, 0, f"Impossibile avviare il programma C++: {error}", ())
+    if timed_out:
+        return RunResult(False, 0, "Tempo scaduto: il codice C++ ha superato il limite di 6 secondi.", ())
+    if limited:
+        return RunResult(False, 0, "Output C++ oltre il limite consentito.", ())
+    markers = {}
+    runtime_errors = {}
+    for line in stdout.splitlines():
+        if line.startswith("DEV48_RESULT:"):
+            parts = line.split(":", 2)
+            if len(parts) == 3 and parts[1].isdigit():
+                markers[int(parts[1])] = parts[2] == "1"
+        elif line.startswith("DEV48_RUNTIME:"):
+            parts = line.split(":", 2)
+            if len(parts) == 3 and parts[1].isdigit():
+                runtime_errors[int(parts[1])] = parts[2]
+    if code != 0:
+        return RunResult(False, 0, f"Errore di esecuzione C++:\n{_trim(stderr or stdout or f'codice di uscita {code}')}", ())
+    details = []
+    for index, test in enumerate(tests):
+        if markers.get(index, False):
+            details.append(f"✓ {test.get('name', f'Test {index + 1}')}")
+        else:
+            error = runtime_errors.get(index)
+            suffix = f" — {error}" if error else (" — nessun risultato" if index not in markers else "")
+            details.append(f"✗ {test.get('name', f'Test {index + 1}')}{suffix}")
+    passed_count = sum(markers.get(index, False) for index in range(len(tests)))
+    score = int(100 * passed_count / max(1, len(tests)))
+    summary = f"{passed_count}/{len(tests)} test C++20 superati"
+    if stderr.strip():
+        summary += "\n\n" + _trim(stderr)
+    return RunResult(passed_count == len(tests), score, summary, tuple(details))
 
 
 def run_csharp(source: str, tests: tuple[dict[str, Any], ...]) -> RunResult:
@@ -666,6 +902,8 @@ def run_react_check(source: str, tests: tuple[dict[str, Any], ...]) -> RunResult
 
 def run_lab_tests(workspace: Path, target: str = "all") -> RunResult:
     """Esegue i test del laboratorio supportando progetti .NET (server/), Angular (client/) o Monorepo misti."""
+    if target == "all" and (workspace / "CMakeLists.txt").is_file():
+        return run_cpp_lab_tests(workspace)
     outputs: list[str] = []
     all_passed = True
     ran_anything = False
@@ -684,36 +922,37 @@ def run_lab_tests(workspace: Path, target: str = "all") -> RunResult:
             else:
                 return RunResult(False, 0, "Progetto di test xUnit non trovato: nessun test è stato eseguito.", ())
         try:
-            proc = subprocess.run(
+            returncode, stdout, stderr, timed_out, output_limited = _run_process_limited(
                 [dotnet, "test", str(test_project), "--nologo", "-v", "q"],
-                cwd=server_dir, capture_output=True, text=True, timeout=90,
-                encoding="utf-8", errors="replace",
+                cwd=server_dir, timeout=90,
             )
+            if timed_out:
+                return RunResult(False, 0, "Test backend .NET interrotti dopo 90 secondi.", ())
             ran_anything = True
-            if proc.returncode != 0:
+            if returncode != 0 or output_limited:
                 all_passed = False
-            outputs.append(f"[Test Backend .NET]\n{proc.stdout}\n{proc.stderr}")
-        except subprocess.TimeoutExpired:
-            return RunResult(False, 0, "Test backend .NET interrotti dopo 90 secondi.", ())
+            outputs.append(f"[Test Backend .NET]\n{stdout}\n{stderr}")
+        except OSError as error:
+            return RunResult(False, 0, f"Impossibile avviare dotnet test: {error}", ())
 
     # Progetto Angular Client (npm test)
-    client_dir = workspace / "client" if (workspace / "client").is_dir() else (workspace if (workspace / "package.json").is_file() else None)
+    client_dir = workspace / "client" if (workspace / "client").is_dir() else None
     if client_dir and target in ("all", "client", "frontend"):
         npm = shutil.which("npm")
         if not npm:
             return RunResult(False, 0, "npm non trovato nel PATH.", ())
         try:
-            proc = subprocess.run(
-                [npm, "test"],
-                cwd=client_dir, capture_output=True, text=True, timeout=90,
-                encoding="utf-8", errors="replace",
+            returncode, stdout, stderr, timed_out, output_limited = _run_process_limited(
+                [npm, "test"], cwd=client_dir, timeout=90,
             )
+            if timed_out:
+                return RunResult(False, 0, "Test frontend interrotti dopo 90 secondi.", ())
             ran_anything = True
-            if proc.returncode != 0:
+            if returncode != 0 or output_limited:
                 all_passed = False
-            outputs.append(f"[Test Frontend Angular]\n{proc.stdout}\n{proc.stderr}")
-        except subprocess.TimeoutExpired:
-            return RunResult(False, 0, "Test frontend interrotti dopo 90 secondi.", ())
+            outputs.append(f"[Test Frontend Angular]\n{stdout}\n{stderr}")
+        except OSError as error:
+            return RunResult(False, 0, f"Impossibile avviare npm test: {error}", ())
 
     if not ran_anything:
         # Small JavaScript/React exercises use a root package instead of a
@@ -724,13 +963,69 @@ def run_lab_tests(workspace: Path, target: str = "all") -> RunResult:
             if not npm:
                 return RunResult(False, 0, "npm non trovato nel PATH.", ())
             try:
-                proc = subprocess.run([npm, "test"], cwd=workspace, capture_output=True, text=True, timeout=90, encoding="utf-8", errors="replace")
-            except subprocess.TimeoutExpired:
+                returncode, stdout, stderr, timed_out, output_limited = _run_process_limited(
+                    [npm, "test"], cwd=workspace, timeout=90,
+                )
+            except OSError as error:
+                return RunResult(False, 0, f"Impossibile avviare npm test: {error}", ())
+            if timed_out:
                 return RunResult(False, 0, "Test del progetto interrotti dopo 90 secondi.", ())
-            output = _trim(proc.stdout + "\n" + proc.stderr)
-            return RunResult(proc.returncode == 0, 100 if proc.returncode == 0 else 0, output, ())
+            output = _trim(stdout + "\n" + stderr)
+            if output_limited:
+                return RunResult(False, 0, output + "\nSuite interrotta al limite di output.", ())
+            return RunResult(returncode == 0, 100 if returncode == 0 else 0, output, ())
         return RunResult(False, 0, "Nessun progetto .NET o npm/Angular rilevato nel workspace.", ())
 
     combined_output = _trim("\n\n".join(outputs))
     score = 100 if all_passed else 0
     return RunResult(all_passed, score, combined_output, ())
+
+
+def run_cpp_lab_tests(workspace: Path) -> RunResult:
+    compiler = next((shutil.which(name) for name in ("g++", "clang++") if shutil.which(name)), None)
+    if not compiler:
+        return RunResult(False, 0, "Compilatore C++ non trovato: installa GCC o Clang per eseguire i test del laboratorio.", ())
+    source_files = sorted((workspace / "src").glob("*.cpp"))
+    test_files = sorted((workspace / "tests").glob("*.cpp"))
+    if not source_files or not test_files:
+        return RunResult(False, 0, "Repository C++ incompleta: servono file .cpp in src/ e tests/.", ())
+    with TemporaryDirectory(prefix="dev48_cpp_lab_") as temporary:
+        executable = Path(temporary) / ("lab-tests.exe" if os.name == "nt" else "lab-tests")
+        command = [
+            compiler, "-std=c++20", "-O0", "-Wall", "-Wextra",
+            "-I", str(workspace / "include"),
+            *(str(path) for path in source_files),
+            *(str(path) for path in test_files),
+            "-o", str(executable),
+        ]
+        try:
+            compile_code, compile_stdout, compile_stderr, timed_out, output_limited = _run_process_limited(
+                command, cwd=workspace, timeout=30, env={**os.environ, "NO_COLOR": "1"},
+            )
+        except OSError as error:
+            return RunResult(False, 0, f"Impossibile avviare il compilatore C++: {error}", ())
+        if timed_out:
+            return RunResult(False, 0, "Compilazione C++ interrotta dopo 30 secondi.", ())
+        if output_limited:
+            detail = _trim(compile_stdout + "\n" + compile_stderr)
+            return RunResult(False, 0, f"Output della compilazione oltre il limite configurato:\n{detail}", ())
+        if compile_code != 0 or not executable.is_file():
+            detail = _trim(compile_stderr or compile_stdout or "Nessun eseguibile prodotto.")
+            return RunResult(False, 0, f"Errore del compilatore C++:\n{detail}", ())
+        try:
+            returncode, stdout, stderr, timed_out, output_limited = _run_process_limited(
+                [str(executable)], cwd=workspace, timeout=10, env={**os.environ, "NO_COLOR": "1"},
+            )
+        except OSError as error:
+            return RunResult(False, 0, f"Impossibile avviare i test C++: {error}", ())
+        if timed_out:
+            return RunResult(False, 0, "Test C++ interrotti dopo 10 secondi.", ())
+    output = _trim(stdout + ("\n" + stderr if stderr else ""))
+    if output_limited:
+        return RunResult(False, 0, output + "\nTest C++ interrotti al limite di output.", ())
+    return RunResult(
+        returncode == 0,
+        100 if returncode == 0 else 0,
+        output or f"Suite C++ terminata con codice {returncode}.",
+        (),
+    )

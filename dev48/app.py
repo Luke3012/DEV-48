@@ -4,6 +4,8 @@ from pathlib import Path
 from time import monotonic
 import asyncio
 import json
+import hashlib
+import re
 
 from textual import events
 from textual.app import App, ComposeResult
@@ -16,7 +18,7 @@ from textual.widgets import (
 )
 
 from .database import InstanceLock, ProgressStore
-from .models import Catalog, Exercise, Lab, Lesson, Simulation
+from .models import Catalog, Exercise, Lab, Lesson, Simulation, TRACK_DEFINITIONS, WorkScenario, WorkStylePrompt
 from .runners import run_exercise, run_lab_tests
 from .workspace import ensure_lab_workspace, install_lab_dependencies, open_vscode
 
@@ -25,6 +27,17 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CONTENT_ROOT = PROJECT_ROOT / "content"
 DATA_ROOT = PROJECT_ROOT / "data"
 WORKSPACE_ROOT = PROJECT_ROOT / "workspace"
+
+
+def exercise_progress_id(exercise: Exercise, language: str = "python") -> str:
+    return f"{exercise.id}@{language}" if exercise.variants else exercise.id
+
+
+def split_exercise_progress_id(item_id: str) -> tuple[str, str | None]:
+    if "@" not in item_id:
+        return item_id, None
+    exercise_id, language = item_id.rsplit("@", 1)
+    return exercise_id, language
 
 
 GLOSSARY = {
@@ -81,8 +94,8 @@ class TimedScreen(Screen):
 
 class TrackSelectionScreen(Screen):
     BINDINGS = [
-        ("1", "select_dotnet", "Angular & .NET"),
-        ("2", "select_react", "JS & React"),
+        *((str(index), f"select_track({index - 1})", definition.name)
+          for index, definition in enumerate(TRACK_DEFINITIONS, 1)),
         ("left", "previous_track", "Sinistra"),
         ("right", "next_track", "Destra"),
         ("up", "previous_track", "Precedente"),
@@ -90,89 +103,90 @@ class TrackSelectionScreen(Screen):
         ("escape", "quit", "Esci"),
     ]
 
+    def __init__(self, return_to_previous: bool = False) -> None:
+        super().__init__()
+        self.return_to_previous = return_to_previous
+
     def compose(self) -> ComposeResult:
-        active = getattr(self.app.catalog, "track", "dotnet-angular")
-        dotnet_catalog = Catalog(CONTENT_ROOT, track="dotnet-angular")
-        react_catalog = Catalog(CONTENT_ROOT, track="web-js-react")
+        active = getattr(self.app.catalog, "track", TRACK_DEFINITIONS[0].id)
+        catalogs = {definition.id: Catalog(CONTENT_ROOT, track=definition.id) for definition in TRACK_DEFINITIONS}
         yield Header(show_clock=True)
         with Vertical(id="track-selection-page"):
             yield Static(
-                "[bold #67e8f9]DEV//48[/]  [#38bdf8]—[/]  [bold #a78bfa]ENTERPRISE WEB ACADEMY[/]\n"
-                "[#91a4c7]Benvenuto! Scegli il tuo percorso di studio per iniziare (o premi Invio per confermare):[/]",
+                "[bold #67e8f9]DEV//48[/]  [#38bdf8]—[/]  [bold #a78bfa]PERCORSI DI STUDIO[/]\n"
+                "[#91a4c7]Scegli un percorso. Puoi riaprire questa schermata dalla Dashboard con Ctrl+T.[/]",
                 id="track-hero",
             )
-            with Horizontal(id="track-cards-row"):
-                with Vertical(id="track-card-dotnet", classes="track-card" + (" active-card" if active == "dotnet-angular" else "")):
-                    yield Static("[bold #34d399]PERCORSO 01[/]\n[bold #67e8f9]ANGULAR & .NET ENTERPRISE[/]", classes="card-header")
-                    yield Static(
-                        "[bold #ffffff]Stack Enterprise Moderno da Zero[/]\n\n"
-                        "[#34d399]◆[/] [bold]C# 14[/] · Record, Pattern Matching & LINQ\n"
-                        "[#34d399]◆[/] [bold]ASP.NET Core[/] · Minimal API & Dependency Injection\n"
-                        "[#34d399]◆[/] [bold]Entity Framework Core[/] · SQLite & Migrazioni\n"
-                        "[#34d399]◆[/] [bold]Angular Standalone[/] · Control Flow (@if, @for)\n"
-                        "[#34d399]◆[/] [bold]Signals[/] · Stato reattivo e valori derivati\n"
-                        "[#34d399]◆[/] [bold]Laboratori Monorepo[/] · client/ (Angular) + server/ (.NET)\n\n"
-                        f"[#38bdf8]◆[/] [#91a4c7]{len(dotnet_catalog.lessons)} lezioni · {len(dotnet_catalog.exercises)} esercizi · {len(dotnet_catalog.flashcards)} flashcard[/]",
-                        classes="card-desc",
+            with ScrollableContainer(id="track-card-list"):
+                for index, definition in enumerate(TRACK_DEFINITIONS, 1):
+                    catalog = catalogs[definition.id]
+                    active_class = " active-card" if active == definition.id else ""
+                    points = "\n".join(
+                        f"[{definition.color}]◆[/] {point}" for point in definition.card_points
                     )
-                    yield Button("▶ SCEGLI ANGULAR & .NET [Tasto 1]", id="btn-dotnet", classes="primary")
-
-                with Vertical(id="track-card-react", classes="track-card" + (" active-card" if active == "web-js-react" else "")):
-                    yield Static("[bold #a78bfa]PERCORSO 02[/]\n[bold #f472b6]JAVASCRIPT & REACT ACADEMY[/]", classes="card-header")
-                    yield Static(
-                        "[bold #ffffff]Full-Stack Web Standard da Zero[/]\n\n"
-                        "[#a78bfa]◆[/] [bold]JavaScript Moderno[/] · ES2024, Closure & Async/Await\n"
-                        "[#a78bfa]◆[/] [bold]HTML & CSS[/] · Semantica, Flexbox, Grid & Responsive\n"
-                        "[#a78bfa]◆[/] [bold]TypeScript[/] · Contratti di tipo & Generics\n"
-                        "[#a78bfa]◆[/] [bold]React 19[/] · Componenti, Hooks, Form & Stato\n"
-                        "[#a78bfa]◆[/] [bold]Backend Node.js[/] · Route, Servizi & SQLite SQL\n"
-                        "[#a78bfa]◆[/] [bold]Testing Vitest[/] · Testing Library & TDD\n\n"
-                        f"[#38bdf8]◆[/] [#91a4c7]{len(react_catalog.lessons)} lezioni · {len(react_catalog.exercises)} esercizi · {len(react_catalog.flashcards)} flashcard[/]",
-                        classes="card-desc",
+                    yield Vertical(
+                        Static(
+                            f"[bold {definition.color}]{definition.card_label}[/]  "
+                            f"[bold #ffffff]{definition.card_heading}[/]\n"
+                            f"[#cbd5e1]{definition.card_subtitle}[/]",
+                            classes="card-header",
+                        ),
+                        Static(
+                            f"{points}\n\n[#91a4c7]{len(catalog.lessons)} lezioni · "
+                            f"{len(catalog.exercises)} esercizi · {len(catalog.labs)} laboratori · "
+                            f"{len(catalog.flashcards)} flashcard[/]",
+                            classes="card-desc",
+                        ),
+                        Button(f"▶ SCEGLI [Tasto {index}]", id=f"btn-track-{definition.id}"),
+                        id=f"track-card-{definition.id}",
+                        classes="track-card" + active_class,
                     )
-                    yield Button("▶ SCEGLI JS & REACT [Tasto 2]", id="btn-react", classes="success")
 
+            available_keys = ", ".join(str(index) for index in range(1, len(TRACK_DEFINITIONS) + 1))
             yield Static(
-                "[#91a4c7]Premi [bold #67e8f9]1[/] o [bold #f472b6]2[/], oppure seleziona con le frecce e premi [bold Invio]. "
-                "Potrai cambiare traccia in qualsiasi momento premendo [bold #34d399]Ctrl+T[/] nella Dashboard.[/]",
+                f"[#91a4c7]Usa [bold #67e8f9]{available_keys}[/], le frecce e Invio, oppure seleziona una card.[/]",
                 id="track-instruction",
             )
         yield Footer()
 
     def on_mount(self) -> None:
-        active = getattr(self.app.catalog, "track", "dotnet-angular")
-        if active == "dotnet-angular":
-            self.set_focus(self.query_one("#btn-dotnet", Button))
-        else:
-            self.set_focus(self.query_one("#btn-react", Button))
+        self._track_buttons = [self.query_one(f"#btn-track-{item.id}", Button) for item in TRACK_DEFINITIONS]
+        active = getattr(self.app.catalog, "track", TRACK_DEFINITIONS[0].id)
+        index = next((index for index, item in enumerate(TRACK_DEFINITIONS) if item.id == active), 0)
+        self._track_button_index = index
+        self.set_focus(self._track_buttons[index])
 
-    def action_select_dotnet(self) -> None:
-        self.choose_track("dotnet-angular")
-
-    def action_select_react(self) -> None:
-        self.choose_track("web-js-react")
+    def action_select_track(self, index: int) -> None:
+        if 0 <= int(index) < len(TRACK_DEFINITIONS):
+            self.choose_track(TRACK_DEFINITIONS[int(index)].id)
 
     def action_previous_track(self) -> None:
-        self.set_focus(self.query_one("#btn-dotnet", Button))
+        self._track_button_index = (self._track_button_index - 1) % len(self._track_buttons)
+        self.set_focus(self._track_buttons[self._track_button_index])
 
     def action_next_track(self) -> None:
-        self.set_focus(self.query_one("#btn-react", Button))
+        self._track_button_index = (self._track_button_index + 1) % len(self._track_buttons)
+        self.set_focus(self._track_buttons[self._track_button_index])
 
     def action_quit(self) -> None:
-        self.app.exit()
+        if self.return_to_previous:
+            self.app.pop_screen()
+        else:
+            self.app.exit()
 
     def choose_track(self, track: str) -> None:
         self.app.store.set_active_track(track)
         self.app.catalog = Catalog(CONTENT_ROOT, track=track)
         self.app.sync_app_title()
         self.app.pop_screen()
-        self.app.push_screen(DashboardScreen())
+        if not isinstance(self.app.screen, DashboardScreen):
+            self.app.push_screen(DashboardScreen())
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        if event.button.id == "btn-dotnet":
-            self.choose_track("dotnet-angular")
-        elif event.button.id == "btn-react":
-            self.choose_track("web-js-react")
+        for definition in TRACK_DEFINITIONS:
+            if event.button.id == f"btn-track-{definition.id}":
+                self.choose_track(definition.id)
+                return
 
 
 class DashboardScreen(Screen):
@@ -181,17 +195,17 @@ class DashboardScreen(Screen):
         ("right", "next_control", "Successivo"),
         ("up", "previous_control", "Precedente"),
         ("down", "next_control", "Successivo"),
-        ("ctrl+t", "switch_track", "Cambia Traccia"),
+        ("ctrl+t", "select_track", "Scegli percorso"),
     ]
 
     def compose(self) -> ComposeResult:
         stats = self.app.stats()
-        track_title = "ANGULAR & .NET ENTERPRISE" if getattr(self.app.catalog, "track", "") == "dotnet-angular" else "JAVASCRIPT & REACT ACADEMY"
+        track_title = self.app.catalog.track_definition.card_heading
         yield Header(show_clock=True)
         with Vertical(classes="page", id="dashboard-page"):
             with ScrollableContainer(id="dashboard-content"):
                 yield Static(
-                    f"[bold #67e8f9]DEV//48[/]  [#34d399]{track_title}[/]  [#91a4c7]· Ctrl+T per cambiare traccia[/]\n"
+                    f"[bold #67e8f9]DEV//48[/]  [#34d399]{track_title}[/]  [#91a4c7]· Ctrl+T per scegliere percorso[/]\n"
                     "Impara, sperimenta e costruisci. Riparti esattamente da dove eri rimasto.",
                     classes="hero",
                 )
@@ -267,8 +281,8 @@ class DashboardScreen(Screen):
     def action_next_control(self) -> None:
         self.focus_next()
 
-    def action_switch_track(self) -> None:
-        self.app.action_switch_track()
+    def action_select_track(self) -> None:
+        self.app.open_track_selection()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         actions = {
@@ -278,7 +292,6 @@ class DashboardScreen(Screen):
             "labs": lambda: self.app.push_screen(LabsScreen()),
             "flashcards": lambda: self.app.push_screen(FlashcardsScreen()),
             "challenges": lambda: self.app.push_screen(ChallengesScreen()),
-            "track": self.app.action_switch_track,
         }
         if event.button.id in actions:
             actions[event.button.id]()
@@ -315,13 +328,55 @@ class CurriculumScreen(Screen):
             if needle and needle not in haystack:
                 continue
             state = "✓" if lesson.id in completed else ("◆" if lesson.mandatory else "·")
-            table.add_row(state, modules[lesson.module], lesson.title, str(lesson.minutes), lesson.difficulty, key=lesson.id)
+            title = f"[G{lesson.recommended_day}] {lesson.title}" if lesson.recommended_day else lesson.title
+            table.add_row(state, modules[lesson.module], title, str(lesson.minutes), lesson.difficulty, key=lesson.id)
 
     def on_input_changed(self, event: Input.Changed) -> None:
         self.refresh_rows(event.value)
 
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
         self.app.push_screen(LessonScreen(str(event.row_key.value)))
+
+    def action_back(self) -> None:
+        self.app.pop_screen()
+
+
+class ReviewScreen(Screen):
+    BINDINGS = [("escape", "back", "Indietro")]
+
+    def compose(self) -> ComposeResult:
+        yield Header(show_clock=True)
+        with Vertical(classes="page"):
+            yield Static(
+                "[bold #67e8f9]REVISIONE DEGLI ERRORI[/]\n"
+                "Riapri i tentativi ancora irrisolti; separa gli esercizi passati dopo avere letto la soluzione.",
+                classes="hero",
+            )
+            yield DataTable(cursor_type="row", zebra_stripes=True, id="table")
+        yield Footer()
+
+    def on_mount(self) -> None:
+        table = self.query_one("#table", DataTable)
+        table.add_columns("Stato", "Esercizio", "Tentativi", "ID")
+        exercise_ids = {
+            exercise_progress_id(item, self.app.coding_language)
+            for item in self.app.catalog.exercises
+        }
+        for item in self.app.store.review_items(exercise_ids):
+            exercise_id, language = split_exercise_progress_id(item["item_id"])
+            exercise = self.app.catalog.exercise_by_id.get(exercise_id)
+            if not exercise:
+                continue
+            label = "DA RIPROVARE" if item["kind"] == "failed" else "DOPO SOLUZIONE"
+            title = exercise.title + (f" · {language.upper()}" if language else "")
+            table.add_row(label, title, str(item["attempts"]), exercise_id, key=item["item_id"])
+        self.set_focus(table)
+
+    def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
+        exercise_id, language = split_exercise_progress_id(str(event.row_key.value))
+        if language in {"python", "cpp"}:
+            self.app.coding_language = language
+        self.app.push_screen(ExerciseScreen(exercise_id))
 
     def action_back(self) -> None:
         self.app.pop_screen()
@@ -350,7 +405,10 @@ class LessonScreen(TimedScreen):
         lesson = self.app.catalog.lesson_by_id[self.lesson_id]
         completed = self.app.store.completed_ids()
         lesson_done = lesson.id in completed
-        pending_exercises = [item for item in self.app.catalog.exercises_for(lesson.id) if item.id not in completed]
+        pending_exercises = [
+            item for item in self.app.catalog.exercises_for(lesson.id)
+            if exercise_progress_id(item, self.app.coding_language) not in completed
+        ]
         if not lesson_done:
             advance_label = "✓ COMPLETA E VAI AGLI ESERCIZI"
         elif pending_exercises:
@@ -408,7 +466,7 @@ class LessonScreen(TimedScreen):
             self.complete()
         exercises = self.app.catalog.exercises_for(self.lesson_id)
         completed = self.app.store.completed_ids()
-        target = next((item for item in exercises if item.id not in completed), None)
+        target = next((item for item in exercises if exercise_progress_id(item, self.app.coding_language) not in completed), None)
         if target:
             self.app.push_screen(ExerciseScreen(target.id))
         else:
@@ -426,6 +484,7 @@ class ExerciseScreen(TimedScreen):
         ("escape", "back", "Indietro"), ("f5", "run", "Esegui"),
         ("h", "hint", "Indizio"), ("ctrl+s", "save", "Salva"),
         ("f1", "toggle_theory", "Teoria"),
+        ("l", "toggle_language", "Lingua"),
         ("ctrl+right", "next_exercise", "Successivo"),
     ]
     tracked_type = "exercise"
@@ -435,16 +494,34 @@ class ExerciseScreen(TimedScreen):
         self.exercise_id = exercise_id
         self.tracked_id = exercise_id
         self.theory_open = False
+        self.coding_language = self.app.coding_language
+        self.remaining = 0
+        self.timer_running = False
 
     @property
     def exercise(self) -> Exercise:
         return self.app.catalog.exercise_by_id[self.exercise_id]
 
+    @property
+    def variant(self) -> dict:
+        return self.exercise.variants.get(self.coding_language, {})
+
+    @property
+    def progress_id(self) -> str:
+        return exercise_progress_id(self.exercise, self.coding_language)
+
+    @property
+    def active_kind(self) -> str:
+        return str(self.variant.get("kind", self.exercise.kind))
+
+    def content_for_language(self, field: str, fallback: str = "") -> str:
+        return str(self.variant.get(field, getattr(self.exercise, field, fallback)))
+
     def compose(self) -> ComposeResult:
         ex = self.app.catalog.exercise_by_id[self.exercise_id]
-        state = self.app.store.get(ex.id)
-        initial = state.get("answer") or ex.starter
-        language = {"javascript":"javascript","react":"javascript","typescript":"typescript","csharp":"csharp","angular":"typescript","html":"html","css":"css","sql":"sql"}.get(ex.kind)
+        state = self.app.store.get(self.progress_id)
+        initial = state.get("answer") or self.content_for_language("starter")
+        language = {"javascript":"javascript","react":"javascript","typescript":"typescript","csharp":"csharp","angular":"typescript","html":"html","css":"css","sql":"sql","python":"python","cpp":"cpp"}.get(self.active_kind)
         reward = "autovalutazione · nessun XP" if ex.kind == "reflection" else f"{ex.xp} XP"
         scope_note = {
             "csharp": "Il runner compila il codice ed esegue i casi dichiarati nell'esercizio; non garantisce ogni possibile comportamento.",
@@ -453,10 +530,22 @@ class ExerciseScreen(TimedScreen):
             "html": "Il controllo verifica struttura e requisiti testuali; non esegue il rendering in un browser.",
             "css": "Il controllo verifica requisiti testuali; non esegue il rendering o la resa responsive in un browser.",
             "reflection": "Questa autoverifica cerca i termini richiesti; non valuta il significato. Confronta la spiegazione con il modello.",
-        }.get(ex.kind, "Il runner mostra i controlli automatici previsti per questo esercizio.")
+            "python": "Python gira in un processo separato con test, timeout e output limitato. Il processo non è isolato dal sistema operativo e può accedere a file o rete.",
+            "cpp": "Il sorgente C++20 viene compilato e provato contro più asserzioni, con timeout e output limitato. Il processo non è isolato dal sistema operativo e può accedere a file o rete.",
+        }.get(self.active_kind, "Il runner mostra i controlli automatici previsti per questo esercizio.")
+        tags = []
+        if ex.no_ai:
+            tags.append("NO AI")
+        if ex.no_internet:
+            tags.append("NO INTERNET")
+        if ex.timed:
+            tags.append("TIMED")
+        tag_text = (" · " + " · ".join(tags)) if tags else ""
         yield Header(show_clock=True)
         with Vertical(classes="page"):
-            yield Static(f"[bold #67e8f9]{ex.title}[/]\n[#91a4c7]{ex.kind.upper()} · {ex.minutes} min · {reward} · tentativi: {state.get('attempts', 0)}[/]", classes="hero")
+            yield Static(f"[bold #67e8f9]{ex.title}[/]\n[#91a4c7]{self.active_kind.upper()} · {ex.minutes} min · {reward} · tentativi: {state.get('attempts', 0)}{tag_text}[/]", classes="hero")
+            if ex.timed:
+                yield Static("", id="exercise-timer", classes="stat-card")
             with Horizontal(id="exercise-layout"):
                 with Vertical(id="exercise-left"):
                     with ScrollableContainer(id="exercise-prompt", can_focus=True):
@@ -466,7 +555,7 @@ class ExerciseScreen(TimedScreen):
                             collapsed=True,
                             id="exercise-scope-details",
                         )
-                        yield Markdown(ex.prompt)
+                        yield Markdown(assessment_prompt(ex) if ex.timed else ex.prompt)
                         if ex.creative_goals:
                             goals_txt = "\n".join(f"- ★ {g}" for g in ex.creative_goals)
                             yield Static(f"\n[bold #34d399]Estensioni facoltative · non valutate automaticamente[/]\n{goals_txt}", classes="panel")
@@ -479,6 +568,10 @@ class ExerciseScreen(TimedScreen):
                         yield Static("", id="result")
             with Horizontal(id="exercise-actions", classes="actions"):
                 yield Button("▶ ESEGUI [F5]", id="run", classes="primary")
+                if ex.variants:
+                    yield Button(f"⌘ LINGUA: {self.coding_language.upper()} [L]", id="language")
+                if ex.timed:
+                    yield Button("⏱ AVVIO", id="exercise-timer-button", disabled=True)
                 yield Button("◇ INDIZIO [H]", id="hint")
                 yield Button("⌁ SOLUZIONE", id="solution", classes="warning")
                 yield Button("→ PROSSIMO", id="next")
@@ -487,10 +580,53 @@ class ExerciseScreen(TimedScreen):
         yield Footer()
 
     def on_mount(self) -> None:
+        self.tracked_id = self.progress_id
         super().on_mount()
         self.query_one("#theory-scroll", ScrollableContainer).display = False
         self.query_one("#result-scroll", ScrollableContainer).display = False
         self.set_focus(self.query_one("#editor", TextArea))
+        if self.exercise.timed:
+            self.remaining = self.exercise.minutes * 60
+            self.timer_running = True
+            self.set_interval(1, self.tick_timer)
+            self.render_timer()
+
+    def tick_timer(self) -> None:
+        if not self.timer_running or self.remaining <= 0:
+            return
+        self.remaining -= 1
+        self.render_timer()
+        if self.remaining == 0:
+            self.timer_running = False
+            self.app.notify("Tempo di pratica terminato. Puoi ancora rivedere il tuo tentativo.", severity="warning")
+
+    def render_timer(self) -> None:
+        if not self.exercise.timed:
+            return
+        minutes, seconds = divmod(self.remaining, 60)
+        state = "IN CORSO" if self.timer_running else "TERMINATO"
+        self.query_one("#exercise-timer", Static).update(f"[bold #67e8f9]{minutes:02d}:{seconds:02d}[/] · {state}")
+        button = self.query_one("#exercise-timer-button", Button)
+        button.label = f"⏱ {minutes:02d}:{seconds:02d}"
+
+    def action_toggle_language(self) -> None:
+        if not self.exercise.variants:
+            return
+        available = list(self.exercise.variants)
+        try:
+            index = available.index(self.coding_language)
+        except ValueError:
+            index = 0
+        self.app.store.save_answer(self.progress_id, "exercise", self.editor_value())
+        self.coding_language = available[(index + 1) % len(available)]
+        self.app.coding_language = self.coding_language
+        self.app.store.set_setting("amazon_coding_language", self.coding_language)
+        editor = self.query_one("#editor", TextArea)
+        state = self.app.store.get(self.progress_id)
+        editor.text = state.get("answer") or self.content_for_language("starter")
+        editor.language = {"python": "python", "cpp": "cpp"}.get(self.active_kind)
+        self.query_one("#language", Button).label = f"⌘ LINGUA: {self.coding_language.upper()} [L]"
+        self.app.notify(f"Prossimi esercizi in {self.coding_language.upper()}")
 
     def editor_value(self) -> str:
         return self.query_one("#editor", TextArea).text
@@ -502,11 +638,11 @@ class ExerciseScreen(TimedScreen):
         result_scroll.scroll_home(animate=False, force=True)
 
     def action_save(self) -> None:
-        self.app.store.save_answer(self.exercise.id, "exercise", self.editor_value())
+        self.app.store.save_answer(self.progress_id, "exercise", self.editor_value())
         self.app.notify("Risposta salvata")
 
     def action_toggle_theory(self) -> None:
-        self.app.store.save_answer(self.exercise.id, "exercise", self.editor_value())
+        self.app.store.save_answer(self.progress_id, "exercise", self.editor_value())
         self.theory_open = not self.theory_open
         prompt = self.query_one("#exercise-prompt", ScrollableContainer)
         theory = self.query_one("#theory-scroll", ScrollableContainer)
@@ -525,9 +661,9 @@ class ExerciseScreen(TimedScreen):
 
     def run_current(self) -> None:
         answer = self.editor_value()
-        result = run_exercise(self.exercise, answer, PROJECT_ROOT)
+        result = run_exercise(self.exercise, answer, PROJECT_ROOT, language=self.coding_language)
         earned_xp = 0 if self.exercise.kind == "reflection" else int(self.exercise.xp * result.score / 100)
-        attempts = self.app.store.record_attempt(self.exercise.id, "exercise", answer, result.passed, earned_xp)
+        attempts = self.app.store.record_attempt(self.progress_id, "exercise", answer, result.passed, earned_xp)
         icon = "✓" if result.passed else "✗"
         color = "#34d399" if result.passed else "#fb7185"
         details = "\n".join(result.details)
@@ -545,31 +681,33 @@ class ExerciseScreen(TimedScreen):
             self.app.notify("La soluzione completa è ora sbloccata.", severity="warning")
 
     def action_hint(self) -> None:
-        state = self.app.store.get(self.exercise.id)
+        state = self.app.store.get(self.progress_id)
         level = min(int(state.get("hint_level", 0)) + 1, len(self.exercise.hints))
-        self.app.store.set_hint(self.exercise.id, level)
+        self.app.store.set_hint(self.progress_id, level)
         hints = "\n".join(f"{i}. {hint}" for i, hint in enumerate(self.exercise.hints[:level], 1))
         self.update_result(f"[bold #fbbf24]INDIZI {level}/{len(self.exercise.hints)}[/]\n{hints}")
 
     def show_solution(self) -> None:
-        state = self.app.store.get(self.exercise.id)
-        if int(state.get("attempts", 0)) < 2:
-            remaining = 2 - int(state.get("attempts", 0))
+        state = self.app.store.get(self.progress_id)
+        if int(state.get("attempts", 0)) < self.exercise.solution_after_attempts:
+            remaining = self.exercise.solution_after_attempts - int(state.get("attempts", 0))
             self.update_result(f"[bold #fbbf24]SOLUZIONE BLOCCATA[/]\nServono ancora {remaining} tentativi reali. Usa H per un indizio.")
             return
-        text = f"SOLUZIONE COMMENTATA\n\n{self.exercise.solution}\n\n{self.exercise.explanation}"
+        self.app.store.mark_solution_viewed(self.progress_id)
+        solution = self.content_for_language("solution")
+        text = f"SOLUZIONE COMMENTATA · {self.coding_language.upper()}\n\n{solution}\n\n{self.exercise.explanation}"
         self.update_result(text)
 
     def action_next_exercise(self) -> None:
         self.next_exercise()
 
     def next_exercise(self) -> None:
-        if self.app.store.get(self.exercise.id).get("status") != "completed":
+        if self.app.store.get(self.progress_id).get("status") != "completed":
             self.app.notify("Supera questo esercizio prima di passare al prossimo passo.", severity="warning")
             return
         exercises = self.app.catalog.exercises_for(self.exercise.lesson_id)
         completed = self.app.store.completed_ids()
-        target = next((item for item in exercises if item.id not in completed), None)
+        target = next((item for item in exercises if exercise_progress_id(item, self.coding_language) not in completed), None)
         if target:
             self.app.switch_screen(ExerciseScreen(target.id))
             return
@@ -584,7 +722,7 @@ class ExerciseScreen(TimedScreen):
         self.app.pop_screen()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        actions = {"run":self.run_current,"hint":self.action_hint,"solution":self.show_solution,"next":self.next_exercise,"theory":self.action_toggle_theory,"back":self.action_back}
+        actions = {"run":self.run_current,"hint":self.action_hint,"solution":self.show_solution,"next":self.next_exercise,"theory":self.action_toggle_theory,"back":self.action_back,"language":self.action_toggle_language}
         if event.button.id in actions:
             actions[event.button.id]()
 
@@ -629,26 +767,39 @@ class LabScreen(TimedScreen):
 
     @property
     def lab(self) -> Lab:
-        return self.app.catalog.lab_by_id[self.lab_id]
+        return self.app.catalog.lab_by_id[self.lab_id].for_repository_language(
+            self.app.store.get_setting("amazon_repository_language", "node"))
 
     def compose(self) -> ComposeResult:
-        lab = self.app.catalog.lab_by_id[self.lab_id]
+        lab = self.lab
         requirements = "\n".join(f"- [ ] {x}" for x in lab.requirements)
         rubric = "\n".join(f"- {x}" for x in lab.rubric)
         creative = ""
         if lab.creative_goals:
             goals = "\n".join(f"- ★ {x}" for x in lab.creative_goals)
             creative = f"\n\n## Estensioni facoltative (autovalutazione)\n{goals}"
+        verification = {
+            "amazon_node": "L'app esegue la suite Node.js (`npm test`) presente nel workspace.",
+            "amazon_cpp": "L'app compila ed esegue la suite C++20 con GCC o Clang.",
+        }.get(
+            lab.workspace_template,
+            "L'app esegue la suite xUnit e/o Angular presente nel workspace.",
+        )
+        dependency_action = "↓ VERIFICA C++20" if lab.workspace_template == "amazon_cpp" else "↓ INSTALLA DIPENDENZE"
         yield Header(show_clock=True)
         with Vertical(classes="page"):
             yield Static(f"[bold #67e8f9]{lab.title}[/]\n[#91a4c7]{lab.minutes} min · {lab.difficulty}[/]", classes="hero")
             with ScrollableContainer(id="lab-scroll", can_focus=True):
-                yield Markdown(f"## Brief\n\n{lab.description}\n\n## Requisiti\n\n{requirements}\n\n## Rubrica\n\n{rubric}{creative}\n\n> **Verifica automatica:** l'app esegue la suite xUnit e/o Angular presente nel workspace. Un esito verde conferma quei test; rileggi la rubrica per i criteri non coperti. Il workspace non viene sovrascritto quando riapri l'app.")
+                yield Markdown(f"## Brief\n\n{lab.description}\n\n## Requisiti\n\n{requirements}\n\n## Rubrica\n\n{rubric}{creative}\n\n> **Verifica automatica:** {verification} Un esito verde conferma quei test; rileggi la rubrica per i criteri non coperti. Il workspace non viene sovrascritto quando riapri l'app.")
                 yield Static("Pronto.", id="lab-result", classes="panel")
             with Horizontal(classes="actions"):
                 yield Button("▣ APRI VS CODE", id="open", classes="primary")
-                yield Button("↓ INSTALLA DIPENDENZE", id="install")
+                yield Button(dependency_action, id="install")
                 yield Button("▶ ESEGUI TEST", id="test", classes="success")
+                if lab.repository_variants:
+                    yield Button(f"STACK: {self.app.store.get_setting('amazon_repository_language', 'node').upper()}", id="repository-language")
+                elif lab.workspace_template in {"amazon_cpp", "amazon_node"}:
+                    yield Button("USA QUESTO STACK", id="choose-stack")
                 yield Button("← LAB", id="back")
         yield Footer()
 
@@ -693,7 +844,16 @@ class LabScreen(TimedScreen):
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         result = self.query_one("#lab-result", Static)
-        if event.button.id == "open":
+        if event.button.id == "repository-language":
+            language = "cpp" if self.app.store.get_setting("amazon_repository_language", "node") == "node" else "node"
+            self.app.store.set_setting("amazon_repository_language", language)
+            self.app.pop_screen()
+            self.app.push_screen(LabScreen(self.lab_id))
+        elif event.button.id == "choose-stack":
+            language = "cpp" if self.lab.workspace_template == "amazon_cpp" else "node"
+            self.app.store.set_setting("amazon_repository_language", language)
+            result.update(f"Stack repository scelto: {language.upper()}. Il piano e i mock useranno questa scelta.")
+        elif event.button.id == "open":
             ok, message = open_vscode(self.workspace())
             result.update(message)
         elif event.button.id == "install":
@@ -800,23 +960,186 @@ class ChallengesScreen(Screen):
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
         with Vertical(classes="page"):
-            yield Static("[bold #67e8f9]SIMULAZIONI[/]\nCronometro, brief e checklist. Parla mentre ragioni.", classes="hero")
+            yield Static(
+                "[bold #67e8f9]SIMULAZIONI E COMPORTAMENTO[/]\n"
+                "DSA e repository a tempo, scenari Work Simulation e familiarizzazione Work Style.",
+                classes="hero",
+            )
             yield DataTable(cursor_type="row", zebra_stripes=True, id="table")
         yield Footer()
 
     def on_mount(self) -> None:
         table = self.query_one("#table", DataTable)
-        table.add_columns("Simulazione", "Minuti", "Brief")
+        table.add_columns("Tipo", "Attività", "Minuti", "Descrizione")
         for sim in self.app.catalog.simulations:
-            table.add_row(sim.title, str(sim.minutes), sim.brief, key=sim.id)
+            table.add_row("Full Mock" if sim.kind == "full_mock" else "Simulazione", sim.title, str(sim.minutes), sim.brief, key=sim.id)
+        table.add_row("Review", "Errori e soluzioni consultate", "—", "Riprendi gli esercizi da rivedere.", key="review")
+        for scenario in self.app.catalog.work_scenarios:
+            table.add_row("Work Simulation", scenario.title, "—", scenario.brief, key=scenario.id)
+        if self.app.catalog.work_style:
+            table.add_row("Work Style", "Familiarizzazione e autovalutazione", "15", "Leggi con calma, rispondi in modo coerente e personale.", key="work-style")
         self.set_focus(table)
 
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
-        sim = next(item for item in self.app.catalog.simulations if item.id == str(event.row_key.value))
-        self.app.push_screen(SimulationScreen(sim))
+        item_id = str(event.row_key.value)
+        simulation = next((item for item in self.app.catalog.simulations if item.id == item_id), None)
+        if simulation:
+            if simulation.kind == "full_mock":
+                self.app.push_screen(FullMockScreen(simulation))
+            elif simulation.kind == "coding":
+                self.app.push_screen(CodingSimulationScreen(simulation))
+            else:
+                self.app.push_screen(SimulationScreen(simulation))
+            return
+        scenario = next((item for item in self.app.catalog.work_scenarios if item.id == item_id), None)
+        if scenario:
+            self.app.push_screen(WorkScenarioScreen(scenario))
+        elif item_id == "work-style":
+            self.app.push_screen(WorkStyleScreen())
+        elif item_id == "review":
+            self.app.push_screen(ReviewScreen())
 
     def action_back(self) -> None:
         self.app.pop_screen()
+
+
+class WorkScenarioScreen(Screen):
+    BINDINGS = [("escape", "back", "Indietro"), ("ctrl+s", "submit", "Valuta la classifica")]
+
+    def __init__(self, scenario: WorkScenario) -> None:
+        super().__init__()
+        self.scenario = scenario
+
+    def compose(self) -> ComposeResult:
+        options = "\n\n".join(f"**{item['id']}.** {item['text']}" for item in self.scenario.options)
+        yield Header(show_clock=True)
+        with Vertical(classes="page"):
+            yield Static(f"[bold #67e8f9]{self.scenario.title}[/]\n[#91a4c7]Work Simulation · ragionamento prima della risposta[/]", classes="hero")
+            with ScrollableContainer(id="scenario-scroll", can_focus=True):
+                yield Markdown(f"## Situazione\n\n{self.scenario.brief}\n\n## Possibili risposte\n\n{options}")
+                yield Static("Ordina tutte le opzioni dalla più efficace alla meno efficace. È un confronto ragionato, non un punteggio ufficiale.", classes="panel")
+                yield TextArea("", id="scenario-answer", show_line_numbers=False)
+                yield Markdown("", id="scenario-feedback", classes="panel")
+            with Horizontal(classes="actions"):
+                yield Button("▣ CONFRONTA RAGIONAMENTO [CTRL+S]", id="submit", classes="primary")
+                yield Button("← SCENARI", id="back")
+        yield Footer()
+
+    def on_mount(self) -> None:
+        state = self.app.store.get(self.scenario.id)
+        answer = state.get("answer", "")
+        revision = self.app.store.get_setting(f"scenario_revision:{self.scenario.id}", "")
+        if answer and revision != self.answer_revision():
+            self.query_one("#scenario-feedback", Markdown).update(
+                "Le alternative sono cambiate dall'ultimo tentativo. La risposta precedente resta nel progresso; "
+                "formula una nuova classifica per queste opzioni."
+            )
+        else:
+            self.query_one("#scenario-answer", TextArea).text = answer
+        self.set_focus(self.query_one("#scenario-answer", TextArea))
+
+    def answer_revision(self) -> str:
+        content = [self.scenario.brief, [(item["id"], item["text"]) for item in self.scenario.options]]
+        return hashlib.sha256(json.dumps(content, ensure_ascii=False).encode("utf-8")).hexdigest()
+
+    def feedback_text(self, answer: str) -> str:
+        order = " > ".join(self.scenario.recommended_order)
+        notes = "\n\n".join(
+            f"**{item['id']} · {item['effectiveness']}**\n{item['reasoning']}"
+            for item in sorted(self.scenario.options, key=lambda option: self.scenario.recommended_order.index(option["id"]))
+        )
+        principles = ", ".join(self.scenario.principles)
+        learning_focus = (
+            f"\n\nFilo conduttore: {self.scenario.learning_focus}."
+            if self.scenario.learning_focus else ""
+        )
+        return (
+            f"La tua classifica: {answer}\nLettura di confronto: {order}\n\n{notes}\n\nPrincipi in gioco: {principles}. "
+            "La scelta dipende dal contesto: confronta impatto, reversibilità, evidenza e comunicazione prima di decidere."
+            f"{learning_focus}"
+        )
+
+    def action_submit(self) -> None:
+        answer = self.query_one("#scenario-answer", TextArea).text.strip().upper().replace(",", ">")
+        ranked = [part.strip() for part in answer.split(">") if part.strip()]
+        expected_ids = {item["id"] for item in self.scenario.options}
+        if len(ranked) != len(expected_ids) or set(ranked) != expected_ids:
+            self.query_one("#scenario-feedback", Static).update(
+                f"Scrivi ogni lettera una sola volta, per esempio: {' > '.join(item['id'] for item in self.scenario.options)}"
+            )
+            return
+        self.app.store.set_setting(f"scenario_revision:{self.scenario.id}", self.answer_revision())
+        self.app.store.record_attempt(self.scenario.id, "work-scenario", answer, True, 0)
+        self.query_one("#scenario-feedback", Markdown).update(self.feedback_text(answer))
+
+    def action_back(self) -> None:
+        self.app.pop_screen()
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "submit":
+            self.action_submit()
+        elif event.button.id == "back":
+            self.action_back()
+
+
+class WorkStyleScreen(Screen):
+    BINDINGS = [("escape", "back", "Indietro"), ("ctrl+s", "save", "Salva"), ("left", "previous", "Precedente"), ("right", "next", "Successivo")]
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.index = 0
+
+    @property
+    def prompt(self) -> WorkStylePrompt:
+        return self.app.catalog.work_style[self.index]
+
+    def compose(self) -> ComposeResult:
+        yield Header(show_clock=True)
+        with Vertical(classes="page"):
+            yield Static("[bold #67e8f9]WORK STYLE · FAMILIARIZZAZIONE[/]\nNessun punteggio e nessuna risposta da imitare: usa esempi veri e mantieni coerenza.", classes="hero")
+            with ScrollableContainer(id="work-style-scroll", can_focus=True):
+                yield Static("", id="work-style-title", classes="panel")
+                yield Markdown("", id="work-style-prompt")
+                yield TextArea("", id="work-style-answer", show_line_numbers=False)
+                yield Static("Non è un test di personalità: non cercare di ottimizzare una risposta modello. Salva soltanto le note che ti aiutano a riflettere.", classes="panel")
+            with Horizontal(classes="actions"):
+                yield Button("← PRECEDENTE", id="previous")
+                yield Button("SALVA [CTRL+S]", id="save", classes="primary")
+                yield Button("SUCCESSIVO →", id="next")
+                yield Button("← SFIDE", id="back")
+        yield Footer()
+
+    def on_mount(self) -> None:
+        self.render_prompt()
+        self.set_focus(self.query_one("#work-style-answer", TextArea))
+
+    def render_prompt(self) -> None:
+        state = self.app.store.get(self.prompt.id)
+        self.query_one("#work-style-title", Static).update(f"{self.index + 1}/{len(self.app.catalog.work_style)} · {self.prompt.title}")
+        self.query_one("#work-style-prompt", Markdown).update(self.prompt.prompt + "\n\n" + "\n".join(f"- {item}" for item in self.prompt.reflection_prompts))
+        self.query_one("#work-style-answer", TextArea).text = state.get("answer", "")
+
+    def action_save(self) -> None:
+        answer = self.query_one("#work-style-answer", TextArea).text
+        self.app.store.save_answer(self.prompt.id, "work-style", answer)
+        self.app.notify("Nota salvata senza punteggio.")
+
+    def action_previous(self) -> None:
+        self.action_save()
+        self.index = (self.index - 1) % len(self.app.catalog.work_style)
+        self.render_prompt()
+
+    def action_next(self) -> None:
+        self.action_save()
+        self.index = (self.index + 1) % len(self.app.catalog.work_style)
+        self.render_prompt()
+
+    def action_back(self) -> None:
+        self.action_save()
+        self.app.pop_screen()
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        {"previous": self.action_previous, "save": self.action_save, "next": self.action_next, "back": self.action_back}.get(event.button.id, lambda: None)()
 
 
 class SimulationScreen(TimedScreen):
@@ -843,10 +1166,14 @@ class SimulationScreen(TimedScreen):
             yield Static(f"[bold #67e8f9]{self.simulation.title}[/]", classes="hero")
             yield Static("", id="timer", classes="stat-card")
             with ScrollableContainer(id="lab-scroll", can_focus=True):
-                yield Markdown(f"## Brief\n\n{self.simulation.brief}\n\n## Checklist\n\n{checklist}\n\n## Regola\n\nNiente IA durante il timer. Puoi consultare documentazione tecnica e prendere appunti, ma prova a completare la sfida in autonomia.")
+                yield Markdown(f"## Brief\n\n{self.simulation.brief}\n\n## Checklist\n\n{checklist}\n\n## Regola\n\nSegui le condizioni indicate nella traccia e nel tuo invito reale. Per questa simulazione, usa il timer come tempo indipendente e non trasferire i minuti inutilizzati.")
             with Horizontal(classes="actions"):
                 yield Button("▶ AVVIA / PAUSA [SPAZIO]", id="toggle", classes="primary")
                 yield Button("↺ RESET", id="reset")
+                if self.simulation.repository_lab_id:
+                    yield Button("▣ APRI REPOSITORY", id="open-repo")
+                    yield Button("▶ ESEGUI TEST", id="run-repo")
+                    yield Button(f"STACK: {self.app.store.get_setting('amazon_repository_language', 'node').upper()}", id="repository-language")
                 yield Button("← SIMULAZIONI", id="back")
         yield Footer()
 
@@ -860,8 +1187,10 @@ class SimulationScreen(TimedScreen):
         buttons = [
             self.query_one("#toggle", Button),
             self.query_one("#reset", Button),
-            self.query_one("#back", Button),
         ]
+        if self.simulation.repository_lab_id:
+            buttons.extend([self.query_one("#open-repo", Button), self.query_one("#run-repo", Button)])
+        buttons.append(self.query_one("#back", Button))
         try:
             idx = buttons.index(self.focused)
             self.set_focus(buttons[(idx + 1) % len(buttons)])
@@ -872,8 +1201,10 @@ class SimulationScreen(TimedScreen):
         buttons = [
             self.query_one("#toggle", Button),
             self.query_one("#reset", Button),
-            self.query_one("#back", Button),
         ]
+        if self.simulation.repository_lab_id:
+            buttons.extend([self.query_one("#open-repo", Button), self.query_one("#run-repo", Button)])
+        buttons.append(self.query_one("#back", Button))
         try:
             idx = buttons.index(self.focused)
             self.set_focus(buttons[(idx - 1) % len(buttons)])
@@ -906,24 +1237,362 @@ class SimulationScreen(TimedScreen):
     def action_back(self) -> None:
         self.app.pop_screen()
 
-    def on_button_pressed(self, event: Button.Pressed) -> None:
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "toggle":
             self.action_toggle()
+        elif event.button.id == "repository-language" and not self.running:
+            language = "cpp" if self.app.store.get_setting("amazon_repository_language", "node") == "node" else "node"
+            self.app.store.set_setting("amazon_repository_language", language)
+            self.query_one("#repository-language", Button).label = f"STACK: {language.upper()}"
         elif event.button.id == "reset":
             self.remaining = self.simulation.minutes * 60
             self.running = False
             self.render_timer()
         elif event.button.id == "back":
             self.app.pop_screen()
+        elif event.button.id in {"open-repo", "run-repo"}:
+            lab = self.app.catalog.lab_by_id[self.simulation.repository_lab_id].for_repository_language(
+                self.app.store.get_setting("amazon_repository_language", "node"))
+            workspace = ensure_lab_workspace(self.app.workspace_root, lab)
+            if event.button.id == "open-repo":
+                _ok, message = open_vscode(workspace)
+                self.app.notify(message)
+            else:
+                result = await asyncio.to_thread(run_lab_tests, workspace)
+                self.app.notify(result.output, title="Test repository")
+
+
+def assessment_prompt(exercise: Exercise) -> str:
+    """Keep the task contract, withholding the teaching-only pattern label."""
+    return re.sub(r"^\*\*Pattern:\*\*[^\n]*\n\n", "", exercise.prompt, count=1)
+
+
+class CodingSimulationScreen(TimedScreen):
+    """Timed single-file coding practice without hint or solution reveal."""
+    BINDINGS = [("escape", "back", "Indietro"), ("space", "toggle", "Avvia"), ("f5", "run", "Esegui test"), ("l", "toggle_language", "Lingua prima dell'avvio")]
+    tracked_type = "simulation"
+
+    def __init__(self, simulation: Simulation) -> None:
+        super().__init__()
+        self.simulation = simulation
+        self.tracked_id = simulation.id
+        self.exercise_id = simulation.coding_exercise_id
+        self.remaining = simulation.minutes * 60
+        self.running = False
+        self.started = False
+
+    @property
+    def exercise(self) -> Exercise:
+        return self.app.catalog.exercise_by_id[self.exercise_id]
+
+    @property
+    def language(self) -> str:
+        return self.app.coding_language if self.app.coding_language in self.exercise.variants else next(iter(self.exercise.variants), "python")
+
+    def variant(self, language: str | None = None) -> dict:
+        return self.exercise.variants.get(language or self.language, {})
+
+    def progress_id(self, language: str | None = None) -> str:
+        return exercise_progress_id(self.exercise, language or self.language)
+
+    def compose(self) -> ComposeResult:
+        variant = self.variant()
+        yield Header(show_clock=True)
+        with Vertical(classes="page"):
+            yield Static(f"[bold #fbbf24]{self.simulation.title}[/] · NO AI · NO INTERNET\n{self.exercise.title}", classes="hero")
+            yield Static("", id="coding-sim-timer", classes="stat-card")
+            with ScrollableContainer(id="coding-sim-prompt", can_focus=True):
+                yield Markdown(assessment_prompt(self.exercise))
+                yield Static("Durante il timer non ci sono hint o soluzione. Usa il runner soltanto per controllare il codice.", classes="panel")
+            yield TextArea(variant.get("starter", self.exercise.starter), language=self.language, show_line_numbers=True, id="coding-sim-editor")
+            with ScrollableContainer(id="coding-sim-result", can_focus=True):
+                yield Static("", id="coding-sim-output", classes="panel")
+            with Horizontal(classes="actions"):
+                yield Button("▶ AVVIA [SPAZIO]", id="toggle", classes="primary")
+                yield Button(f"▶ ESEGUI [{self.language.upper()}] [F5]", id="run", disabled=True)
+                yield Button(f"⌘ LINGUA: {self.language.upper()} [L]", id="language")
+                yield Button("↺ RESET TIMER", id="reset")
+                yield Button("← SIMULAZIONI", id="back")
+        yield Footer()
+
+    def on_mount(self) -> None:
+        super().on_mount()
+        self.query_one("#coding-sim-result", ScrollableContainer).display = False
+        self.query_one("#coding-sim-prompt", ScrollableContainer).display = False
+        self.query_one("#coding-sim-editor", TextArea).display = False
+        self.set_interval(1, self.tick)
+        self.render_timer()
+        self.set_focus(self.query_one("#toggle", Button))
+
+    def render_timer(self) -> None:
+        minutes, seconds = divmod(self.remaining, 60)
+        state = "IN CORSO" if self.running else "IN PAUSA"
+        self.query_one("#coding-sim-timer", Static).update(f"[bold #67e8f9]{minutes:02d}:{seconds:02d}[/] · {state}")
+
+    def tick(self) -> None:
+        if self.running and self.remaining > 0:
+            self.remaining -= 1
+            self.render_timer()
+            if self.remaining == 0:
+                self.running = False
+                self.query_one("#coding-sim-editor", TextArea).read_only = True
+                self.query_one("#run", Button).disabled = True
+                self.app.notify("Tempo terminato. Puoi rivedere il tentativo e i test.", severity="warning")
+
+    def action_toggle(self) -> None:
+        if not self.started:
+            self.started = True
+            self.running = True
+            self.query_one("#coding-sim-prompt", ScrollableContainer).display = True
+            self.query_one("#coding-sim-editor", TextArea).display = True
+            self.query_one("#run", Button).disabled = False
+            for button_id in ("toggle", "language", "reset"):
+                self.query_one(f"#{button_id}", Button).disabled = True
+            self.render_timer()
+
+    async def action_run(self) -> None:
+        if not self.running:
+            return
+        answer = self.query_one("#coding-sim-editor", TextArea).text
+        self.app.store.save_answer(self.progress_id(), "exercise", answer)
+        result = await asyncio.to_thread(run_exercise, self.exercise, answer, PROJECT_ROOT, self.language)
+        self.app.store.record_attempt(self.progress_id(), "exercise", answer, result.passed, result.score)
+        self.query_one("#coding-sim-output", Static).update(f"{result.score}%\n{result.output}\n" + "\n".join(result.details))
+        self.query_one("#coding-sim-result", ScrollableContainer).display = True
+
+    def action_toggle_language(self) -> None:
+        if self.started:
+            return
+        available = list(self.exercise.variants)
+        if len(available) < 2:
+            return
+        editor = self.query_one("#coding-sim-editor", TextArea)
+        next_language = available[(available.index(self.language) + 1) % len(available)]
+        self.app.coding_language = next_language
+        self.app.store.set_setting("amazon_coding_language", next_language)
+        variant = self.variant(next_language)
+        editor.text = variant.get("starter", self.exercise.starter)
+        editor.language = next_language
+        self.query_one("#language", Button).label = f"⌘ LINGUA: {next_language.upper()} [L]"
+        self.query_one("#run", Button).label = f"▶ ESEGUI [{next_language.upper()}] [F5]"
+
+    def action_reset(self) -> None:
+        if self.started:
+            return
+        self.running = False
+        self.remaining = self.simulation.minutes * 60
+        self.render_timer()
+
+    def action_back(self) -> None:
+        self.app.pop_screen()
+
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "toggle":
+            self.action_toggle()
+        elif event.button.id == "run":
+            await self.action_run()
+        elif event.button.id == "language":
+            self.action_toggle_language()
+        elif event.button.id == "reset":
+            self.action_reset()
+        elif event.button.id == "back":
+            self.action_back()
+
+
+class FullMockScreen(TimedScreen):
+    """Sequential 40 + 60 minute practice; the coding clock never rolls over."""
+    BINDINGS = [("escape", "attempt_back", "Bloccato durante il mock"), ("f5", "run_coding", "Esegui test")]
+    tracked_type = "simulation"
+
+    def __init__(self, simulation: Simulation) -> None:
+        super().__init__()
+        self.simulation = simulation
+        self.tracked_id = simulation.id
+        self.phase = 0
+        self.remaining = 40 * 60
+        self.running = False
+        self.started = False
+        self.coding_language = self.app.coding_language
+        self.workspace_path: Path | None = None
+
+    @property
+    def exercise(self) -> Exercise:
+        return self.app.catalog.exercise_by_id[self.simulation.coding_exercise_id]
+
+    @property
+    def lab(self) -> Lab:
+        lab = self.app.catalog.lab_by_id[self.simulation.repository_lab_id]
+        return lab.for_repository_language(self.app.store.get_setting("amazon_repository_language", "node"))
+
+    def repository_prompt_text(self) -> str:
+        return (
+            "## Repository · 60 minuti\n\n"
+            "Apri il progetto e parti dal README. Avvia la suite di test, osserva le failure e segui il dato "
+            "attraverso i file pertinenti. Formula un'ipotesi verificabile alla volta, applica una modifica "
+            "circoscritta e riesegui la suite completa. Usa i contratti esistenti come riferimento; annota "
+            "eventuali incertezze invece di allargare il cambiamento.\n\n"
+            "Il timer parte da 60:00 anche se hai consegnato prima la sezione coding."
+        )
+
+    def variant_value(self, key: str) -> str:
+        variant = self.exercise.variants.get(self.coding_language, {})
+        return str(variant.get(key, getattr(self.exercise, key, "")))
+
+    def compose(self) -> ComposeResult:
+        yield Header(show_clock=True)
+        with Vertical(classes="page"):
+            yield Static(f"[bold #fbbf24]{self.simulation.title}[/]\n40 minuti di coding · poi stop · 60 minuti di repository", classes="hero")
+            yield Static("", id="mock-timer", classes="stat-card")
+            with ScrollableContainer(id="mock-coding-prompt", can_focus=True):
+                yield Static("La prima sezione ha un solo problema e un limite autonomo di 40 minuti. Non consultare gli hint o la soluzione.", classes="panel")
+                yield Markdown(assessment_prompt(self.exercise))
+            with ScrollableContainer(id="mock-repository-prompt", can_focus=True):
+                yield Markdown(self.repository_prompt_text())
+            yield TextArea(self.variant_value("starter"), language=self.coding_language, show_line_numbers=True, id="mock-editor")
+            yield Static("", id="mock-result", classes="panel")
+            with Horizontal(classes="actions", id="mock-actions"):
+                yield Button("▶ AVVIA CODING · 40:00", id="start", classes="primary")
+                yield Button(f"REPOSITORY: {self.app.store.get_setting('amazon_repository_language', 'node').upper()}", id="repository-language")
+                yield Button(f"▶ TEST CODING [{self.coding_language.upper()}] [F5]", id="run-coding", disabled=True)
+                yield Button("STOP · PASSA ALLA REPOSITORY", id="finish-coding", disabled=True)
+                yield Button("▣ APRI VS CODE", id="open-repository", disabled=True)
+                yield Button("▶ TEST REPOSITORY", id="run-repository", disabled=True)
+                yield Button("CONCLUDI MOCK", id="finish-mock", disabled=True, classes="success")
+        yield Footer()
+
+    def on_mount(self) -> None:
+        super().on_mount()
+        self.query_one("#mock-coding-prompt", ScrollableContainer).display = False
+        self.query_one("#mock-repository-prompt", ScrollableContainer).display = False
+        self.query_one("#mock-editor", TextArea).display = False
+        self.query_one("#mock-result", Static).display = False
+        self.set_interval(1, self.tick)
+        self.render_timer()
+        self.set_focus(self.query_one("#start", Button))
+
+    @property
+    def locked(self) -> bool:
+        return self.started and self.phase < 2
+
+    def action_attempt_back(self) -> None:
+        if self.locked:
+            self.app.notify("Il mock è sequenziale: completa la sezione in corso prima di uscire.", severity="warning")
+        else:
+            self.app.pop_screen()
+
+    def tick(self) -> None:
+        if not self.running or self.remaining <= 0:
+            return
+        self.remaining -= 1
+        self.render_timer()
+        if self.remaining == 0:
+            if self.phase == 0:
+                self.start_repository()
+                self.app.notify("Stop alla sezione coding. Ora hai 60 minuti autonomi per la repository.", severity="warning")
+            else:
+                self.finish_mock()
+
+    def render_timer(self) -> None:
+        minutes, seconds = divmod(self.remaining, 60)
+        names = {0: "CODING QUESTION", 1: "CODE REPOSITORY", 2: "MOCK CONCLUSO"}
+        state = "IN CORSO" if self.running else "IN PAUSA"
+        self.query_one("#mock-timer", Static).update(
+            f"[bold #67e8f9]{names[self.phase]} · {minutes:02d}:{seconds:02d}[/] · {state}"
+        )
+
+    async def action_run_coding(self) -> None:
+        if self.phase != 0 or not self.started or not self.running:
+            return
+        answer = self.query_one("#mock-editor", TextArea).text
+        result = await asyncio.to_thread(run_exercise, self.exercise, answer, PROJECT_ROOT, language=self.coding_language)
+        if self.phase != 0:
+            return
+        self.query_one("#mock-result", Static).update(f"{result.score}%\n{result.output}\n" + "\n".join(result.details))
+        self.query_one("#mock-result", Static).display = True
+
+    def start_coding(self) -> None:
+        if self.started:
+            return
+        self.started = True
+        self.running = True
+        self.query_one("#mock-coding-prompt", ScrollableContainer).display = True
+        self.query_one("#mock-editor", TextArea).display = True
+        self.query_one("#start", Button).disabled = True
+        self.query_one("#repository-language", Button).disabled = True
+        self.query_one("#run-coding", Button).disabled = False
+        self.query_one("#finish-coding", Button).disabled = False
+        self.render_timer()
+        self.set_focus(self.query_one("#mock-editor", TextArea))
+
+    def start_repository(self) -> None:
+        self.phase = 1
+        self.running = True
+        self.remaining = 60 * 60
+        self.query_one("#mock-coding-prompt", ScrollableContainer).display = False
+        self.query_one("#mock-editor", TextArea).display = False
+        self.query_one("#mock-result", Static).display = False
+        self.query_one("#mock-repository-prompt", ScrollableContainer).display = True
+        self.workspace_path = ensure_lab_workspace(self.app.workspace_root, self.lab)
+        self.query_one("#finish-coding", Button).disabled = True
+        self.query_one("#open-repository", Button).disabled = False
+        self.query_one("#run-repository", Button).disabled = False
+        self.render_timer()
+        self.set_focus(self.query_one("#mock-repository-prompt", ScrollableContainer))
+
+    async def run_repository(self) -> None:
+        if self.phase != 1 or not self.workspace_path:
+            return
+        result = await asyncio.to_thread(run_lab_tests, self.workspace_path)
+        self.query_one("#mock-result", Static).update(result.output)
+        self.query_one("#mock-result", Static).display = True
+        self.app.store.record_attempt(self.lab.id, "lab", str(self.workspace_path), result.passed, 100 if result.passed else 0)
+
+    def finish_mock(self) -> None:
+        self.phase = 2
+        self.running = False
+        self.remaining = 0
+        self.query_one("#finish-coding", Button).disabled = True
+        self.query_one("#open-repository", Button).disabled = True
+        self.query_one("#run-repository", Button).disabled = True
+        self.query_one("#finish-mock", Button).disabled = False
+        self.app.store.record_attempt(self.simulation.id, "simulation", "full mock completato", True, 0)
+        self.render_timer()
+
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "start":
+            self.start_coding()
+        elif event.button.id == "repository-language" and not self.started:
+            language = "cpp" if self.app.store.get_setting("amazon_repository_language", "node") == "node" else "node"
+            self.app.store.set_setting("amazon_repository_language", language)
+            self.query_one("#repository-language", Button).label = f"REPOSITORY: {language.upper()}"
+        elif event.button.id == "run-coding":
+            await self.action_run_coding()
+        elif event.button.id == "finish-coding" and self.phase == 0:
+            self.start_repository()
+        elif event.button.id == "open-repository" and self.workspace_path:
+            _ok, message = open_vscode(self.workspace_path)
+            self.app.notify(message)
+        elif event.button.id == "run-repository":
+            asyncio.create_task(self.run_repository())
+        elif event.button.id == "finish-mock" and self.phase == 2:
+            self.app.pop_screen()
+
+
+    def action_dashboard(self) -> None:
+        if self.locked:
+            self.app.notify("Completa la sezione del mock in corso prima di tornare alla Dashboard.", severity="warning")
+            return
+        self.app.pop_screen()
 
 
 class Dev48App(App):
-    TITLE = "DEV//48 — Enterprise Web Academy"
-    SUB_TITLE = "Angular & .NET / Full-Stack · Studio intensivo offline"
+    TITLE = TRACK_DEFINITIONS[0].window_title
+    SUB_TITLE = TRACK_DEFINITIONS[0].window_subtitle
     CSS_PATH = "styles.tcss"
     ENABLE_COMMAND_PALETTE = False
     BINDINGS = [
         Binding("ctrl+d", "dashboard", "Dashboard", priority=True),
+        Binding("ctrl+t", "switch_track", "Scegli percorso", priority=True),
         Binding("ctrl+k", "curriculum", "Curriculum", priority=True),
         Binding("ctrl+g", "glossary", "Glossario", priority=True),
         Binding("ctrl+q", "quit", "Esci", priority=True),
@@ -940,8 +1609,9 @@ class Dev48App(App):
         try:
             self.store = ProgressStore(self.data_root)
             self.workspace_root.mkdir(parents=True, exist_ok=True)
-            active_track = self.store.get_active_track("dotnet-angular")
+            active_track = self.store.get_active_track(TRACK_DEFINITIONS[0].id)
             self.catalog = Catalog(CONTENT_ROOT, track=active_track)
+            self.coding_language = self.store.get_setting("amazon_coding_language", "python")
             self.sync_app_title()
         except Exception:
             self.lock.release()
@@ -951,13 +1621,9 @@ class Dev48App(App):
             raise RuntimeError("Catalogo non valido:\n" + "\n".join(errors))
 
     def sync_app_title(self) -> None:
-        track = getattr(self.catalog, "track", "dotnet-angular")
-        if track == "dotnet-angular":
-            self.title = "DEV//48 — Angular & .NET Enterprise Academy"
-            self.sub_title = ".NET 10 · Minimal API · EF Core · Angular 22 Signals"
-        else:
-            self.title = "DEV//48 — Web Development Academy"
-            self.sub_title = "JavaScript · React 19 · Node.js · SQL"
+        definition = self.catalog.track_definition
+        self.title = definition.window_title
+        self.sub_title = definition.window_subtitle
 
     def on_mount(self) -> None:
         self.update_compact_mode(self.size.height)
@@ -974,7 +1640,8 @@ class Dev48App(App):
         self.set_class(height < 24, "compact-height")
 
     def stats(self) -> dict:
-        track_item_ids = {item.id for item in self.catalog.lessons + self.catalog.exercises}
+        track_item_ids = {item.id for item in self.catalog.lessons}
+        track_item_ids.update(exercise_progress_id(item, self.coding_language) for item in self.catalog.exercises)
         return self.store.stats(len(self.catalog.lessons), len(self.catalog.exercises), track_item_ids)
 
     def learning_plan_markup(self) -> str:
@@ -987,27 +1654,71 @@ class Dev48App(App):
         lines = [f"[bold #a78bfa]PERCORSO: {track_name}[/]"]
         lines.append(f"\n[{'█' * bars}{'░' * (20-bars)}]  {done}/{len(required)} lezioni essenziali · {minutes//60}h {minutes%60:02d}m")
         lines.append(f"\n{len(self.catalog.modules)} moduli · {len(self.catalog.labs)} laboratori · {len(self.catalog.simulations)} sfide pratiche")
+        if self.catalog.study_plan:
+            lines.append("\n[bold #fbbf24]PIANO ESSENZIALE · 6 GIORNI[/]")
+            planned_minutes = 0
+            for day in self.catalog.study_plan:
+                day = dict(day)
+                for choice in day.get("choices", []):
+                    language = self.coding_language if choice["setting"] == "coding_language" else self.store.get_setting("amazon_repository_language", "node")
+                    branch = choice["options"][language]
+                    for field in ("lesson_ids", "lab_ids"):
+                        day[field] = day.get(field, []) + branch.get(field, [])
+                    day["practice_minutes"] = int(day.get("practice_minutes", 0)) + int(branch.get("practice_minutes", 0))
+                lesson_ids = day.get("lesson_ids", [])
+                exercise_ids = day.get("exercise_ids", [])
+                lab_ids = day.get("lab_ids", [])
+                simulation_ids = day.get("simulation_ids", [])
+                scenario_ids = day.get("scenario_ids", [])
+                style_ids = day.get("work_style_ids", [])
+                lesson_items = [self.catalog.lesson_by_id[item_id] for item_id in lesson_ids if item_id in self.catalog.lesson_by_id]
+                exercise_items = [self.catalog.exercise_by_id[item_id] for item_id in exercise_ids if item_id in self.catalog.exercise_by_id]
+                lab_items = [self.catalog.lab_by_id[item_id] for item_id in lab_ids if item_id in self.catalog.lab_by_id]
+                simulation_items = [next(item for item in self.catalog.simulations if item.id == item_id) for item_id in simulation_ids if any(item.id == item_id for item in self.catalog.simulations)]
+                day_minutes = sum(item.minutes for item in lesson_items + exercise_items + lab_items + simulation_items) + int(day.get("practice_minutes", 0))
+                planned_minutes += day_minutes
+                day_done = sum(item.id in completed for item in lesson_items)
+                day_done += sum(exercise_progress_id(item, self.coding_language) in completed for item in exercise_items)
+                day_total = len(lesson_items) + len(exercise_items)
+                hours, minutes_left = divmod(day_minutes, 60)
+                lesson_text = " · ".join(item.title for item in lesson_items)
+                exercise_text = " · ".join(item.title for item in exercise_items)
+                optional_text = " · ".join(
+                    [item.title for item in lab_items]
+                    + [item.title for item in simulation_items]
+                    + [f"scenario {item_id.removeprefix('sde-ws-')}" for item_id in scenario_ids]
+                    + [f"work style {item_id.removeprefix('sde-style-')}" for item_id in style_ids]
+                )
+                lines.append(
+                    f"\n[G{day['day']}] {day['title']} · {hours}h {minutes_left:02d}m · {day_done}/{day_total} lezioni/esercizi"
+                    f"\n[#cbd5e1]Lezioni: {lesson_text}[/]"
+                    + (f"\n[#cbd5e1]Esercizi: {exercise_text}[/]" if exercise_text else "")
+                    + (f"\n[#91a4c7]Pratica: {optional_text}[/]" if optional_text else "")
+                    + f"\n[#91a4c7]Recall: {day.get('flashcard_minutes', 0)} min flashcard · {day.get('review_minutes', 0)} min error review[/]"
+                )
+            lines.append(f"\n[#91a4c7]Carico essenziale pianificato: {planned_minutes//60}h {planned_minutes%60:02d}m. Gli esercizi, laboratori e simulazioni restanti sono ripassi facoltativi nel curriculum.[/]")
         lines.append("\n[#91a4c7]◆ obbligatorio   · approfondimento   Ctrl+T cambia traccia   Ctrl+K curriculum   Ctrl+G glossario[/]")
         return "".join(lines)
 
     def action_switch_track(self) -> None:
-        new_track = "web-js-react" if getattr(self.catalog, "track", "") == "dotnet-angular" else "dotnet-angular"
-        self.store.set_active_track(new_track)
-        self.catalog = Catalog(CONTENT_ROOT, track=new_track)
-        self.sync_app_title()
-        track_label = self.catalog.meta.get("name", new_track)
-        self.notify(f"Passato a: {track_label}", title="Traccia Attiva Aggiornata")
-        self.action_dashboard()
-        if len(self.screen_stack) > 1:
-            self.pop_screen()
-        self.push_screen(DashboardScreen())
+        if isinstance(self.screen, FullMockScreen) and self.screen.locked:
+            self.notify("La selezione del percorso resta chiusa durante il mock sequenziale.", severity="warning")
+            return
+        self.open_track_selection()
+
+    def open_track_selection(self) -> None:
+        if not isinstance(self.screen, TrackSelectionScreen):
+            self.push_screen(TrackSelectionScreen(return_to_previous=True))
 
     def last_item_title(self) -> str:
         last = self.store.get_setting("last_item")
         if last in self.catalog.lesson_by_id:
             return self.catalog.lesson_by_id[last].title
-        if last in self.catalog.exercise_by_id:
-            return self.catalog.exercise_by_id[last].title
+        exercise_id, language = split_exercise_progress_id(last)
+        if exercise_id in self.catalog.exercise_by_id:
+            exercise = self.catalog.exercise_by_id[exercise_id]
+            suffix = f" · {language.upper()}" if language else ""
+            return exercise.title + suffix
         if last in self.catalog.lab_by_id:
             return self.catalog.lab_by_id[last].title
         simulation = next((item for item in self.catalog.simulations if item.id == last), None)
@@ -1019,7 +1730,7 @@ class Dev48App(App):
             if lesson.id not in completed:
                 return "lesson", lesson
             for exercise in self.catalog.exercises_for(lesson.id):
-                if exercise.id not in completed:
+                if exercise_progress_id(exercise, self.coding_language) not in completed:
                     return "exercise", exercise
         return None
 
@@ -1036,15 +1747,23 @@ class Dev48App(App):
         if last in self.catalog.lesson_by_id:
             self.push_screen(LessonScreen(last))
             return
-        if last in self.catalog.exercise_by_id:
-            self.push_screen(ExerciseScreen(last))
+        exercise_id, language = split_exercise_progress_id(last)
+        if exercise_id in self.catalog.exercise_by_id:
+            if language in {"python", "cpp"}:
+                self.coding_language = language
+            self.push_screen(ExerciseScreen(exercise_id))
             return
         if last in self.catalog.lab_by_id:
             self.push_screen(LabScreen(last))
             return
         simulation = next((item for item in self.catalog.simulations if item.id == last), None)
         if simulation:
-            self.push_screen(SimulationScreen(simulation))
+            if simulation.kind == "full_mock":
+                self.push_screen(FullMockScreen(simulation))
+            elif simulation.kind == "coding":
+                self.push_screen(CodingSimulationScreen(simulation))
+            else:
+                self.push_screen(SimulationScreen(simulation))
             return
         self.notify("Non c'è ancora un ultimo punto da riprendere.", severity="warning")
 
@@ -1060,15 +1779,24 @@ class Dev48App(App):
             self.push_screen(ExerciseScreen(item.id))
 
     def action_dashboard(self) -> None:
+        if isinstance(self.screen, FullMockScreen) and self.screen.locked:
+            self.notify("Completa la sezione del mock in corso prima di tornare alla Dashboard.", severity="warning")
+            return
         # Lo stack contiene sempre la schermata Textual predefinita sotto la
         # dashboard; preserviamo entrambe e chiudiamo soltanto le viste aperte.
         while len(self.screen_stack) > 2:
             self.pop_screen()
 
     def action_curriculum(self) -> None:
+        if isinstance(self.screen, FullMockScreen) and self.screen.locked:
+            self.notify("Il curriculum resta chiuso durante il mock sequenziale.", severity="warning")
+            return
         self.push_screen(CurriculumScreen())
 
     def action_glossary(self) -> None:
+        if isinstance(self.screen, FullMockScreen) and self.screen.locked:
+            self.notify("Il glossario resta chiuso durante il mock sequenziale.", severity="warning")
+            return
         self.push_screen(GlossaryScreen())
 
     def on_exit_app(self) -> None:

@@ -129,11 +129,47 @@ class ProgressStore:
             )
         self.set_setting("last_item", item_id)
 
-    def record_attempt(self, item_id: str, item_type: str, answer: str, passed: bool, score: int) -> int:
+    def _solution_seen_since_pass(self, item_id: str) -> bool:
+        rows = self.connection.execute(
+            "SELECT id,event_type,payload FROM events WHERE item_id=? ORDER BY id",
+            (item_id,),
+        ).fetchall()
+        last_pass_id = 0
+        viewed_after_pass = False
+        for row in rows:
+            if row["event_type"] == "attempt":
+                try:
+                    passed = bool(json.loads(row["payload"]).get("passed"))
+                except (TypeError, json.JSONDecodeError):
+                    passed = False
+                if passed:
+                    last_pass_id = int(row["id"])
+                    viewed_after_pass = False
+            elif row["event_type"] == "solution_viewed" and int(row["id"]) > last_pass_id:
+                viewed_after_pass = True
+        return viewed_after_pass
+
+    def mark_solution_viewed(self, item_id: str) -> None:
+        with self.transaction() as db:
+            db.execute(
+                "INSERT INTO events(event_type,item_id,payload,created_at) VALUES(?,?,?,?)",
+                ("solution_viewed", item_id, "{}", self.now()),
+            )
+
+    def record_attempt(
+        self,
+        item_id: str,
+        item_type: str,
+        answer: str,
+        passed: bool,
+        score: int,
+        solution_seen: bool | None = None,
+    ) -> int:
         old = self.get(item_id)
         attempts = int(old.get("attempts", 0)) + 1
         status = "completed" if passed else "started"
         best_score = max(int(old.get("score", 0)), score)
+        after_solution = self._solution_seen_since_pass(item_id) if solution_seen is None else solution_seen
         with self.transaction() as db:
             db.execute(
                 """INSERT INTO progress(item_id,item_type,status,attempts,score,answer,updated_at)
@@ -145,7 +181,7 @@ class ProgressStore:
             )
             db.execute(
                 "INSERT INTO events(event_type,item_id,payload,created_at) VALUES(?,?,?,?)",
-                ("attempt", item_id, json.dumps({"passed": passed, "score": score}), self.now()),
+                ("attempt", item_id, json.dumps({"passed": passed, "score": score, "after_solution": after_solution}), self.now()),
             )
         self.set_setting("last_item", item_id)
         self.backup()
@@ -247,6 +283,27 @@ class ProgressStore:
     def completed_ids(self) -> set[str]:
         rows = self.connection.execute("SELECT item_id FROM progress WHERE status='completed'").fetchall()
         return {row["item_id"] for row in rows}
+
+    def review_items(self, track_item_ids: set[str]) -> list[dict]:
+        """Return unresolved failures and passes made after opening the solution."""
+        result = []
+        for item_id in track_item_ids:
+            row = self.connection.execute(
+                "SELECT payload FROM events WHERE item_id=? AND event_type='attempt' ORDER BY id DESC LIMIT 1",
+                (item_id,),
+            ).fetchone()
+            state = self.get(item_id)
+            if not row or not state:
+                continue
+            try:
+                payload = json.loads(row["payload"])
+            except (TypeError, json.JSONDecodeError):
+                payload = {}
+            if not payload.get("passed"):
+                result.append({"item_id": item_id, "kind": "failed", "attempts": int(state.get("attempts", 0))})
+            elif payload.get("after_solution"):
+                result.append({"item_id": item_id, "kind": "after_solution", "attempts": int(state.get("attempts", 0))})
+        return result
 
     def backup(self) -> Path:
         progress = [dict(row) for row in self.connection.execute("SELECT * FROM progress ORDER BY item_id")]

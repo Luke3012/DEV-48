@@ -23,6 +23,15 @@ def test_catalog_is_valid_and_ids_are_unique():
     assert len(all_ids) == len(set(all_ids))
 
 
+def test_catalog_rejects_unknown_track_and_missing_track_catalog(tmp_path):
+    import pytest
+
+    with pytest.raises(ValueError, match="Traccia sconosciuta"):
+        Catalog(ROOT / "content", track="amazon-oa-typo")
+    with pytest.raises(FileNotFoundError, match="non trovato"):
+        Catalog(tmp_path, track="amazon-sde-oa")
+
+
 def test_every_lesson_has_two_exercises_and_substantial_markdown():
     catalog = Catalog(ROOT / "content")
     for lesson in catalog.lessons:
@@ -141,3 +150,79 @@ def test_dotnet_angular_course_is_complete_and_explicit_about_its_checks():
     referenced_lessons = {(ROOT / "content" / lesson.body_file).resolve() for lesson in catalog.lessons}
     markdown_files = {path.resolve() for path in (ROOT / "content" / "lessons_dotnet").glob("*.md")}
     assert markdown_files == referenced_lessons
+
+
+def test_amazon_sde_oa_course_has_independent_mapped_content():
+    catalog = Catalog(ROOT / "content", track="amazon-sde-oa")
+    assert catalog.track == "amazon-sde-oa"
+    assert (len(catalog.lessons), len(catalog.exercises), len(catalog.labs), len(catalog.flashcards)) == (44, 67, 6, 160)
+    assert (len(catalog.simulations), len(catalog.work_scenarios), len(catalog.work_style)) == (4, 36, 8)
+    # A candidate must judge the actions rather than infer ranking from a stable label.
+    assert {scenario.recommended_order[-1] for scenario in catalog.work_scenarios} == set("ABCD")
+    for scenario in catalog.work_scenarios:
+        assert [option["id"] for option in scenario.options] == list("ABCD")
+        assert sorted(scenario.recommended_order) == list("ABCD")
+    assert {item.difficulty for item in catalog.exercises} == {"easy", "medium", "hard"}
+    assert sum(item.difficulty == "easy" for item in catalog.exercises) == 22
+    assert sum(item.difficulty == "medium" for item in catalog.exercises) == 35
+    assert sum(item.difficulty == "hard" for item in catalog.exercises) == 10
+    assert all(set(item.variants) == {"python", "cpp"} for item in catalog.exercises)
+    assert all(item.id == "sde-e-language-trial" or (item.no_ai and item.no_internet and item.timed) for item in catalog.exercises)
+    for scenario in catalog.work_scenarios:
+        option_texts = [option["text"] for option in scenario.options]
+        assert len(option_texts) == len(set(option_texts)) == 4
+        assert all("{focus}" not in text for text in option_texts)
+        assert all(option["reasoning"] for option in scenario.options)
+        assert scenario.learning_focus
+    scenarios = {item.id: item for item in catalog.work_scenarios}
+    assert "cache" in " ".join(option["text"] for option in scenarios["sde-ws-05"].options).casefold()
+    assert "zero" in " ".join(option["text"] for option in scenarios["sde-ws-16"].options).casefold()
+    assert "tastiera" in " ".join(option["text"] for option in scenarios["sde-ws-17"].options).casefold()
+    assert "alert" in " ".join(option["text"] for option in scenarios["sde-ws-22"].options).casefold()
+    assert "fuso" in " ".join(option["text"] for option in scenarios["sde-ws-25"].options).casefold()
+    api_options = " ".join(option["text"] for option in scenarios["sde-ws-31"].options).casefold()
+    assert "limite" in api_options or "soglia" in api_options
+    assert "simultanee" in " ".join(option["text"] for option in scenarios["sde-ws-23"].options).casefold()
+    assert "annullati" in " ".join(option["text"] for option in scenarios["sde-ws-15"].options).casefold()
+    assert "migrazione" in " ".join(option["text"] for option in scenarios["sde-ws-28"].options).casefold()
+    assert "stima" in " ".join(option["text"] for option in scenarios["sde-ws-36"].options).casefold()
+    assert len(catalog.study_plan) == 6
+    planned = [lesson_id for day in catalog.study_plan for lesson_id in day["lesson_ids"]]
+    planned += [lesson_id for day in catalog.study_plan for choice in day.get("choices", [])
+                for branch in choice["options"].values() for lesson_id in branch.get("lesson_ids", [])]
+    assert len(planned) == len(set(planned)) == len(catalog.lessons)
+    planned_exercises = [exercise_id for day in catalog.study_plan for exercise_id in day.get("exercise_ids", [])]
+    assert len(planned_exercises) == len(set(planned_exercises))
+    assert {"sde-l-binary-variants", "sde-l-binary-answer"} <= {item.id for item in catalog.lessons}
+    assert catalog.exercise_by_id["sde-e-trapping-rainwater"].lesson_id == "sde-l-two-pointers"
+    assert catalog.exercise_by_id["sde-e-max-depth"].lesson_id == "sde-l-recursion"
+    assert catalog.exercise_by_id["sde-e-climbing-stairs"].lesson_id == "sde-l-dp-memoization"
+    combination_sum = catalog.exercise_by_id["sde-e-combination-sum"]
+    assert "2^n" not in combination_sum.explanation
+    assert "target" in combination_sum.explanation and "output" in combination_sum.explanation
+    stairs = catalog.exercise_by_id["sde-e-climbing-stairs"]
+    assert all("64 bit" not in case["name"] for case in stairs.tests)
+    assert {simulation.kind for simulation in catalog.simulations} == {"coding", "repository", "full_mock"}
+    assert catalog.simulations[-1].minutes == 100
+    assert "variano per ruolo e paese" in catalog.meta["assessment_note"]
+    assert catalog.meta["estimated_core_hours"] < catalog.meta["estimated_hours"]
+    assert all("O(" in item.explanation for item in catalog.exercises)
+    assert catalog.validate() == []
+
+
+def test_amazon_repo_scaffolds_create_only_missing_files(tmp_path):
+    from dev48.workspace import ensure_lab_workspace
+    catalog = Catalog(ROOT / "content", track="amazon-sde-oa")
+    for lab in catalog.labs:
+        workspace = ensure_lab_workspace(tmp_path, lab)
+        assert (workspace / "README.md").is_file()
+        assert any(workspace.rglob("*.test.js")) or any(workspace.rglob("*.cpp"))
+        assert not (workspace / "solution.js").exists()
+        assert not (workspace / "solution.test.js").exists()
+        assert not (workspace / "SOLUTION.md").exists()
+        if lab.workspace_template == "amazon_cpp":
+            assert not (workspace / "package.json").exists()
+    final_test = tmp_path / "lab-amazon-mock-repository" / "test" / "routes.test.js"
+    before = final_test.read_text(encoding="utf-8")
+    ensure_lab_workspace(tmp_path, catalog.labs[-1])
+    assert final_test.read_text(encoding="utf-8") == before

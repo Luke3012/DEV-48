@@ -324,38 +324,24 @@ Markdown, #lesson-markdown {
     text-align: center;
 }
 
-#track-cards-row {
+#track-card-list {
     height: 1fr;
     margin-bottom: 1;
+    overflow-y: auto;
 }
 
 .track-card {
-    width: 1fr;
-    height: 1fr;
-    padding: 1 2;
-    margin-right: 1;
+    width: 100%;
+    height: auto;
+    padding: 0 1;
+    margin-bottom: 1;
     border: double #34476b;
     background: #101727;
 }
 
-#track-card-dotnet {
-    border: double #0e7490;
-    margin-right: 1;
-}
-
-#track-card-dotnet:focus-within, #track-card-dotnet.active-card {
+.track-card:focus-within, .track-card.active-card {
     border: double #22d3ee;
     background: #0c1c2e;
-}
-
-#track-card-react {
-    border: double #581c87;
-    margin-right: 0;
-}
-
-#track-card-react:focus-within, #track-card-react.active-card {
-    border: double #c084fc;
-    background: #1e1233;
 }
 
 .card-header {
@@ -366,38 +352,25 @@ Markdown, #lesson-markdown {
 }
 
 .card-desc {
-    height: 1fr;
+    height: auto;
     overflow-y: auto;
     padding: 0 1;
     color: #cbd5e1;
 }
 
-#track-card-dotnet Button {
+.track-card Button {
     width: 100%;
-    margin: 1 0 0 0;
-    background: #0284c7;
-    border: tall #38bdf8;
+    min-height: 3;
+    margin: 0;
+    background: #263552;
+    border: tall #40577e;
     color: #ffffff;
     text-style: bold;
 }
 
-#track-card-dotnet Button:focus, #track-card-dotnet Button:hover {
-    background: #0ea5e9;
-    border: tall #7dd3fc;
-}
-
-#track-card-react Button {
-    width: 100%;
-    margin: 1 0 0 0;
-    background: #7c3aed;
-    border: tall #a78bfa;
-    color: #ffffff;
-    text-style: bold;
-}
-
-#track-card-react Button:focus, #track-card-react Button:hover {
-    background: #9333ea;
-    border: tall #c084fc;
+.track-card Button:focus, .track-card Button:hover {
+    background: #0e7490;
+    border: tall #67e8f9;
 }
 
 #track-instruction {
@@ -415,6 +388,40 @@ Markdown, #lesson-markdown {
 
 .compact-height .track-card {
     padding: 0 1;
+}
+
+.compact-height #track-card-list {
+    margin-bottom: 0;
+}
+
+#exercise-timer {
+    height: 3;
+    min-height: 3;
+    margin-bottom: 1;
+}
+
+#scenario-scroll, #work-style-scroll, #mock-coding-prompt, #mock-repository-prompt {
+    height: 1fr;
+    overflow-y: auto;
+    border: round #34476b;
+    background: #0e1525;
+    padding: 1 2;
+}
+
+#scenario-answer, #work-style-answer {
+    min-height: 5;
+    height: 8;
+}
+
+#mock-editor {
+    height: 1fr;
+    min-height: 8;
+}
+
+#mock-actions {
+    height: auto;
+    min-height: 3;
+    overflow-x: auto;
 }
 
 MarkdownH1 { color: #67e8f9; }

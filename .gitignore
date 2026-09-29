@@ -10,6 +10,7 @@ __pycache__/
 
 # Test, coverage e strumenti Python
 .pytest_cache/
+.cache/
 .coverage
 .coverage.*
 htmlcov/
@@ -67,6 +68,11 @@ yarn-error.log*
 pnpm-debug.log*
 *.tmp
 *.temp
+*.bak
+*.orig
+*.rej
+tmp/
+temp/
 ~$*
 
 # Editor e sistema operativo
