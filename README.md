@@ -77,6 +77,8 @@ cd "C:\percorso\DEV48"
 
 La soluzione completa di un esercizio breve si sblocca dopo due tentativi falliti. Quando consulti la teoria con `F1`, l'editor e la posizione di lettura restano nella schermata dell'esercizio.
 
+Nella schermata dell'esercizio, i dettagli su cosa controlla il runner sono nel pannello **Controlli automatici**, chiuso all'apertura e consultabile su richiesta. Risultati, indizi e soluzioni compaiono in un riquadro scorrevole, così puoi leggere anche i testi più lunghi.
+
 ## Laboratori
 
 Dalla scheda di un laboratorio:
