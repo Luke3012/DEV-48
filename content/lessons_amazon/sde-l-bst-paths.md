@@ -61,4 +61,8 @@ Con duplicati, il contratto deve stabilire dove possano stare; la validazione co
 
 Entrambi gli algoritmi seguono al massimo un cammino di altezza h: O(h) tempo. La validazione visita ogni nodo, O(n), con O(h) stack. Un albero sbilanciato può avere h=n; non assumere automaticamente h=log n.
 
-**Da ricordare.** Usa la proprietà globale del BST passando limiti e non soltanto confrontando un nodo coi figli immediati. **Per praticare:** Convalidare l'ordine globale di un BST; Lowest common ancestor in un BST.
+### Il k-esimo elemento segue l'inorder
+
+In un BST l'inorder visita prima i valori minori del sottoalbero sinistro, poi il nodo, poi i maggiori del destro. Su radice 5, ramo sinistro 3 con figli 2 e 4, la visita comincia `2,3,4,5`; il terzo valore è 4. Una pila esplicita conserva i nodi in attesa e permette di fermarsi appena hai estratto il k-esimo, senza attraversare necessariamente tutto l'albero.
+
+**Da ricordare.** Usa la proprietà globale del BST passando limiti e non soltanto confrontando un nodo coi figli immediati. **Per praticare:** Convalidare l'ordine globale di un BST; Lowest common ancestor in un BST; K-esimo valore più piccolo in un BST.

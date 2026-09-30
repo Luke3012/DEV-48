@@ -27,10 +27,10 @@ MODULES = [
 ]
 
 
-def lesson(lesson_id, module, title, day, minutes, difficulty, objectives, summary, body):
+def lesson(lesson_id, module, title, day, minutes, difficulty, objectives, summary, body, *, mandatory=True):
     return {
         "id": f"sde-l-{lesson_id}", "module": module, "title": title,
-        "minutes": minutes, "difficulty": difficulty, "mandatory": True,
+        "minutes": minutes, "difficulty": difficulty, "mandatory": mandatory,
         "objectives": objectives, "summary": summary,
         "body_file": f"lessons_amazon/sde-l-{lesson_id}.md",
         "recommended_day": day, "body": f"# {title}\n\n{body.strip()}\n",
@@ -280,8 +280,6 @@ movements = [("nord", 3), ("sud", 2), ("nord", 4)]
 print(totals_by_region(movements))  # {'nord': 7, 'sud': 2}
 ```
 
-`get(region, 0)` legge il totale precedente; se la chiave non esiste ancora, parte da zero. Poi il codice aggiunge l'importo corrente e salva il nuovo totale.
-
 **Versione C++**
 
 ```cpp
@@ -301,6 +299,8 @@ unordered_map<string, int> totals_by_region(
     return totals;
 }
 ```
+
+In Python, `get(region, 0)` legge il totale precedente; se la chiave non esiste ancora, parte da zero. Poi il codice aggiunge l'importo corrente e salva il nuovo totale.
 
 In C++, `totals[region]` crea la chiave con valore iniziale zero quando non esiste; l'operatore `+=` aggiunge l'importo. L'ordine con cui una `unordered_map` mostra le chiavi non è garantito: il contenuto è lo stesso, ma la stampa può cambiare ordine.
 
@@ -1953,6 +1953,30 @@ Il passaggio alla repository è un cambio di contesto, non una pausa da aggiunge
 
 Allo scadere dei 60 minuti il mock termina. La revisione distingue le attività completate dalle ipotesi effettivamente verificate. Work Simulation e Work Style sono attività successive e separate. Il mock adotta il formato di pratica 40 + 60; struttura e regole di un assessment reale dipendono dalle istruzioni ricevute.
 '''),
+    lesson("trie", "strutture", "Trie: parole, prefissi e ricerche con wildcard", None, 35, "intermedio",
+           ["nodo e arco-carattere", "prefisso vs parola completa", "inserimento e lookup", "ricerca wildcard per backtracking"],
+           "Costruire una trie da parole condivise, poi estendere il lookup a un carattere wildcard senza confondere prefisso e parola intera.", r'''
+Un dizionario hash risponde bene a «questa parola intera esiste?», ma una ricerca per prefisso può richiedere di provare molte chiavi. Una trie condivide invece i percorsi iniziali delle parole. Inseriamo `cat`, `car` e `dog`: il prefisso `ca` compare una volta nella struttura, mentre i rami finali distinguono `t` e `r`.
+
+```text
+root
+├─ c
+│  └─ a
+│     ├─ t*  (cat è una parola)
+│     └─ r*  (car è una parola)
+└─ d
+   └─ o
+      └─ g*  (dog è una parola)
+```
+
+Ogni nodo rappresenta un prefisso raggiunto; ogni arco aggiunge un carattere. L'asterisco non è un arco: indica un flag `terminal` che dice che il percorso completo è stato inserito come parola. Così `search("ca")` è falso mentre `starts_with("ca")` è vero. Senza il flag, il nodo `ca` non ci direbbe se `ca` è una parola autonoma.
+
+Per inserire `cat`, parti dalla radice e crea soltanto i nodi mancanti `c`, `a`, `t`; marca l'ultimo come terminale. Per cercare una parola segui ogni carattere: un arco assente significa subito “non trovata”; arrivare all'ultimo nodo non basta, serve anche `terminal`. Per cercare un prefisso è sufficiente arrivare al nodo finale, anche se non è terminale. Una parola vuota, se ammessa dal contratto, termina già alla radice.
+
+Se la parola ha lunghezza `L`, inserimento e lookup visitano al massimo `L` archi, quindi costano `O(L)`; lo spazio dipende dai nodi creati e può arrivare alla somma delle lunghezze delle parole. Una hash map può avere una ricerca esatta più semplice e memoria inferiore quando quasi nessun prefisso viene condiviso: una trie è utile quando prefix lookup o wildcard sono davvero richiesti.
+
+Nella ricerca con wildcard `.` un arco non rappresenta un carattere noto: bisogna provare i figli disponibili. Per `c.t`, dopo `c` si esplorano i rami possibili al posto del punto e si accetta soltanto un percorso terminale. Questa scelta crea un albero di ricerca e usa backtracking; non si applica al lookup esatto. Word Search II combina infine la trie con una DFS sulla griglia e resta un approfondimento Extra/Hard.
+''', mandatory=False),
 ]
 
 
@@ -2433,6 +2457,118 @@ Coin Change cambia la transizione: per un importo `x` provi ciascuna moneta `c<=
 }
 
 
+LESSON_DIDACTIC["sde-l-problem-solving"]["notes"] += r'''
+
+### Dal controllo a mano a una funzione
+
+La richiesta precedente si traduce in quattro decisioni: scorrere da sinistra, confrontare con `> 5`, restituire subito il primo indice e usare `-1` se il ciclo finisce. Ecco la stessa idea in entrambe le lingue:
+
+**Versione Python**
+
+```python
+def first_above(values, limit):
+    for index, value in enumerate(values):
+        if value > limit:
+            return index
+    return -1
+```
+
+**Versione C++**
+
+```cpp
+#include <vector>
+
+int first_above(const std::vector<int>& values, int limit) {
+    for (int index = 0; index < static_cast<int>(values.size()); ++index) {
+        if (values[index] > limit) {
+            return index;
+        }
+    }
+    return -1;
+}
+```
+
+Su `[2, 7, 1, 9]`, `enumerate` produce `(0, 2)`, poi `(1, 7)`: il secondo valore supera 5 e la funzione termina con 1. Il `9` non viene letto. Su `[5, 4]` nessun valore supera strettamente il limite, quindi si raggiunge `return -1`; su `[]` il ciclo non parte e la stessa risposta resta valida. La funzione è corretta perché ogni indice precedente a quello restituito è già stato controllato e non soddisfa la condizione.
+'''
+
+LESSON_DIDACTIC["sde-l-complexity"]["notes"] += r'''
+
+### Lo stesso problema, due quantità di lavoro
+
+Cerchiamo una coppia che sommi a 10 in `[4, 1, 7, 3]`. Una ricerca che prova tutte le coppie controlla, nel caso senza risposta, `(4,1)`, `(4,7)`, `(4,3)`, `(1,7)`, `(1,3)`, `(7,3)`: 6 confronti. Per n elementi le coppie distinte sono `n(n-1)/2`, quindi il lavoro cresce quadraticamente.
+
+Una scansione che consulta una mappa fa al massimo una ricerca per elemento: 4 consultazioni qui, con al più 4 inserimenti. La mappa richiede spazio che cresce con i valori già visti; il ciclo annidato usa solo indici aggiuntivi. Per n molto piccolo la prima soluzione può essere più semplice e sufficiente, ma quando n cresce il conteggio rende chiaro perché convenga pagare memoria per ridurre il tempo. È una stima delle operazioni, non una promessa di millisecondi.
+'''
+
+LESSON_DIDACTIC["sde-l-arrays-strings"]["notes"] += r'''
+
+### Tracciare la scelta di Kadane
+
+Per ogni valore confrontiamo due possibilità: iniziare un segmento nuovo qui oppure estendere quello migliore che terminava nella posizione precedente. Con `[-2, 3, -1, 4, -6]` la tabella mostra entrambe:
+
+| Valore | Somma precedente + valore | Nuovo segmento | Migliore somma che termina qui | Migliore globale |
+| ---: | ---: | ---: | ---: | ---: |
+| -2 | — | -2 | -2 | -2 |
+| 3 | 1 | 3 | 3 | 3 |
+| -1 | 2 | -1 | 2 | 3 |
+| 4 | 6 | 4 | 6 | 6 |
+| -6 | 0 | -6 | 0 | 6 |
+
+Quando arriva `3`, continuare il segmento che valeva `-2` produrrebbe solo `1`, perciò conviene ripartire da `3`. Con `4`, invece, `2 + 4 = 6` batte il segmento nuovo. Il risultato è 6, ottenuto da `[3,-1,4]`. In un input tutto negativo come `[-5,-2,-8]`, la risposta è `-2`: per questo inizializziamo gli accumuli al primo elemento, senza imporre che la risposta sia almeno zero.
+'''
+
+LESSON_DIDACTIC["sde-l-hashmap-set"]["notes"] += r'''
+
+### Esempio svolto: Two Sum senza perdere i duplicati
+
+Cerchiamo due indici distinti con somma 10 in `[4, 1, 7, 3]`. Prima di salvare il valore corrente, cerchiamo il suo complemento (`target - value`) tra i valori precedenti:
+
+| Indice | Valore | Complemento cercato | Mappa prima del controllo | Esito |
+| ---: | ---: | ---: | --- | --- |
+| 0 | 4 | 6 | `{}` | assente; salva `4 → 0` |
+| 1 | 1 | 9 | `{4 → 0}` | assente; salva `1 → 1` |
+| 2 | 7 | 3 | `{4 → 0, 1 → 1}` | assente; salva `7 → 2` |
+| 3 | 3 | 7 | `{4 → 0, 1 → 1, 7 → 2}` | presente: restituisci `[2, 3]` |
+
+L'ordine delle due operazioni conta. Con `[3,3]` e target 6, al primo indice non c'è ancora alcun 3: lo salvi; al secondo trovi il primo indice e restituisci `[0,1]`. Salvare prima e poi cercare potrebbe riutilizzare lo stesso indice per una coppia composta da un solo elemento.
+
+**Versione Python**
+
+```python
+def two_sum(nums, target):
+    seen = {}
+    for index, value in enumerate(nums):
+        complement = target - value
+        if complement in seen:
+            return [seen[complement], index]
+        seen[value] = index
+    return []
+```
+
+**Versione C++**
+
+```cpp
+#include <unordered_map>
+#include <vector>
+
+std::vector<int> two_sum(const std::vector<int>& nums, int target) {
+    std::unordered_map<int, int> seen;
+    for (int index = 0; index < static_cast<int>(nums.size()); ++index) {
+        const int complement = target - nums[index];
+        const auto found = seen.find(complement);
+        if (found != seen.end()) {
+            return {found->second, index};
+        }
+        seen[nums[index]] = index;
+    }
+    return {};
+}
+```
+
+La mappa memorizza un indice per valore già attraversato; se il contratto chiedesse soltanto se il valore è presente, basterebbe un set. Le chiavi lette e gli indici restituiti dipendono dal contratto, non dal contenitore scelto per abitudine.
+'''
+
+
 LESSON_DIDACTIC.update({
     "sde-l-dp-models": {
         "notes": r'''### Tabelle piccole, stati espliciti
@@ -2611,6 +2747,119 @@ Il formato 40+60 appartiene a questa simulazione. Il processo effettivo dipende 
 })
 
 
+LESSON_DIDACTIC["sde-l-trie"] = {
+    "notes": r'''### Seguire un prefisso condiviso
+
+Inserendo `cat` e poi `car`, il percorso `c → a` viene riutilizzato; solo gli ultimi archi divergono. Il nodo `ca` non è automaticamente una parola: un flag terminale permette di rispondere `starts_with("ca") == True` e `search("ca") == False`.
+
+Con una wildcard `.` non conosci l'arco da seguire. Se il pattern è `c.t`, dopo `c` provi i figli del nodo e prosegui di un carattere per ciascun ramo. Il backtracking si ferma appena trova una parola terminale; una corrispondenza parziale non basta.
+
+Una griglia Word Search II usa la stessa idea su due dimensioni: dalla cella corrente la DFS segue soltanto il ramo della lettera adiacente, marca la cella per non riutilizzarla e ripristina la griglia quando torna indietro. Quando una parola viene trovata, il nodo terminale può essere disattivato per non restituire duplicati; i rami senza parole restanti si possono potare.
+
+Le query esatte e di prefisso costano O(L) per stringa lunga L. Wildcard e ricerca su griglia possono esplorare più rami; la Trie condivide prefissi e consente pruning, ma non elimina il caso peggiore.''',
+    "recap": "Ogni nodo descrive un prefisso; il flag terminale distingue una parola completa da un percorso ancora estendibile.",
+    "practice": [("exercise", "sde-e-trie"), ("exercise", "sde-e-trie-wildcard"), ("exercise", "sde-e-word-search-ii")],
+}
+
+_ADDITIONAL_PRACTICE = {
+    "sde-l-arrays-strings": ["max-product-subarray"],
+    "sde-l-hashmap-set": ["longest-consecutive"],
+    "sde-l-binary-variants": ["find-min-rotated"],
+    "sde-l-two-pointers": ["palindromic-substrings"],
+    "sde-l-linked-lists": ["remove-nth-from-end"],
+    "sde-l-tree-traversal": ["invert-tree", "same-tree", "subtree", "tree-level-order", "build-tree-pre-in", "serialize-tree"],
+    "sde-l-bst-paths": ["kth-smallest"],
+    "sde-l-bfs-dfs-grid": ["pacific-atlantic"],
+    "sde-l-graphs": ["valid-tree"],
+    "sde-l-heap": ["median-stream"],
+    "sde-l-greedy": ["interval-scheduling", "jump-game"],
+    "sde-l-dp-memoization": ["lis", "decode-ways"],
+    "sde-l-dp-models": ["house-robber-ii"],
+}
+for _lesson_id, _exercise_slugs in _ADDITIONAL_PRACTICE.items():
+    _practice = LESSON_DIDACTIC[_lesson_id]["practice"]
+    _practice.extend(("exercise", f"sde-e-{slug}") for slug in _exercise_slugs
+                     if ("exercise", f"sde-e-{slug}") not in _practice)
+
+LESSON_DIDACTIC["sde-l-binary-variants"]["notes"] += r'''
+
+### Cercare il minimo di un array ruotato
+
+Con valori distinti confronta `nums[mid]` con `nums[right]`. Se il medio è maggiore, il minimo deve trovarsi dopo `mid`; altrimenti il minimo è tra `left` e `mid`, incluso il medio. Per `[8,9,12,2,4,6]`, il confronto sposta prima `left` verso 3, poi conserva l'intervallo che contiene 2. L'invariante è che il minimo resta sempre dentro l'intervallo chiuso `[left,right]`; quando gli estremi coincidono hai la risposta.'''
+
+LESSON_DIDACTIC["sde-l-linked-lists"]["notes"] += r'''
+
+### Rimuovere un nodo contando dalla fine
+
+Per togliere il secondo nodo dalla fine di `1 → 2 → 3 → 4 → 5`, avanza `fast` di due collegamenti mentre `slow` resta su un nodo fittizio prima della testa. Poi avanza entrambi finché `fast` è l'ultimo nodo: `slow` è sul 3, il predecessore del 4 da eliminare. Collega `slow.next` al 5.
+
+Se `n` è la lunghezza, `slow` resta sul dummy e rimuove la testa. Il nodo fittizio evita un aggiornamento speciale alla radice; la distanza fissa tra i puntatori rende il passaggio singolo O(n) e usa O(1) spazio.'''
+
+LESSON_DIDACTIC["sde-l-tree-traversal"]["notes"] += r'''
+
+### Dal percorso ricorsivo alla visita per livelli
+
+Invertire un albero significa scambiare i figli di ogni nodo; confrontare due alberi richiede che valori e posizione dei figli coincidano. Per cercare un sottoalbero prova ogni nodo come possibile radice e confronta l'intera struttura: trovare il valore della radice da solo non basta.
+
+Per raggruppare i livelli usa una coda. Con radice 3 e figli 9 e 20, la coda parte da `[3]`: consumi una sola voce, raccogli `[3]` e accodi 9 e 20; la dimensione iniziale della coda delimita il livello successivo `[9,20]`. Non consumare i figli appena accodati nel livello corrente.
+
+Per ricostruire l'albero da preorder e inorder, il primo valore preorder è la radice. La sua posizione in inorder separa il sottoalbero sinistro dal destro. Con preorder `[3,9,20,15,7]` e inorder `[9,3,15,20,7]`, 3 divide `[9]` da `[20,15,7]`; ricorri sui due intervalli. Una mappa delle posizioni evita di riscanalizzare inorder a ogni passo.
+
+Una serializzazione deve distinguere i figli mancanti dalla fine dei token. In BFS, `1,#,2` descrive una radice con solo figlio destro; senza `#`, il 2 potrebbe essere interpretato come figlio sinistro. Definisci un formato preciso e fai il round trip serializza → deserializza → serializza.'''
+
+LESSON_DIDACTIC["sde-l-bst-paths"]["notes"] += r'''
+
+### Il k-esimo elemento segue l'inorder
+
+In un BST l'inorder visita prima i valori minori del sottoalbero sinistro, poi il nodo, poi i maggiori del destro. Su radice 5, ramo sinistro 3 con figli 2 e 4, la visita comincia `2,3,4,5`; il terzo valore è 4. Una pila esplicita conserva i nodi in attesa e permette di fermarsi appena hai estratto il k-esimo, senza attraversare necessariamente tutto l'albero.'''
+
+LESSON_DIDACTIC["sde-l-bfs-dfs-grid"]["notes"] += r'''
+
+### Due visite inverse dai bordi
+
+Per sapere quali celle raggiungono ciascun oceano, parti dai bordi e percorri gli archi al contrario: dall'altezza h puoi visitare una vicina di altezza almeno h, perché l'acqua potrà poi scendere verso la cella precedente. Avvia una BFS dal bordo nord/ovest e una dal sud/est; le celle presenti in entrambi gli insiemi raggiungono entrambi gli oceani. Così ogni cella viene visitata al massimo una volta per oceano invece di lanciare una ricerca da ciascuna posizione.'''
+
+LESSON_DIDACTIC["sde-l-graphs"]["notes"] += r'''
+
+### Quando il conteggio degli archi basta
+
+Un albero non orientato su n nodi ha n-1 archi ed è connesso. Quindi puoi controllare il numero degli archi e poi fare una BFS/DFS da un nodo: se raggiungi tutti, non può restare un ciclo. Il solo conteggio non basta: un ciclo su tre nodi più un nodo isolato può comunque avere n-1 archi. Per input generali, o se vuoi rilevare il ciclo direttamente, serve una visita con parent o Union-Find.'''
+
+LESSON_DIDACTIC["sde-l-heap"]["notes"] += r'''
+
+### Due heap per la mediana che cambia
+
+Dividi i valori in una metà bassa `lower` (max-heap) e una alta `upper` (min-heap). Mantieni `len(lower)` uguale a `len(upper)` o maggiore di uno e verifica che il massimo della metà bassa non superi il minimo della metà alta. Con gli inserimenti `5,1`, gli heap contengono `{1}` e `{5}`: mediana 3. Inserendo 9, la metà bassa diventa `{1,5}`, la alta `{9}`: mediana 5. Il ri-bilanciamento dopo ogni inserimento mantiene l'invariante.'''
+
+LESSON_DIDACTIC["sde-l-greedy"]["notes"] += r'''
+
+### Intervalli: liberare presto la linea temporale
+
+Per conservare il massimo numero di attività compatibili, ordina per ora di fine e scegli l'attività che termina prima; dopo averla scelta, accetta la prossima che inizia non prima di quella fine. Una fine anticipata lascia almeno lo stesso spazio residuo di una scelta che termina più tardi. Con `[1,3)`, `[2,4)`, `[3,5)`, scegli la prima e la terza: gli intervalli che si toccano sono compatibili secondo il contratto semiaperto.
+
+Per rimuovere il minimo numero di intervalli sovrapposti calcoli il complemento di quelli conservati. Jump Game usa invece un'altra frontiera greedy: `farthest` riassume fino a dove puoi arrivare dalle posizioni già visitate. Se l'indice corrente la supera, il traguardo non è raggiungibile.'''
+
+LESSON_DIDACTIC["sde-l-dp-memoization"]["notes"] += r'''
+
+### Crescita e decodifica: stati definiti sugli indici
+
+Per la sottosequenza crescente quadratica, `dp[i]` è la migliore lunghezza che termina proprio in i. Con `[3,1,2,5]`, gli stati diventano `[1,1,2,3]`: da 2 puoi estendere il sottoproblema che termina in 1, poi da 5 puoi estendere quello che termina in 2. Il massimo globale è 3; la sequenza non deve occupare posizioni adiacenti.
+
+Per `226`, il prefisso `2` ha un modo; `22` ne ha due (`2|2` e `22`); `226` ne ha tre aggiungendo 6 singolo ai due modi precedenti o aggiungendo 26 al primo. Uno zero non apre un ramo singolo: `10` ha una sola decodifica, `06` nessuna. Definire i due stati precedenti rende possibile comprimere la tabella a due contatori.'''
+
+LESSON_DIDACTIC["sde-l-dp-models"]["notes"] += r'''
+
+### Strada circolare: separare le estremità
+
+In una strada circolare non puoi prendere insieme la prima e l'ultima casa. Ogni soluzione le esclude almeno una: risolvi il caso che esclude l'ultima su `nums[:-1]` e il caso che esclude la prima su `nums[1:]`, poi scegli il migliore. Su `[2,3,2]`, i due casi danno 3 e 3: il 2 iniziale e quello finale non possono sommarsi.'''
+
+LESSON_DIDACTIC["sde-l-two-pointers"]["notes"] += r'''
+
+### Contare palindromi espandendo dai centri
+
+`abba` ha un centro fra i due caratteri b: espandendo da `(1,2)` trovi `bb`, poi `abba`. `aba` ha un centro sul carattere a: espandendo da `(1,1)` trovi `b` e poi `aba`. Prova entrambi i tipi di centro per ogni posizione. Conta ogni espansione valida, anche se la stessa sequenza di lettere appare in un'altra posizione: si contano le sottostringhe, non i contenuti distinti.'''
+
+
 def code_exercise(
     exercise_id, lesson_id, title, difficulty, minutes, pattern, prompt,
     py_starter, py_solution, py_tests,
@@ -2728,10 +2977,53 @@ def _cpp_starter(solution):
     return "\n".join(prefix) + "\n"
 
 
+TREE_NODE_PY = "class TreeNode:\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = value, left, right\n\n"
+TREE_NODE_CPP = "struct TreeNode { int value; TreeNode* left; TreeNode* right; };\n"
+TREE_STARTERS = {
+    "invert-tree": ("def invert_tree(root):", "#include <algorithm>\nusing namespace std;\n"),
+    "same-tree": ("def same_tree(first, second):", "using namespace std;\n"),
+    "subtree": ("def is_subtree(root, candidate):", "using namespace std;\n"),
+    "tree-level-order": ("def level_order(root):", "#include <queue>\n#include <vector>\nusing namespace std;\n"),
+    "kth-smallest": ("def kth_smallest(root, k):", "#include <vector>\nusing namespace std;\n"),
+    "build-tree-pre-in": ("def build_tree(preorder, inorder):", "#include <unordered_map>\n#include <vector>\nusing namespace std;\n"),
+}
+TREE_CPP_FUNCTIONS = {
+    "invert-tree": "invert_tree", "same-tree": "same_tree", "subtree": "is_subtree",
+    "tree-level-order": "level_order", "kth-smallest": "kth_smallest",
+    "build-tree-pre-in": "build_tree",
+}
+
+
 def add_task(slug, lesson_id, title, difficulty, minutes, pattern, prompt, py, cpp, py_tests, cpp_tests, hints, explanation):
     py_starter = _py_starter(py)
     cpp_starter = _cpp_starter(cpp)
-    if slug == "reverse-list":
+    if slug in TREE_STARTERS:
+        py = TREE_NODE_PY + py
+        py_signature, cpp_includes = TREE_STARTERS[slug]
+        py_starter = TREE_NODE_PY + py_signature + "\n    pass\n"
+        cpp_name = TREE_CPP_FUNCTIONS[slug]
+        match = re.search(rf"(?m)^([^\n{{}}]*\b{cpp_name}\([^\n{{}}]*\))\s*\{{", cpp)
+        if match is None:
+            raise ValueError(f"Firma C++ non trovata per {slug}")
+        cpp_signature = match.group(1).rstrip()
+        cpp_starter = cpp_includes + TREE_NODE_CPP + cpp_signature + " {\n    // TODO\n    return {};\n}\n"
+    elif slug == "remove-nth-from-end":
+        py_starter = "class ListNode:\n    def __init__(self, value=0, next_node=None):\n        self.value, self.next = value, next_node\n\ndef remove_nth_from_end(head, n):\n    pass\n\ndef build_list(values):\n    dummy = ListNode()\n    tail = dummy\n    for value in values:\n        tail.next = ListNode(value)\n        tail = tail.next\n    return dummy.next\n\ndef list_values(head):\n    values = []\n    while head is not None:\n        values.append(head.value)\n        head = head.next\n    return values\n"
+        cpp_starter = "#include <vector>\nusing namespace std;\nstruct ListNode { int value; ListNode* next; };\nListNode* remove_nth_from_end(ListNode* head, int n) {\n    // TODO\n    return head;\n}\nListNode* build_list(const vector<int>& values) {\n    ListNode dummy{0, nullptr}; auto* tail = &dummy;\n    for (int value : values) { tail->next = new ListNode{value, nullptr}; tail = tail->next; }\n    return dummy.next;\n}\nvector<int> list_values(ListNode* head) {\n    vector<int> values; while (head) { values.push_back(head->value); head = head->next; } return values;\n}\n"
+    elif slug == "serialize-tree":
+        py = TREE_NODE_PY + py
+        py_starter = TREE_NODE_PY + "def serialize_tree(root):\n    pass\n\ndef deserialize_tree(data):\n    pass\n"
+        cpp_starter = "#include <string>\nusing namespace std;\n" + TREE_NODE_CPP + "string serialize_tree(const TreeNode* root) {\n    // TODO\n    return {};\n}\nTreeNode* deserialize_tree(const string& data) {\n    // TODO\n    return nullptr;\n}\n"
+    elif slug == "trie":
+        py_starter = "class TrieNode:\n    def __init__(self):\n        self.children = {}\n        self.terminal = False\n\nclass Trie:\n    def __init__(self):\n        self.root = TrieNode()\n    def insert(self, word):\n        pass\n    def search(self, word):\n        return False\n    def starts_with(self, prefix):\n        return False\n\ndef trie_probe(words, exact_queries, prefix_queries):\n    trie = Trie()\n    for word in words:\n        trie.insert(word)\n    return [[trie.search(word) for word in exact_queries], [trie.starts_with(prefix) for prefix in prefix_queries]]\n"
+        cpp_starter = "#include <string>\n#include <unordered_map>\n#include <vector>\nusing namespace std;\nclass Trie {\n    struct Node { unordered_map<char, int> children; bool terminal = false; };\n    vector<Node> nodes{1};\npublic:\n    void insert(const string& word) {}\n    bool search(const string& word) const { return false; }\n    bool starts_with(const string& prefix) const { return false; }\n};\nvector<vector<bool>> trie_probe(const vector<string>& words, const vector<string>& exact_queries, const vector<string>& prefix_queries) {\n    Trie trie; for (const auto& word : words) trie.insert(word);\n    vector<bool> exact, prefixes; for (const auto& word : exact_queries) exact.push_back(trie.search(word));\n    for (const auto& prefix : prefix_queries) prefixes.push_back(trie.starts_with(prefix));\n    return {exact, prefixes};\n}\n"
+    elif slug == "trie-wildcard":
+        py_starter = "class TrieNode:\n    def __init__(self):\n        self.children = {}\n        self.terminal = False\n\nclass WordDictionary:\n    def __init__(self):\n        self.root = TrieNode()\n    def add_word(self, word):\n        pass\n    def search(self, pattern):\n        return False\n\ndef wildcard_probe(words, patterns):\n    trie = WordDictionary()\n    for word in words:\n        trie.add_word(word)\n    return [trie.search(pattern) for pattern in patterns]\n"
+        cpp_starter = "#include <string>\n#include <unordered_map>\n#include <vector>\nusing namespace std;\nclass WordDictionary {\n    struct Node { unordered_map<char, int> children; bool terminal = false; };\n    vector<Node> nodes{1};\npublic:\n    void add_word(const string& word) {}\n    bool search(const string& pattern) const { return false; }\n};\nvector<bool> wildcard_probe(const vector<string>& words, const vector<string>& patterns) {\n    WordDictionary dictionary; for (const auto& word : words) dictionary.add_word(word);\n    vector<bool> result; for (const auto& pattern : patterns) result.push_back(dictionary.search(pattern)); return result;\n}\n"
+    elif slug == "median-stream":
+        py_starter = "import heapq\n\nclass MedianFinder:\n    def __init__(self):\n        self.lower = []\n        self.upper = []\n    def add_number(self, value):\n        pass\n    def median(self):\n        return 0.0\n\ndef running_medians(values):\n    finder = MedianFinder()\n    result = []\n    for value in values:\n        finder.add_number(value)\n        result.append(finder.median())\n    return result\n"
+        cpp_starter = "#include <queue>\n#include <vector>\nusing namespace std;\nclass MedianFinder {\n    priority_queue<int> lower;\n    priority_queue<int, vector<int>, greater<int>> upper;\npublic:\n    void add_number(int value) {}\n    double median() const { return 0.0; }\n};\nvector<double> running_medians(const vector<int>& values) {\n    MedianFinder finder; vector<double> result; for (int value : values) { finder.add_number(value); result.push_back(finder.median()); } return result;\n}\n"
+    elif slug == "reverse-list":
         py_starter = "class ListNode:\n def __init__(self,val=0,next=None):self.val,self.next=val,next\ndef reverse_list(head):\n    pass\n"
         cpp_starter = "#include <vector>\nusing namespace std;\nstruct ListNode{int val;ListNode*next;};\nListNode* reverse_list(ListNode* head) {\n    // TODO\n    return nullptr;\n}\n"
     elif slug == "max-depth":
@@ -2744,6 +3036,13 @@ def add_task(slug, lesson_id, title, difficulty, minutes, pattern, prompt, py, c
         cpp_starter = "#include <algorithm>\nusing namespace std;\nstruct TreeNode{int val;TreeNode*left;TreeNode*right;};\nint diameter(TreeNode* root) {\n    // TODO\n    return 0;\n}\n"
     elif slug == "max-path-sum":
         cpp_starter = "#include <algorithm>\n#include <climits>\nusing namespace std;\nstruct TreeNode{int val;TreeNode*left;TreeNode*right;};\nint max_path_sum(TreeNode* root) {\n    // TODO\n    return 0;\n}\n"
+    if slug == "median-stream":
+        cpp = "#include <functional>\n" + cpp
+        cpp_starter = "#include <functional>\n" + cpp_starter
+    elif slug == "palindromic-substrings":
+        includes = "#include <string>\n#include <utility>\nusing namespace std;\n"
+        cpp = includes + cpp
+        cpp_starter = includes + cpp_starter
     exercise = code_exercise(
         slug, lesson_id, title, difficulty, minutes, pattern, prompt,
         py_starter, py, py_tests, cpp_starter, cpp, cpp_tests, hints, explanation,
@@ -3288,6 +3587,204 @@ EXERCISES.extend([
         "Ogni nodo viene creato e accodato una volta; ogni arco viene copiato una volta. O(V+E) tempo e O(V) spazio ausiliario oltre al grafo copiato. In C++ la copia appartiene al chiamante: in un'applicazione completa occorre una strategia di ownership e rilascio per tutta la componente, anche in presenza di cicli.",
     ),
 ])
+
+add_task("max-product-subarray", "arrays-strings", "Prodotto massimo di un segmento contiguo", "medium", 30, "DP a stato massimo/minimo",
+         "Restituisci il prodotto massimo di un segmento contiguo non vuoto. `nums` contiene da 1 a 50 interi compresi fra -2 e 2, così il risultato entra in un intero a 64 bit.",
+         "def max_product(nums):\n    if not nums:\n        return 0\n    current_max = current_min = best = nums[0]\n    for value in nums[1:]:\n        old_max, old_min = current_max, current_min\n        current_max = max(value, value * old_max, value * old_min)\n        current_min = min(value, value * old_max, value * old_min)\n        best = max(best, current_max)\n    return best\n",
+         "#include <algorithm>\n#include <vector>\nusing namespace std;\nlong long max_product(const vector<int>& nums) {\n    if (nums.empty()) return 0;\n    long long current_max=nums[0], current_min=nums[0], best=nums[0];\n    for (size_t i=1;i<nums.size();++i) {\n        long long value=nums[i], old_max=current_max, old_min=current_min;\n        current_max=max({value,value*old_max,value*old_min});\n        current_min=min({value,value*old_max,value*old_min});\n        best=max(best,current_max);\n    }\n    return best;\n}\n",
+         [{"name":"negativo in mezzo","expression":"max_product([2,3,-2,4])","expected":6},{"name":"due negativi","expression":"max_product([-2,3,-4])","expected":24},{"name":"zero spezza il segmento","expression":"max_product([-2,0,-1])","expected":0},{"name":"singolo negativo","expression":"max_product([-2])","expected":-2}],
+         [{"name":"negativo in mezzo","assertion":"max_product({2,3,-2,4})==6"},{"name":"due negativi","assertion":"max_product({-2,3,-4})==24"},{"name":"zero spezza il segmento","assertion":"max_product({-2,0,-1})==0"},{"name":"singolo negativo","assertion":"max_product({-2})==-2"}],
+         ["Conserva sia il massimo sia il minimo che terminano qui: un negativo può invertirne i ruoli.","Prima di aggiornare, salva entrambi i valori precedenti.","Il segmento deve essere non vuoto: inizializza dallo stesso primo elemento."],
+         "Alla posizione i, un segmento massimo può partire da nums[i] oppure estendere il massimo o il minimo precedente. Il minimo serve perché moltiplicarlo per un valore negativo può produrre il nuovo massimo. Ogni elemento aggiorna tre candidati: O(n) tempo e O(1) spazio.")
+
+add_task("longest-consecutive", "hashmap-set", "Sequenza consecutiva più lunga senza ordinare", "medium", 25, "HashSet e inizio di sequenza",
+         "Restituisci la lunghezza della sequenza di interi consecutivi più lunga, anche se i valori sono sparsi e duplicati. Non riordinare l'input; la lista può essere vuota. Vincoli: al massimo 100.000 valori nell'intervallo [-1.000.000.000, 1.000.000.000].",
+         "def longest_consecutive(nums):\n    values = set(nums)\n    best = 0\n    for value in values:\n        if value - 1 not in values:\n            length = 1\n            while value + length in values:\n                length += 1\n            best = max(best, length)\n    return best\n",
+         "#include <algorithm>\n#include <unordered_set>\n#include <vector>\nusing namespace std;\nint longest_consecutive(const vector<int>& nums) {\n    unordered_set<int> values(nums.begin(),nums.end()); int best=0;\n    for(int value:values) if(!values.count(value-1)) { int length=1; while(values.count(value+length)) ++length; best=max(best,length); }\n    return best;\n}\n",
+         [{"name":"valori sparsi e duplicati","expression":"longest_consecutive([100,4,200,1,3,2,2])","expected":4},{"name":"sequenza negativa","expression":"longest_consecutive([-3,-2,-1,8])","expected":3},{"name":"nessun valore","expression":"longest_consecutive([])","expected":0}],
+         [{"name":"valori sparsi e duplicati","assertion":"longest_consecutive({100,4,200,1,3,2,2})==4"},{"name":"sequenza negativa","assertion":"longest_consecutive({-3,-2,-1,8})==3"},{"name":"nessun valore","assertion":"longest_consecutive({})==0"}],
+         ["Un valore è l'inizio di una sequenza soltanto se il suo predecessore non è presente.","Espandi soltanto dagli inizi: così non ripercorri ogni tratto da ciascun elemento.","Deduplicare non cambia la lunghezza della sequenza."],
+         "Il set rende medio-costante il controllo dei vicini; ogni sequenza viene espansa dal solo inizio. Il costo atteso è O(n) tempo e O(n) spazio. La sequenza può essere presente nell'array non ordinato senza che gli elementi siano contigui in memoria.")
+
+add_task("find-min-rotated", "binary-variants", "Minimo in un array ruotato", "medium", 20, "invariante della metà che contiene il minimo",
+         "Un array crescente di valori distinti è stato ruotato un numero qualsiasi di posizioni. Restituisci il valore minimo; l'array non è vuoto.",
+         "def find_min_rotated(nums):\n    left, right = 0, len(nums) - 1\n    while left < right:\n        mid = left + (right - left) // 2\n        if nums[mid] > nums[right]:\n            left = mid + 1\n        else:\n            right = mid\n    return nums[left]\n",
+         "#include <vector>\nusing namespace std;\nint find_min_rotated(const vector<int>& nums) {\n    int left=0,right=static_cast<int>(nums.size())-1;\n    while(left<right) { int mid=left+(right-left)/2; if(nums[mid]>nums[right]) left=mid+1; else right=mid; }\n    return nums[left];\n}\n",
+         [{"name":"taglio interno","expression":"find_min_rotated([8,9,12,2,4,6])","expected":2},{"name":"già crescente","expression":"find_min_rotated([1,4,7])","expected":1},{"name":"un elemento","expression":"find_min_rotated([6])","expected":6}],
+         [{"name":"taglio interno","assertion":"find_min_rotated({8,9,12,2,4,6})==2"},{"name":"già crescente","assertion":"find_min_rotated({1,4,7})==1"},{"name":"un elemento","assertion":"find_min_rotated({6})==6"}],
+         ["Confronta il medio con l'estremo destro, non cercare un target.","Se nums[mid] > nums[right], il tratto che contiene il minimo è a destra.","Se nums[mid] <= nums[right], conserva mid: può già essere il minimo."],
+         "Ogni iterazione conserva un intervallo che contiene il minimo e lo dimezza. Con valori distinti il costo è O(log n) tempo e O(1) spazio; rispetto alla ricerca di un target cambia la risposta conservata dall'invariante.")
+
+add_task("remove-nth-from-end", "linked-lists", "Rimuovere il nodo N-esimo dalla fine", "medium", 25, "fast/slow con distanza fissa e dummy",
+         "Rimuovi dalla lista collegata non vuota il nodo che si trova in posizione `n` contando dalla fine, con `1 <= n <= lunghezza`. Restituisci la nuova testa.",
+         "class ListNode:\n    def __init__(self, value=0, next_node=None):\n        self.value, self.next = value, next_node\n\ndef remove_nth_from_end(head, n):\n    dummy = ListNode(0, head)\n    fast = slow = dummy\n    for _ in range(n):\n        fast = fast.next\n    while fast.next is not None:\n        fast = fast.next\n        slow = slow.next\n    slow.next = slow.next.next\n    return dummy.next\n\ndef build_list(values):\n    dummy = ListNode()\n    tail = dummy\n    for value in values:\n        tail.next = ListNode(value)\n        tail = tail.next\n    return dummy.next\n\ndef list_values(head):\n    result = []\n    while head is not None:\n        result.append(head.value)\n        head = head.next\n    return result\n",
+         "#include <vector>\nusing namespace std;\nstruct ListNode { int value; ListNode* next; };\nListNode* remove_nth_from_end(ListNode* head,int n) {\n    ListNode dummy{0,head}; auto* fast=&dummy; auto* slow=&dummy;\n    for(int i=0;i<n;++i) fast=fast->next;\n    while(fast->next) { fast=fast->next; slow=slow->next; }\n    auto* removed=slow->next; slow->next=removed->next; delete removed; return dummy.next;\n}\nListNode* build_list(const vector<int>& values) { ListNode dummy{0,nullptr}; auto* tail=&dummy; for(int value:values) { tail->next=new ListNode{value,nullptr}; tail=tail->next; } return dummy.next; }\nvector<int> list_values(ListNode* head) { vector<int> result; while(head) { result.push_back(head->value); head=head->next; } return result; }\n",
+         [{"name":"nodo centrale","expression":"list_values(remove_nth_from_end(build_list([1,2,3,4,5]),2))","expected":[1,2,3,5]},{"name":"rimozione della testa","expression":"list_values(remove_nth_from_end(build_list([8,9,10]),3))","expected":[9,10]},{"name":"rimozione dell'unico nodo","expression":"list_values(remove_nth_from_end(build_list([4]),1))","expected":[]}],
+         [{"name":"nodo centrale","assertion":"list_values(remove_nth_from_end(build_list({1,2,3,4,5}),2))==vector<int>({1,2,3,5})"},{"name":"rimozione della testa","assertion":"list_values(remove_nth_from_end(build_list({8,9,10}),3))==vector<int>({9,10})"},{"name":"rimozione dell'unico nodo","assertion":"list_values(remove_nth_from_end(build_list({4}),1)).empty()"}],
+         ["Avanza fast di n nodi mentre slow resta sul dummy.","Poi sposta entrambi finché fast è sull'ultimo nodo: slow precede il nodo da rimuovere.","Il dummy rende identico l'aggiornamento quando il nodo rimosso è la testa."],
+         "La distanza fra fast e slow resta n: quando fast raggiunge la fine, slow è subito prima del bersaglio. Un solo passaggio O(n), O(1) spazio. Il dummy evita un ramo speciale per la rimozione della testa.")
+
+add_task("invert-tree", "tree-traversal", "Invertire un albero binario", "easy", 20, "DFS ricorsiva e scambio dei figli",
+         "Scambia ricorsivamente il sottoalbero sinistro e destro di ogni nodo e restituisci la radice. L'albero può essere vuoto.",
+         "def invert_tree(root):\n    if root is None:\n        return None\n    root.left, root.right = invert_tree(root.right), invert_tree(root.left)\n    return root\n",
+         "#include <algorithm>\nstruct TreeNode { int value; TreeNode* left; TreeNode* right; };\nTreeNode* invert_tree(TreeNode* root) {\n    if (!root) return nullptr;\n    std::swap(root->left, root->right);\n    invert_tree(root->left); invert_tree(root->right);\n    return root;\n}\n",
+         [{"name":"radice e due livelli","expression":"(lambda n:(lambda r:[r.value,r.left.value,r.right.value,r.right.right.value])(invert_tree(n)))(TreeNode(4,TreeNode(2,TreeNode(1)),TreeNode(7)))","expected":[4,7,2,1]},{"name":"albero vuoto","expression":"invert_tree(None)","expected":None},{"name":"foglia","expression":"invert_tree(TreeNode(5)).value","expected":5}],
+         [{"name":"radice e due livelli","assertion":"[](){auto* n=new TreeNode{4,new TreeNode{2,new TreeNode{1,nullptr,nullptr},nullptr},new TreeNode{7,nullptr,nullptr}};auto* r=invert_tree(n);return r->value==4&&r->left->value==7&&r->right->value==2&&r->right->right->value==1;}()"},{"name":"albero vuoto","assertion":"invert_tree(nullptr)==nullptr"},{"name":"foglia","assertion":"invert_tree(new TreeNode{5,nullptr,nullptr})->value==5"}],
+         ["Invertire solo la radice non basta: visita entrambi i sottoalberi.","Puoi scambiare i puntatori prima o dopo le chiamate ricorsive.","Il caso vuoto è la base che termina la ricorsione."],
+         "Ogni nodo viene visitato una volta: O(n) tempo e O(h) stack ricorsivo, dove h è l'altezza.")
+
+add_task("same-tree", "tree-traversal", "Confrontare due alberi", "easy", 20, "corrispondenza strutturale ricorsiva",
+         "Restituisci true solo se i due alberi hanno la stessa struttura e lo stesso valore in ogni posizione. Entrambi possono essere vuoti.",
+         "def same_tree(first, second):\n    if first is None or second is None:\n        return first is second\n    return first.value == second.value and same_tree(first.left, second.left) and same_tree(first.right, second.right)\n",
+         "struct TreeNode { int value; TreeNode* left; TreeNode* right; };\nbool same_tree(TreeNode* first, TreeNode* second) {\n    if (!first || !second) return first == second;\n    return first->value == second->value && same_tree(first->left, second->left) && same_tree(first->right, second->right);\n}\n",
+         [{"name":"stessi nodi e valori","expression":"same_tree(TreeNode(1,TreeNode(2),TreeNode(3)),TreeNode(1,TreeNode(2),TreeNode(3)))","expected":True},{"name":"stesso numero ma forma diversa","expression":"same_tree(TreeNode(1,TreeNode(2)),TreeNode(1,None,TreeNode(2)))","expected":False},{"name":"due vuoti","expression":"same_tree(None,None)","expected":True}],
+         [{"name":"stessi nodi e valori","assertion":"same_tree(new TreeNode{1,new TreeNode{2,nullptr,nullptr},new TreeNode{3,nullptr,nullptr}},new TreeNode{1,new TreeNode{2,nullptr,nullptr},new TreeNode{3,nullptr,nullptr}})"},{"name":"stesso numero ma forma diversa","assertion":"!same_tree(new TreeNode{1,new TreeNode{2,nullptr,nullptr},nullptr},new TreeNode{1,nullptr,new TreeNode{2,nullptr,nullptr}})"},{"name":"due vuoti","assertion":"same_tree(nullptr,nullptr)"}],
+         ["Confronta sempre valore, figlio sinistro e figlio destro nella stessa posizione.","Se uno solo dei nodi è nullo, le strutture sono diverse.","Due sottoalberi nulli corrispondono."],
+         "La visita termina al primo disaccordo; nel caso peggiore visita n nodi in O(n) tempo e usa O(h) stack.")
+
+add_task("subtree", "tree-traversal", "Verificare se un albero contiene un sottoalbero", "easy", 25, "cercare radici candidate e confrontare strutture",
+         "Restituisci true se `candidate` coincide per struttura e valori con un sottoalbero di `root`. Un candidato vuoto è considerato presente.",
+         "def is_subtree(root, candidate):\n    def same(a, b):\n        if a is None or b is None:\n            return a is b\n        return a.value == b.value and same(a.left, b.left) and same(a.right, b.right)\n    if candidate is None:\n        return True\n    if root is None:\n        return False\n    return same(root, candidate) or is_subtree(root.left, candidate) or is_subtree(root.right, candidate)\n",
+         "struct TreeNode { int value; TreeNode* left; TreeNode* right; };\nbool same_subtree(TreeNode* a, TreeNode* b) {\n    if (!a || !b) return a == b;\n    return a->value == b->value && same_subtree(a->left,b->left) && same_subtree(a->right,b->right);\n}\nbool is_subtree(TreeNode* root, TreeNode* candidate) {\n    if (!candidate) return true;\n    if (!root) return false;\n    return same_subtree(root,candidate) || is_subtree(root->left,candidate) || is_subtree(root->right,candidate);\n}\n",
+         [{"name":"ramo presente","expression":"is_subtree(TreeNode(3,TreeNode(4,TreeNode(1),TreeNode(2)),TreeNode(5)),TreeNode(4,TreeNode(1),TreeNode(2)))","expected":True},{"name":"valori simili ma forma diversa","expression":"is_subtree(TreeNode(3,TreeNode(4,TreeNode(1))),TreeNode(4,None,TreeNode(1)))","expected":False},{"name":"candidato vuoto","expression":"is_subtree(TreeNode(1),None)","expected":True}],
+         [{"name":"ramo presente","assertion":"is_subtree(new TreeNode{3,new TreeNode{4,new TreeNode{1,nullptr,nullptr},new TreeNode{2,nullptr,nullptr}},new TreeNode{5,nullptr,nullptr}},new TreeNode{4,new TreeNode{1,nullptr,nullptr},new TreeNode{2,nullptr,nullptr}})"},{"name":"valori simili ma forma diversa","assertion":"!is_subtree(new TreeNode{3,new TreeNode{4,new TreeNode{1,nullptr,nullptr},nullptr},nullptr},new TreeNode{4,nullptr,new TreeNode{1,nullptr,nullptr}})"},{"name":"candidato vuoto","assertion":"is_subtree(new TreeNode{1,nullptr,nullptr},nullptr)"}],
+         ["Il valore della radice può ricomparire senza che tutto il candidato corrisponda.","Per ogni nodo candidato alla radice, verifica anche forma e figli.","Definisci il caso del sottoalbero vuoto secondo il contratto."],
+         "Nel caso peggiore si confronta il candidato in più posizioni: O(n·m) tempo e O(h) spazio ricorsivo.")
+
+add_task("tree-level-order", "tree-traversal", "Visitare un albero per livelli", "medium", 25, "BFS con coda e dimensione del livello",
+         "Restituisci i valori dell'albero raggruppati per livello, da sinistra a destra. Un albero vuoto produce una lista vuota.",
+         "from collections import deque\ndef level_order(root):\n    if root is None:\n        return []\n    result, queue = [], deque([root])\n    while queue:\n        level = []\n        for _ in range(len(queue)):\n            node = queue.popleft()\n            level.append(node.value)\n            if node.left: queue.append(node.left)\n            if node.right: queue.append(node.right)\n        result.append(level)\n    return result\n",
+         "#include <queue>\n#include <vector>\nusing namespace std;\nstruct TreeNode { int value; TreeNode* left; TreeNode* right; };\nvector<vector<int>> level_order(TreeNode* root) {\n    if (!root) return {};\n    vector<vector<int>> result; queue<TreeNode*> q; q.push(root);\n    while (!q.empty()) { int count=q.size(); vector<int> level;\n        while (count--) { auto* node=q.front(); q.pop(); level.push_back(node->value);\n            if(node->left) q.push(node->left); if(node->right) q.push(node->right); }\n        result.push_back(level);\n    } return result;\n}\n",
+         [{"name":"tre livelli non completi","expression":"level_order(TreeNode(3,TreeNode(9),TreeNode(20,TreeNode(15),TreeNode(7))))","expected":[[3],[9,20],[15,7]]},{"name":"albero vuoto","expression":"level_order(None)","expected":[]},{"name":"solo radice","expression":"level_order(TreeNode(8))","expected":[[8]]}],
+         [{"name":"tre livelli non completi","assertion":"level_order(new TreeNode{3,new TreeNode{9,nullptr,nullptr},new TreeNode{20,new TreeNode{15,nullptr,nullptr},new TreeNode{7,nullptr,nullptr}}})==vector<vector<int>>({{3},{9,20},{15,7}})"},{"name":"albero vuoto","assertion":"level_order(nullptr).empty()"},{"name":"solo radice","assertion":"level_order(new TreeNode{8,nullptr,nullptr})==vector<vector<int>>({{8}})"}],
+         ["La coda conserva l'ordine di visita FIFO.","Memorizza len(queue) prima di consumare il livello: i figli aggiunti appartengono al successivo.","Aggiungi prima il figlio sinistro e poi il destro."],
+         "Ogni nodo entra ed esce una volta: O(n) tempo e O(w) spazio per la frontiera massima, oltre all'output.")
+
+add_task("kth-smallest", "bst-paths", "K-esimo valore più piccolo in un BST", "medium", 25, "inorder iterativo e arresto anticipato",
+         "In un BST con valori distinti, restituisci il k-esimo valore in ordine crescente. `k` è compreso tra 1 e il numero dei nodi.",
+         "def kth_smallest(root, k):\n    stack, node = [], root\n    while node or stack:\n        while node:\n            stack.append(node)\n            node = node.left\n        node = stack.pop()\n        k -= 1\n        if k == 0:\n            return node.value\n        node = node.right\n",
+         "#include <vector>\nusing namespace std;\nstruct TreeNode { int value; TreeNode* left; TreeNode* right; };\nint kth_smallest(TreeNode* root, int k) {\n    vector<TreeNode*> stack; auto* node=root;\n    while(node || !stack.empty()) { while(node) { stack.push_back(node); node=node->left; }\n        node=stack.back(); stack.pop_back(); if(--k==0) return node->value; node=node->right; }\n    return 0;\n}\n",
+         [{"name":"ordine non è quello per livelli","expression":"kth_smallest(TreeNode(5,TreeNode(3,TreeNode(2),TreeNode(4)),TreeNode(7,TreeNode(6),None)),3)","expected":4},{"name":"primo","expression":"kth_smallest(TreeNode(2,None,TreeNode(3)),1)","expected":2},{"name":"ultimo","expression":"kth_smallest(TreeNode(2,TreeNode(1),TreeNode(3)),3)","expected":3}],
+         [{"name":"ordine non è quello per livelli","assertion":"kth_smallest(new TreeNode{5,new TreeNode{3,new TreeNode{2,nullptr,nullptr},new TreeNode{4,nullptr,nullptr}},new TreeNode{7,new TreeNode{6,nullptr,nullptr},nullptr}},3)==4"},{"name":"primo","assertion":"kth_smallest(new TreeNode{2,nullptr,new TreeNode{3,nullptr,nullptr}},1)==2"},{"name":"ultimo","assertion":"kth_smallest(new TreeNode{2,new TreeNode{1,nullptr,nullptr},new TreeNode{3,nullptr,nullptr}},3)==3"}],
+         ["Inorder in un BST visita i valori in ordine crescente.","Scendi a sinistra finché puoi, poi conta il nodo e visita il destro.","Puoi fermarti appena il contatore raggiunge k."],
+         "Si visitano soltanto i nodi necessari fino al k-esimo: O(h+k) nel caso tipico, O(n) nel peggiore e O(h) spazio.")
+
+add_task("build-tree-pre-in", "tree-traversal", "Ricostruire un albero da preorder e inorder", "medium", 30, "radice del preorder e intervallo inorder",
+         "Ricostruisci l'albero binario con valori distinti dato il preorder e l'inorder dello stesso albero. Le due liste hanno uguale lunghezza.",
+         "def build_tree(preorder, inorder):\n    positions = {value: i for i, value in enumerate(inorder)}\n    cursor = 0\n    def build(left, right):\n        nonlocal cursor\n        if left == right:\n            return None\n        value = preorder[cursor]\n        cursor += 1\n        root = TreeNode(value)\n        split = positions[value]\n        root.left = build(left, split)\n        root.right = build(split + 1, right)\n        return root\n    return build(0, len(inorder))\n",
+         "#include <unordered_map>\n#include <vector>\nusing namespace std;\nstruct TreeNode { int value; TreeNode* left; TreeNode* right; };\nTreeNode* build_tree(const vector<int>& preorder, const vector<int>& inorder) {\n    unordered_map<int,int> position; for(int i=0;i<(int)inorder.size();++i) position[inorder[i]]=i;\n    int cursor=0;\n    auto build = [&](auto&& self,int left,int right)->TreeNode* { if(left==right) return nullptr;\n        int value=preorder[cursor++], split=position[value]; auto* root=new TreeNode{value,nullptr,nullptr};\n        root->left=self(self,left,split); root->right=self(self,split+1,right); return root; };\n    return build(build,0,inorder.size());\n}\n",
+         [{"name":"radice con due sottoalberi","expression":"(lambda r:[r.value,r.left.value,r.right.value,r.right.left.value,r.right.right.value])(build_tree([3,9,20,15,7],[9,3,15,20,7]))","expected":[3,9,20,15,7]},{"name":"albero vuoto","expression":"build_tree([],[])","expected":None},{"name":"solo radice","expression":"build_tree([5],[5]).value","expected":5}],
+         [{"name":"radice con due sottoalberi","assertion":"[](){auto* r=build_tree({3,9,20,15,7},{9,3,15,20,7});return r->value==3&&r->left->value==9&&r->right->value==20&&r->right->left->value==15&&r->right->right->value==7;}()"},{"name":"albero vuoto","assertion":"build_tree({}, {})==nullptr"},{"name":"solo radice","assertion":"build_tree({5},{5})->value==5"}],
+         ["Il primo valore preorder è la radice del sottoalbero corrente.","La sua posizione in inorder separa i valori a sinistra e a destra.","Una mappa evita di ricercare ogni volta la posizione della radice."],
+         "La mappa costa O(n) spazio e ogni valore viene elaborato una volta: O(n) tempo, O(h) stack ricorsivo.")
+
+add_task("serialize-tree", "tree-traversal", "Serializzare e ricostruire un albero", "hard", 35, "BFS con marcatori espliciti dei nodi nulli",
+         "Implementa una serializzazione BFS reversibile: valori interi separati da virgole, `#` per i figli nulli e rimozione dei marcatori nulli finali. La stringa vuota rappresenta l'albero vuoto.",
+         "from collections import deque\ndef serialize_tree(root):\n    if root is None:\n        return \"\"\n    tokens, queue = [], deque([root])\n    while queue:\n        node = queue.popleft()\n        if node is None:\n            tokens.append(\"#\")\n        else:\n            tokens.append(str(node.value))\n            queue.append(node.left); queue.append(node.right)\n    while tokens and tokens[-1] == \"#\":\n        tokens.pop()\n    return \",\".join(tokens)\n\ndef deserialize_tree(data):\n    if not data:\n        return None\n    tokens = data.split(\",\")\n    root = TreeNode(int(tokens[0]))\n    queue, index = deque([root]), 1\n    while queue and index < len(tokens):\n        node = queue.popleft()\n        if index < len(tokens) and tokens[index] != \"#\":\n            node.left = TreeNode(int(tokens[index])); queue.append(node.left)\n        index += 1\n        if index < len(tokens) and tokens[index] != \"#\":\n            node.right = TreeNode(int(tokens[index])); queue.append(node.right)\n        index += 1\n    return root\n",
+         "#include <queue>\n#include <sstream>\n#include <string>\n#include <vector>\nusing namespace std;\nstruct TreeNode { int value; TreeNode* left; TreeNode* right; };\nstring serialize_tree(const TreeNode* root) {\n    if(!root) return \"\"; queue<const TreeNode*> q; q.push(root); vector<string> tokens;\n    while(!q.empty()) { auto* node=q.front(); q.pop(); if(!node) tokens.push_back(\"#\"); else { tokens.push_back(to_string(node->value)); q.push(node->left); q.push(node->right); } }\n    while(!tokens.empty()&&tokens.back()==\"#\") tokens.pop_back(); string out;\n    for(const auto& token:tokens) { if(!out.empty()) out+=\",\"; out+=token; } return out;\n}\nTreeNode* deserialize_tree(const string& data) {\n    if(data.empty()) return nullptr; stringstream stream(data); string token; vector<string> tokens;\n    while(getline(stream,token,',')) tokens.push_back(token);\n    auto* root=new TreeNode{stoi(tokens[0]),nullptr,nullptr}; queue<TreeNode*> q; q.push(root); size_t i=1;\n    while(!q.empty()&&i<tokens.size()) { auto* node=q.front(); q.pop();\n        if(i<tokens.size()&&tokens[i]!=\"#\") { node->left=new TreeNode{stoi(tokens[i]),nullptr,nullptr}; q.push(node->left); } ++i;\n        if(i<tokens.size()&&tokens[i]!=\"#\") { node->right=new TreeNode{stoi(tokens[i]),nullptr,nullptr}; q.push(node->right); } ++i;\n    } return root;\n}\n",
+         [{"name":"round trip con figlio sinistro","expression":"serialize_tree(deserialize_tree(serialize_tree(TreeNode(1,TreeNode(2),None))))","expected":"1,2"},{"name":"ramo destro e valore negativo","expression":"serialize_tree(deserialize_tree(\"-1,#,2\"))","expected":"-1,#,2"},{"name":"albero vuoto","expression":"serialize_tree(deserialize_tree(\"\"))","expected":""}],
+         [{"name":"round trip con figlio sinistro","assertion":"serialize_tree(deserialize_tree(serialize_tree(new TreeNode{1,new TreeNode{2,nullptr,nullptr},nullptr})))==\"1,2\""},{"name":"ramo destro e valore negativo","assertion":"serialize_tree(deserialize_tree(\"-1,#,2\"))==\"-1,#,2\""},{"name":"albero vuoto","assertion":"serialize_tree(deserialize_tree(\"\")).empty()"}],
+         ["Il marcatore `#` distingue un figlio assente da un nodo con valore sentinella.","Consuma i token nello stesso ordine FIFO usato per serializzarli.","Dopo aver eliminato i null finali, i figli mancanti alla fine sono implicitamente nulli."],
+         "La BFS visita ogni nodo e marcatore al massimo una volta: O(n) tempo e O(n) spazio per coda e stringa.")
+
+add_task("median-stream", "heap", "Mediana di uno stream", "hard", 35, "due heap bilanciati",
+         "Supporta inserimento di numeri interi e lettura della mediana dopo ogni inserimento. Se il numero di valori è pari, restituisci la media dei due centrali; lo stream usato dal wrapper non è vuoto.",
+         "import heapq\nclass MedianFinder:\n    def __init__(self):\n        self.lower, self.upper = [], []\n    def add_number(self, value):\n        if not self.lower or value <= -self.lower[0]: heapq.heappush(self.lower, -value)\n        else: heapq.heappush(self.upper, value)\n        if len(self.lower) > len(self.upper) + 1: heapq.heappush(self.upper, -heapq.heappop(self.lower))\n        elif len(self.upper) > len(self.lower): heapq.heappush(self.lower, -heapq.heappop(self.upper))\n    def median(self):\n        if len(self.lower) > len(self.upper): return float(-self.lower[0])\n        return (-self.lower[0] + self.upper[0]) / 2.0\n\ndef running_medians(values):\n    finder, result = MedianFinder(), []\n    for value in values:\n        finder.add_number(value); result.append(finder.median())\n    return result\n",
+         "#include <queue>\n#include <vector>\nusing namespace std;\nclass MedianFinder {\n    priority_queue<int> lower; priority_queue<int,vector<int>,greater<int>> upper;\npublic:\n    void add_number(int value) {\n        if(lower.empty()||value<=lower.top()) lower.push(value); else upper.push(value);\n        if(lower.size()>upper.size()+1) { upper.push(lower.top()); lower.pop(); }\n        else if(upper.size()>lower.size()) { lower.push(upper.top()); upper.pop(); }\n    }\n    double median() const { if(lower.size()>upper.size()) return lower.top(); return (static_cast<double>(lower.top())+upper.top())/2.0; }\n};\nvector<double> running_medians(const vector<int>& values) { MedianFinder finder; vector<double> result; for(int value:values) { finder.add_number(value); result.push_back(finder.median()); } return result; }\n",
+         [{"name":"passaggio dispari-pari","expression":"running_medians([5,1,9,3])","expected":[5.0,3.0,5.0,4.0]},{"name":"valori negativi e ripetuti","expression":"running_medians([-2,-2,4])","expected":[-2.0,-2.0,-2.0]},{"name":"un valore","expression":"running_medians([7])","expected":[7.0]}],
+         [{"name":"passaggio dispari-pari","assertion":"running_medians({5,1,9,3})==vector<double>({5,3,5,4})"},{"name":"valori negativi e ripetuti","assertion":"running_medians({-2,-2,4})==vector<double>({-2,-2,-2})"},{"name":"un valore","assertion":"running_medians({7})==vector<double>({7})"}],
+         ["`lower` contiene la metà bassa come max-heap; `upper` contiene la metà alta come min-heap.","Mantieni le dimensioni uguali o con un elemento in più in `lower`.","Il massimo di lower non deve superare il minimo di upper."],
+         "Ogni inserimento costa O(log n); leggere la mediana costa O(1). I due heap conservano O(n) valori.")
+
+add_task("pacific-atlantic", "bfs-dfs-grid", "Celle che raggiungono entrambi gli oceani", "medium", 35, "BFS inversa dai bordi",
+         "Data una matrice rettangolare di altezze positive, restituisci in ordine lessicografico le coordinate da cui l'acqua può scorrere verso entrambi i bordi: nord/ovest e sud/est. L'acqua scorre verso una cella ad altezza minore o uguale.",
+         "from collections import deque\ndef pacific_atlantic(heights):\n    if not heights or not heights[0]: return []\n    rows, cols = len(heights), len(heights[0])\n    def reachable(starts):\n        seen, queue = set(starts), deque(starts)\n        while queue:\n            r,c = queue.popleft()\n            for nr,nc in ((r-1,c),(r+1,c),(r,c-1),(r,c+1)):\n                if 0 <= nr < rows and 0 <= nc < cols and (nr,nc) not in seen and heights[nr][nc] >= heights[r][c]:\n                    seen.add((nr,nc)); queue.append((nr,nc))\n        return seen\n    pacific = [(0,c) for c in range(cols)] + [(r,0) for r in range(rows)]\n    atlantic = [(rows-1,c) for c in range(cols)] + [(r,cols-1) for r in range(rows)]\n    return [list(cell) for cell in sorted(reachable(pacific) & reachable(atlantic))]\n",
+         "#include <algorithm>\n#include <queue>\n#include <set>\n#include <vector>\nusing namespace std;\nvector<vector<int>> pacific_atlantic(const vector<vector<int>>& heights) {\n    if(heights.empty()||heights[0].empty()) return {}; int rows=heights.size(),cols=heights[0].size();\n    auto reachable=[&](vector<pair<int,int>> starts) { set<pair<int,int>> seen(starts.begin(),starts.end()); queue<pair<int,int>> q; for(auto p:starts) q.push(p);\n        int dr[4]={-1,1,0,0},dc[4]={0,0,-1,1}; while(!q.empty()) { auto [r,c]=q.front(); q.pop();\n            for(int d=0;d<4;++d) { int nr=r+dr[d],nc=c+dc[d]; if(nr>=0&&nr<rows&&nc>=0&&nc<cols&&heights[nr][nc]>=heights[r][c]&&!seen.count({nr,nc})) { seen.insert({nr,nc});q.push({nr,nc}); } } } return seen; };\n    vector<pair<int,int>> p,a; for(int c=0;c<cols;++c) {p.push_back({0,c});a.push_back({rows-1,c});} for(int r=0;r<rows;++r) {p.push_back({r,0});a.push_back({r,cols-1});}\n    auto ps=reachable(p), as=reachable(a); vector<vector<int>> result; for(auto cell:ps) if(as.count(cell)) result.push_back({cell.first,cell.second}); sort(result.begin(),result.end()); return result;\n}\n",
+         [{"name":"altopiano centrale e salite inverse","expression":"pacific_atlantic([[1,2,2],[3,2,3],[2,4,5]])","expected":[[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]]},{"name":"una cella","expression":"pacific_atlantic([[7]])","expected":[[0,0]]},{"name":"matrice vuota","expression":"pacific_atlantic([])","expected":[]}],
+         [{"name":"altopiano centrale e salite inverse","assertion":"pacific_atlantic({{1,2,2},{3,2,3},{2,4,5}})==vector<vector<int>>({{0,1},{0,2},{1,0},{1,1},{1,2},{2,0},{2,1},{2,2}})"},{"name":"una cella","assertion":"pacific_atlantic({{7}})==vector<vector<int>>({{0,0}})"},{"name":"matrice vuota","assertion":"pacific_atlantic({}).empty()"}],
+         ["Parti dai bordi e percorri la matrice al contrario: puoi salire o restare alla stessa altezza.","Esegui una visita per ciascun oceano e interseca le celle raggiungibili.","L'ordinamento finale rende l'output deterministico."],
+         "Ogni cella entra una volta per ciascuna visita: O(RC) tempo e O(RC) spazio.")
+
+add_task("valid-tree", "graphs", "Verificare se gli archi formano un albero", "medium", 25, "n-1 archi e visita connessa",
+         "Il grafo non orientato ha n nodi numerati da 0 a n-1 e può contenere archi duplicati. Restituisci true se è connesso e privo di cicli; n è almeno 1.",
+         "from collections import deque\ndef valid_tree(n, edges):\n    if len(edges) != n - 1: return False\n    graph = [[] for _ in range(n)]\n    for a,b in edges: graph[a].append(b); graph[b].append(a)\n    seen, queue = {0}, deque([0])\n    while queue:\n        node = queue.popleft()\n        for neighbor in graph[node]:\n            if neighbor not in seen: seen.add(neighbor); queue.append(neighbor)\n    return len(seen) == n\n",
+         "#include <queue>\n#include <vector>\nusing namespace std;\nbool valid_tree(int n,const vector<vector<int>>& edges) {\n    if((int)edges.size()!=n-1) return false; vector<vector<int>> graph(n);\n    for(const auto& edge:edges) { graph[edge[0]].push_back(edge[1]); graph[edge[1]].push_back(edge[0]); }\n    vector<bool> seen(n,false); queue<int> q; q.push(0); seen[0]=true; int count=0;\n    while(!q.empty()) { int node=q.front();q.pop();++count; for(int next:graph[node]) if(!seen[next]) {seen[next]=true;q.push(next);} }\n    return count==n;\n}\n",
+         [{"name":"albero con ramificazione","expression":"valid_tree(5,[[0,1],[0,2],[0,3],[1,4]])","expected":True},{"name":"ciclo più nodo isolato","expression":"valid_tree(4,[[0,1],[1,2],[2,0]])","expected":False},{"name":"un nodo senza archi","expression":"valid_tree(1,[])","expected":True}],
+         [{"name":"albero con ramificazione","assertion":"valid_tree(5,{{0,1},{0,2},{0,3},{1,4}})"},{"name":"ciclo più nodo isolato","assertion":"!valid_tree(4,{{0,1},{1,2},{2,0}})"},{"name":"un nodo senza archi","assertion":"valid_tree(1,{})"}],
+         ["Un albero connesso su n nodi ha esattamente n-1 archi.","Il conteggio degli archi da solo non basta: controlla che tutti i nodi siano raggiungibili.","In un grafo non orientato, n-1 archi e connessione implicano assenza di cicli."],
+         "La costruzione delle adiacenze e BFS costano O(n+m) tempo e spazio; qui m deve essere n-1.")
+
+add_task("trie", "trie", "Implementare ricerca di parole e prefissi con una Trie", "medium", 30, "albero di prefissi e flag terminale",
+         "Implementa `insert`, `search` per la parola esatta e `starts_with` per un prefisso. Le parole contengono lettere minuscole; una stringa vuota è un prefisso valido.",
+         "class TrieNode:\n    def __init__(self): self.children, self.terminal = {}, False\nclass Trie:\n    def __init__(self): self.root = TrieNode()\n    def insert(self, word):\n        node = self.root\n        for char in word: node = node.children.setdefault(char, TrieNode())\n        node.terminal = True\n    def search(self, word):\n        node = self.root\n        for char in word:\n            if char not in node.children: return False\n            node = node.children[char]\n        return node.terminal\n    def starts_with(self, prefix):\n        node = self.root\n        for char in prefix:\n            if char not in node.children: return False\n            node = node.children[char]\n        return True\n\ndef trie_probe(words, exact_queries, prefix_queries):\n    trie = Trie()\n    for word in words: trie.insert(word)\n    return [[trie.search(word) for word in exact_queries], [trie.starts_with(prefix) for prefix in prefix_queries]]\n",
+         "#include <string>\n#include <unordered_map>\n#include <vector>\nusing namespace std;\nclass Trie {\n    struct Node { unordered_map<char,int> children; bool terminal=false; }; vector<Node> nodes{1};\npublic:\n    void insert(const string& word) { int node=0; for(char c:word) { auto it=nodes[node].children.find(c); if(it==nodes[node].children.end()) { int child=nodes.size(); nodes[node].children[c]=child; nodes.emplace_back(); node=child; } else node=it->second; } nodes[node].terminal=true; }\n    bool search(const string& word) const { int node=0; for(char c:word) { auto it=nodes[node].children.find(c); if(it==nodes[node].children.end()) return false; node=it->second; } return nodes[node].terminal; }\n    bool starts_with(const string& prefix) const { int node=0; for(char c:prefix) { auto it=nodes[node].children.find(c); if(it==nodes[node].children.end()) return false; node=it->second; } return true; }\n};\nvector<vector<bool>> trie_probe(const vector<string>& words,const vector<string>& exact_queries,const vector<string>& prefix_queries) { Trie trie; for(const auto& word:words) trie.insert(word); vector<bool> exact,prefixes; for(const auto& word:exact_queries) exact.push_back(trie.search(word)); for(const auto& prefix:prefix_queries) prefixes.push_back(trie.starts_with(prefix)); return {exact,prefixes}; }\n",
+         [{"name":"parola e prefisso","expression":"trie_probe(['cat','car','dog'],['cat','ca','cab','dog'],['ca','do','z',''])","expected":[[True,False,False,True],[True,True,False,True]]},{"name":"parola vuota inserita","expression":"trie_probe([''],['','a'],[''])","expected":[[True,False],[True]]}],
+         [{"name":"parola e prefisso","assertion":"trie_probe({\"cat\",\"car\",\"dog\"},{\"cat\",\"ca\",\"cab\",\"dog\"},{\"ca\",\"do\",\"z\",\"\"})==vector<vector<bool>>({{true,false,false,true},{true,true,false,true}})"},{"name":"parola vuota inserita","assertion":"trie_probe({\"\"},{\"\",\"a\"},{\"\"})==vector<vector<bool>>({{true,false},{true}})"}],
+         ["Ogni arco aggiunge un carattere e ogni nodo rappresenta il prefisso raggiunto.","Arrivare al nodo non prova che la parola esista: la ricerca esatta controlla anche terminal.","Per un prefisso basta che il percorso esista; la stringa vuota raggiunge la radice."],
+         "Inserimento e ricerca visitano O(L) archi per parola lunga L; lo spazio è proporzionale ai nodi creati.")
+
+add_task("trie-wildcard", "trie", "Cercare parole con caratteri wildcard", "medium", 30, "Trie e backtracking nei rami wildcard",
+         "Aggiungi parole a un dizionario e cerca pattern in cui `.` corrisponde a una singola lettera minuscola. La corrispondenza deve arrivare a una parola completa.",
+         "class TrieNode:\n    def __init__(self): self.children, self.terminal = {}, False\nclass WordDictionary:\n    def __init__(self): self.root = TrieNode()\n    def add_word(self, word):\n        node = self.root\n        for char in word: node = node.children.setdefault(char, TrieNode())\n        node.terminal = True\n    def search(self, pattern):\n        def visit(node, index):\n            if index == len(pattern): return node.terminal\n            char = pattern[index]\n            if char != '.': return char in node.children and visit(node.children[char], index + 1)\n            return any(visit(child, index + 1) for child in node.children.values())\n        return visit(self.root, 0)\n\ndef wildcard_probe(words, patterns):\n    dictionary = WordDictionary()\n    for word in words: dictionary.add_word(word)\n    return [dictionary.search(pattern) for pattern in patterns]\n",
+         "#include <string>\n#include <unordered_map>\n#include <vector>\nusing namespace std;\nclass WordDictionary {\n    struct Node { unordered_map<char,int> children; bool terminal=false; }; vector<Node> nodes{1};\n    bool visit(int node,const string& pattern,size_t index) const {\n        if(index==pattern.size()) return nodes[node].terminal;\n        if(pattern[index]!='.') { auto it=nodes[node].children.find(pattern[index]); return it!=nodes[node].children.end()&&visit(it->second,pattern,index+1); }\n        for(const auto& [ch,next]:nodes[node].children) if(visit(next,pattern,index+1)) return true; return false;\n    }\npublic:\n    void add_word(const string& word) { int node=0; for(char c:word) { auto it=nodes[node].children.find(c); if(it==nodes[node].children.end()) { int child=nodes.size(); nodes[node].children[c]=child; nodes.emplace_back(); node=child; } else node=it->second; } nodes[node].terminal=true; }\n    bool search(const string& pattern) const { return visit(0,pattern,0); }\n};\nvector<bool> wildcard_probe(const vector<string>& words,const vector<string>& patterns) { WordDictionary dictionary; for(const auto& word:words) dictionary.add_word(word); vector<bool> result; for(const auto& pattern:patterns) result.push_back(dictionary.search(pattern)); return result; }\n",
+         [{"name":"wildcard, lunghezza e terminale","expression":"wildcard_probe(['bad','dad','mad'],['pad','bad','.ad','b..','ba','....'])","expected":[False,True,True,True,False,False]},{"name":"pattern vuoto","expression":"wildcard_probe([''],['','.'])","expected":[True,False]}],
+         [{"name":"wildcard, lunghezza e terminale","assertion":"wildcard_probe({\"bad\",\"dad\",\"mad\"},{\"pad\",\"bad\",\".ad\",\"b..\",\"ba\",\"....\"})==vector<bool>({false,true,true,true,false,false})"},{"name":"pattern vuoto","assertion":"wildcard_probe({\"\"},{\"\",\".\"})==vector<bool>({true,false})"}],
+         ["Un carattere noto segue un solo arco; il punto prova i figli disponibili.","Ogni carattere consuma esattamente un livello della Trie.","Al termine del pattern controlla terminal, non soltanto che il nodo esista."],
+         "Senza wildcard il costo è O(L); i punti possono esplorare più rami e nel caso peggiore la ricerca visita molti nodi.")
+
+add_task("word-search-ii", "trie", "Trovare parole su una griglia senza riusare celle", "hard", 40, "Trie condivisa e DFS con backtracking",
+         "La griglia e le parole contengono lettere minuscole. Restituisci le parole distinte costruibili da celle adiacenti in orizzontale o verticale senza riutilizzare una cella nello stesso percorso. Ordina il risultato lessicograficamente.",
+         "def find_words(board, words):\n    trie = {}\n    for word in set(words):\n        node = trie\n        for char in word: node = node.setdefault(char, {})\n        node['$'] = word\n    rows, cols, found = len(board), len(board[0]), set()\n    def visit(r, c, node):\n        char = board[r][c]\n        if char not in node: return\n        child = node[char]\n        if '$' in child: found.add(child.pop('$'))\n        board[r][c] = '#'\n        for nr,nc in ((r-1,c),(r+1,c),(r,c-1),(r,c+1)):\n            if 0 <= nr < rows and 0 <= nc < cols and board[nr][nc] != '#': visit(nr,nc,child)\n        board[r][c] = char\n        if not child: node.pop(char)\n    for r in range(rows):\n        for c in range(cols): visit(r,c,trie)\n    return sorted(found)\n",
+         "#include <algorithm>\n#include <array>\n#include <string>\n#include <unordered_map>\n#include <vector>\nusing namespace std;\nvector<string> find_words(const vector<vector<char>>& board,const vector<string>& words) {\n    struct Node { unordered_map<char,int> children; string word; }; vector<Node> trie(1);\n    for(const auto& word:words) { int node=0; for(char c:word) { auto it=trie[node].children.find(c); if(it==trie[node].children.end()) { int next=trie.size(); trie[node].children[c]=next; trie.emplace_back(); node=next; } else node=it->second; } trie[node].word=word; }\n    if(board.empty()||board[0].empty()) return {}; auto cells=board; int rows=cells.size(),cols=cells[0].size(); vector<string> found;\n    auto visit=[&](auto&& self,int r,int c,int node)->void { char ch=cells[r][c]; auto it=trie[node].children.find(ch); if(it==trie[node].children.end()) return; int child=it->second;\n        if(!trie[child].word.empty()) { found.push_back(trie[child].word); trie[child].word.clear(); } cells[r][c]='#';\n        int dr[4]={-1,1,0,0},dc[4]={0,0,-1,1}; for(int d=0;d<4;++d) {int nr=r+dr[d],nc=c+dc[d];if(nr>=0&&nr<rows&&nc>=0&&nc<cols&&cells[nr][nc]!='#') self(self,nr,nc,child);} cells[r][c]=ch;\n        if(trie[child].word.empty()&&trie[child].children.empty()) trie[node].children.erase(ch); };\n    for(int r=0;r<rows;++r) for(int c=0;c<cols;++c) visit(visit,r,c,0); sort(found.begin(),found.end()); return found;\n}\n",
+         [{"name":"prefissi condivisi e parole non presenti","expression":"find_words([['c','a','t'],['x','r','e'],['d','o','g']],['cat','car','dog','cab','cat'])","expected":["car","cat","dog"]},{"name":"una sola cella","expression":"find_words([['a']],['a','aa'])","expected":["a"]}],
+         [{"name":"prefissi condivisi e parole non presenti","assertion":"find_words({{'c','a','t'},{'x','r','e'},{'d','o','g'}},{\"cat\",\"car\",\"dog\",\"cab\",\"cat\"})==vector<string>({\"car\",\"cat\",\"dog\"})"},{"name":"una sola cella","assertion":"find_words({{'a'}},{\"a\",\"aa\"})==vector<string>({\"a\"})"}],
+         ["Inserisci tutte le parole in una Trie per condividere i prefissi.","La cella corrente va marcata durante la DFS e ripristinata al backtrack.","Quando trovi una parola, evita duplicati; rimuovi i rami esauriti per potare ricerche successive."],
+         "Con R righe, C colonne, L lunghezza massima delle parole e un alfabeto finito, il caso peggiore può arrivare a O(RC·4^L); la Trie e il pruning condividono i prefissi e riducono il lavoro nei dati ordinari.")
+
+add_task("palindromic-substrings", "two-pointers", "Contare i sottostringhe palindromiche", "medium", 25, "espansione dai centri pari e dispari",
+         "Conta tutte le sottostringhe non vuote che sono palindrome. Le occorrenze in posizioni diverse si contano separatamente; la stringa può essere vuota.",
+         "def count_palindromic_substrings(text):\n    count = 0\n    for center in range(len(text)):\n        for left, right in ((center, center), (center, center + 1)):\n            while left >= 0 and right < len(text) and text[left] == text[right]:\n                count += 1; left -= 1; right += 1\n    return count\n",
+         "int count_palindromic_substrings(const string& text) {\n    int count=0,n=text.size();\n    for(int center=0;center<n;++center) for(auto [left,right]:{pair<int,int>{center,center},pair<int,int>{center,center+1}})\n        while(left>=0&&right<n&&text[left]==text[right]) {++count;--left;++right;}\n    return count;\n}\n",
+         [{"name":"centri dispari e pari","expression":"count_palindromic_substrings('aaa')","expected":6},{"name":"palindromi isolati","expression":"count_palindromic_substrings('abc')","expected":3},{"name":"vuota","expression":"count_palindromic_substrings('')","expected":0}],
+         [{"name":"centri dispari e pari","assertion":"count_palindromic_substrings(\"aaa\")==6"},{"name":"palindromi isolati","assertion":"count_palindromic_substrings(\"abc\")==3"},{"name":"vuota","assertion":"count_palindromic_substrings(\"\")==0"}],
+         ["Ogni palindromo ha un centro: una posizione per lunghezza dispari o uno spazio fra due caratteri per lunghezza pari.","Espandi finché i due caratteri coincidono e restano nei limiti.","Conta ogni espansione riuscita; non deduplicare stringhe uguali in posizioni diverse."],
+         "Ci sono 2n-1 centri e ciascuno può estendersi fino a O(n): O(n²) tempo e O(1) spazio.")
+
+add_task("lis", "dp-memoization", "Sottosequenza strettamente crescente più lunga", "medium", 30, "DP quadratica sugli indici",
+         "Restituisci la lunghezza della sottosequenza strettamente crescente più lunga; gli elementi scelti non devono essere adiacenti. L'input può essere vuoto.",
+         "def lis_length(nums):\n    if not nums: return 0\n    dp = [1] * len(nums)\n    for i in range(len(nums)):\n        for j in range(i):\n            if nums[j] < nums[i]: dp[i] = max(dp[i], dp[j] + 1)\n    return max(dp)\n",
+         "#include <algorithm>\n#include <vector>\nusing namespace std;\nint lis_length(const vector<int>& nums) {\n    if(nums.empty()) return 0; vector<int> dp(nums.size(),1); int best=1;\n    for(int i=0;i<(int)nums.size();++i) for(int j=0;j<i;++j) if(nums[j]<nums[i]) dp[i]=max(dp[i],dp[j]+1);\n    for(int length:dp) best=max(best,length); return best;\n}\n",
+         [{"name":"elementi non adiacenti","expression":"lis_length([10,9,2,5,3,7,101,18])","expected":4},{"name":"duplicati non crescono","expression":"lis_length([2,2,2])","expected":1},{"name":"vuoto","expression":"lis_length([])","expected":0}],
+         [{"name":"elementi non adiacenti","assertion":"lis_length({10,9,2,5,3,7,101,18})==4"},{"name":"duplicati non crescono","assertion":"lis_length({2,2,2})==1"},{"name":"vuoto","assertion":"lis_length({})==0"}],
+         ["`dp[i]` è la lunghezza migliore di una sottosequenza che termina proprio in i.","Prova solo predecessori j<i con valore strettamente minore.","La risposta è il massimo di tutti gli stati finali, non necessariamente dp dell'ultimo indice."],
+         "Due cicli visitano le coppie di indici: O(n²) tempo e O(n) spazio. La versione con tails O(n log n) è un raffinamento successivo, non necessario per capire lo stato.")
+
+add_task("house-robber-ii", "dp-models", "Massimo bottino su una strada circolare", "medium", 30, "due casi lineari che escludono una delle estremità",
+         "Ogni valore non negativo indica il bottino di una casa; case adiacenti non si possono scegliere. Le estremità sono adiacenti perché la strada è circolare. Restituisci il bottino massimo; la lista può essere vuota.",
+         "def rob_circular(nums):\n    def linear(values):\n        two_back = one_back = 0\n        for value in values:\n            two_back, one_back = one_back, max(one_back, two_back + value)\n        return one_back\n    if len(nums) <= 1: return nums[0] if nums else 0\n    return max(linear(nums[:-1]), linear(nums[1:]))\n",
+         "#include <algorithm>\n#include <vector>\nusing namespace std;\nlong long rob_circular(const vector<int>& nums) {\n    auto linear=[&](int left,int right) { long long two=0,one=0; for(int i=left;i<right;++i) { long long best=max(one,two+nums[i]); two=one; one=best; } return one; };\n    if(nums.empty()) return 0; if(nums.size()==1) return nums[0];\n    return max(linear(0,nums.size()-1),linear(1,nums.size()));\n}\n",
+         [{"name":"estremi in conflitto","expression":"rob_circular([2,3,2])","expected":3},{"name":"scegliere case non contigue","expression":"rob_circular([1,2,3,1])","expected":4},{"name":"una casa","expression":"rob_circular([8])","expected":8},{"name":"vuoto","expression":"rob_circular([])","expected":0}],
+         [{"name":"estremi in conflitto","assertion":"rob_circular({2,3,2})==3"},{"name":"scegliere case non contigue","assertion":"rob_circular({1,2,3,1})==4"},{"name":"una casa","assertion":"rob_circular({8})==8"},{"name":"vuoto","assertion":"rob_circular({})==0"}],
+         ["Non puoi scegliere insieme la prima e l'ultima casa.","Ogni soluzione valida esclude almeno uno dei due estremi: calcola i due casi lineari.","All'interno di ogni caso usa il DP a due accumuli già visto."],
+         "Le due scansioni sono lineari e usano O(1) spazio ausiliario: O(n) tempo e O(1) spazio.")
+
+add_task("decode-ways", "dp-memoization", "Contare le decodifiche di una stringa numerica", "medium", 30, "DP a uno o due caratteri",
+         "Le cifre da 1 a 26 corrispondono ad A-Z; zero da solo non è valido. Restituisci il numero di decodifiche della stringa; l'input contiene solo cifre e può essere vuoto. Usa un intero a 64 bit per il risultato.",
+         "def decode_ways(text):\n    if not text or text[0] == '0': return 0\n    dp_two_back, dp_one_back = 1, 1\n    for i in range(1, len(text)):\n        current = dp_one_back if text[i] != '0' else 0\n        pair = int(text[i-1:i+1])\n        if 10 <= pair <= 26: current += dp_two_back\n        dp_two_back, dp_one_back = dp_one_back, current\n    return dp_one_back\n",
+         "#include <string>\nusing namespace std;\nlong long decode_ways(const string& text) {\n    if(text.empty()||text[0]=='0') return 0; long long two=1,one=1;\n    for(int i=1;i<(int)text.size();++i) { long long current=text[i]!='0'?one:0; int pair=(text[i-1]-'0')*10+(text[i]-'0'); if(pair>=10&&pair<=26) current+=two; two=one; one=current; }\n    return one;\n}\n",
+         [{"name":"ramificazioni singole e doppie","expression":"decode_ways('226')","expected":3},{"name":"zero ammesso solo in coppia","expression":"decode_ways('06')","expected":0},{"name":"zero dopo dieci","expression":"decode_ways('10')","expected":1},{"name":"coppia oltre 26","expression":"decode_ways('27')","expected":1},{"name":"stringa vuota","expression":"decode_ways('')","expected":0}],
+         [{"name":"ramificazioni singole e doppie","assertion":"decode_ways(\"226\")==3"},{"name":"zero ammesso solo in coppia","assertion":"decode_ways(\"06\")==0"},{"name":"zero dopo dieci","assertion":"decode_ways(\"10\")==1"},{"name":"coppia oltre 26","assertion":"decode_ways(\"27\")==1"},{"name":"stringa vuota","assertion":"decode_ways(\"\")==0"}],
+         ["`dp[i]` conta i modi di decodificare il prefisso lungo i.","La cifra corrente aggiunge i modi precedenti se non è zero.","La coppia aggiunge i modi di due posizioni fa soltanto se rappresenta 10..26."],
+         "Ogni posizione applica al massimo due transizioni: O(n) tempo e O(1) spazio compresso. Il tipo a 64 bit protegge i conteggi nei vincoli dichiarati.")
+
+add_task("jump-game", "greedy", "Verificare se si può raggiungere l'ultima posizione", "medium", 25, "massima frontiera raggiungibile",
+         "Ogni elemento non negativo indica la distanza massima di un salto da quella posizione. Restituisci se l'ultima posizione è raggiungibile; una lista vuota non contiene una destinazione e restituisce false.",
+         "def can_reach_end(nums):\n    if not nums: return False\n    farthest = 0\n    for index, distance in enumerate(nums):\n        if index > farthest: return False\n        farthest = max(farthest, index + distance)\n        if farthest >= len(nums) - 1: return True\n    return True\n",
+         "#include <algorithm>\n#include <vector>\nusing namespace std;\nbool can_reach_end(const vector<int>& nums) {\n    if(nums.empty()) return false; int farthest=0;\n    for(int i=0;i<(int)nums.size();++i) { if(i>farthest) return false; farthest=max(farthest,i+nums[i]); if(farthest>=(int)nums.size()-1) return true; }\n    return true;\n}\n",
+         [{"name":"salto possibile anche se breve","expression":"can_reach_end([2,3,1,1,4])","expected":True},{"name":"frontiera si ferma","expression":"can_reach_end([3,2,1,0,4])","expected":False},{"name":"già alla destinazione","expression":"can_reach_end([0])","expected":True},{"name":"nessuna posizione","expression":"can_reach_end([])","expected":False}],
+         [{"name":"salto possibile anche se breve","assertion":"can_reach_end({2,3,1,1,4})"},{"name":"frontiera si ferma","assertion":"!can_reach_end({3,2,1,0,4})"},{"name":"già alla destinazione","assertion":"can_reach_end({0})"},{"name":"nessuna posizione","assertion":"!can_reach_end({})"}],
+         ["`farthest` riassume la frontiera più lontana raggiunta da tutte le posizioni visitate.","Se l'indice corrente supera la frontiera, nessun salto può arrivarci.","Aggiorna la frontiera prima di passare all'indice successivo."],
+         "Una scansione e spazio costante: O(n) tempo e O(1) spazio.")
 
 FLASHCARD_TOPICS = [
 ("fondamenti", [

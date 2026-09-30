@@ -28,4 +28,35 @@ restituisci -1
 
 Proviamo ora due casi che possono smentire una soluzione frettolosa: con `[5, 4]` la risposta è `-1` perché la condizione è strettamente maggiore, non maggiore o uguale; con `[]` la scansione non entra nel ciclo e restituisce comunque `-1`. Il ragionamento resta lo stesso anche quando cambi algoritmo: traduci le parole importanti in confronti precisi, poi segui un input fino al risultato.
 
+### Dal controllo a mano a una funzione
+
+La richiesta precedente si traduce in quattro decisioni: scorrere da sinistra, confrontare con `> 5`, restituire subito il primo indice e usare `-1` se il ciclo finisce. Ecco la stessa idea in entrambe le lingue:
+
+**Versione Python**
+
+```python
+def first_above(values, limit):
+    for index, value in enumerate(values):
+        if value > limit:
+            return index
+    return -1
+```
+
+**Versione C++**
+
+```cpp
+#include <vector>
+
+int first_above(const std::vector<int>& values, int limit) {
+    for (int index = 0; index < static_cast<int>(values.size()); ++index) {
+        if (values[index] > limit) {
+            return index;
+        }
+    }
+    return -1;
+}
+```
+
+Su `[2, 7, 1, 9]`, `enumerate` produce `(0, 2)`, poi `(1, 7)`: il secondo valore supera 5 e la funzione termina con 1. Il `9` non viene letto. Su `[5, 4]` nessun valore supera strettamente il limite, quindi si raggiunge `return -1`; su `[]` il ciclo non parte e la stessa risposta resta valida. La funzione è corretta perché ogni indice precedente a quello restituito è già stato controllato e non soddisfa la condizione.
+
 **Da ricordare.** Un'invariante descrive che cosa è già stato dimostrato dopo ogni passo; i test cercano di falsificarla. **Per praticare:** Due valori che completano il target; Rilevare un duplicato senza ordinare.

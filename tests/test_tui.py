@@ -5,7 +5,7 @@ from textual.widgets import Button, DataTable, Input, Static, TextArea
 from textual.containers import ScrollableContainer
 
 from dev48.app import (
-    AdaptiveFooter, CodeTextArea, CodingSimulationScreen, CurriculumScreen, DashboardScreen, Dev48App, ExerciseScreen,
+    AdaptiveFooter, CodeTextArea, CodingSimulationScreen, ConfirmAmazonResetScreen, CurriculumScreen, DashboardScreen, Dev48App, ExerciseScreen,
     FlashcardsScreen, FullMockScreen, ChallengesScreen, GlossaryScreen, LabScreen,
     FooterHint, LabsScreen, LessonScreen, SimulationScreen, TrackSelectionScreen,
     WorkScenarioScreen, WorkStyleScreen, assessment_prompt, exercise_progress_id,
@@ -967,6 +967,66 @@ def test_active_track_persists_and_progress_stats_stay_separate(tmp_path):
         assert restarted.stats()["completed_exercises"] == 1
     finally:
         restarted.shutdown_resources()
+
+
+def test_amazon_dashboard_reset_is_confirmed_and_track_scoped(tmp_path):
+    async def scenario():
+        content = Path(__file__).resolve().parents[1] / "content"
+        app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=False)
+        react = Catalog(content, track="web-js-react")
+        react_lesson = react.lessons[0]
+        react_exercise = react.exercises[0]
+        app.store.complete_lesson(react_lesson.id)
+        app.store.record_attempt(react_exercise.id, "exercise", react_exercise.solution, True, react_exercise.xp)
+
+        amazon = Catalog(content, track="amazon-sde-oa")
+        lesson = amazon.lesson_by_id["sde-l-oa-format"]
+        exercise = amazon.exercise_by_id["sde-e-two-sum"]
+        app.catalog = amazon
+        app.store.set_active_track("amazon-sde-oa")
+        app.coding_language = "cpp"
+        app.store.set_setting("amazon_coding_language", "cpp")
+        app.store.complete_lesson(lesson.id)
+        app.store.record_attempt("sde-e-two-sum@python", "exercise", "python answer", True, exercise.xp)
+        app.store.record_attempt("sde-e-two-sum@cpp", "exercise", "cpp answer", True, exercise.xp)
+        app.store.set_setting("scenario_revision:sde-ws-01", "2")
+        app.store.set_setting("last_item", lesson.id)
+        lab_file = tmp_path / "workspace" / "lab-amazon-mock-repository" / "README.md"
+        lab_file.parent.mkdir(parents=True)
+        lab_file.write_text("learner work", encoding="utf-8")
+
+        try:
+            async with app.run_test(size=(150, 44)) as pilot:
+                app.push_screen(DashboardScreen())
+                await pilot.pause()
+                assert app.screen.query_one("#reset-amazon-progress", Button)
+                assert app.stats()["completed_lessons"] == 1
+                await pilot.click("#reset-amazon-progress")
+                await pilot.pause()
+                assert isinstance(app.screen, ConfirmAmazonResetScreen)
+                assert lesson.id in app.store.completed_ids()
+
+                await pilot.click("#confirm")
+                await pilot.pause()
+                assert isinstance(app.screen, DashboardScreen)
+                assert app.stats()["completed_lessons"] == 0
+                assert app.stats()["completed_exercises"] == 0
+                completed = app.store.completed_ids()
+                assert lesson.id not in completed
+                assert exercise_progress_id(exercise, "python") not in completed
+                assert exercise_progress_id(exercise, "cpp") not in completed
+                assert app.store.get_setting("last_item") in (None, "")
+                assert app.store.get_setting("scenario_revision:sde-ws-01") in (None, "")
+                assert app.store.get_setting("amazon_coding_language") == "cpp"
+                assert lab_file.read_text(encoding="utf-8") == "learner work"
+
+                app.catalog = react
+                assert app.stats()["completed_lessons"] == 1
+                assert app.stats()["completed_exercises"] == 1
+        finally:
+            app.shutdown_resources()
+
+    asyncio.run(scenario())
 
 
 def test_lesson_and_action_buttons_arrows_and_enter(tmp_path):

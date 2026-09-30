@@ -81,4 +81,8 @@ Per i due più grandi valori di `[9,1,7,3,5]`, il min-heap limitato a k evolve: 
 
 Per Dijkstra, il min-heap ordina distanze provvisorie, non nodi per numero di archi. Un costo 10 per A→C può essere sostituito da A→B→C di costo 1+2=3. Aggiorna C a 3 e ignora l'entrata obsoleta 10 quando verrà estratta. La prova richiede pesi non negativi. Il grafo pesato di Network Delay usa questa variante; la queue FIFO della BFS non basta.
 
-**Da ricordare.** Un heap conserva in cima un estremo, non ordina tutto; usalo quando devi ripetere estrazioni di priorità o mantenere pochi candidati. **Per praticare:** K-esimo valore più grande; Selezionare i valori più frequenti; Tempo massimo di consegna con pesi positivi.
+### Due heap per la mediana che cambia
+
+Dividi i valori in una metà bassa `lower` (max-heap) e una alta `upper` (min-heap). Mantieni `len(lower)` uguale a `len(upper)` o maggiore di uno e verifica che il massimo della metà bassa non superi il minimo della metà alta. Con gli inserimenti `5,1`, gli heap contengono `{1}` e `{5}`: mediana 3. Inserendo 9, la metà bassa diventa `{1,5}`, la alta `{9}`: mediana 5. Il ri-bilanciamento dopo ogni inserimento mantiene l'invariante.
+
+**Da ricordare.** Un heap conserva in cima un estremo, non ordina tutto; usalo quando devi ripetere estrazioni di priorità o mantenere pochi candidati. **Per praticare:** K-esimo valore più grande; Selezionare i valori più frequenti; Tempo massimo di consegna con pesi positivi; Mediana di uno stream.

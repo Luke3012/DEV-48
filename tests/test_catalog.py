@@ -51,6 +51,21 @@ def test_amazon_lesson_examples_follow_the_selected_coding_language():
     assert "**Esempio in Python**" in python_body
     assert "**Esempio in C++**" in cpp_body
 
+    early_examples = {
+        "sde-l-problem-solving": ("def first_above", "int first_above"),
+        "sde-l-complexity": ("def count_equal_pairs", "int count_equal_pairs"),
+        "sde-l-arrays-strings": ("def compact_even_values", "int compact_even_values"),
+        "sde-l-hashmap-set": ("def two_sum", "std::vector<int> two_sum"),
+    }
+    for lesson_id, (python_example, cpp_example) in early_examples.items():
+        lesson = catalog.lesson_by_id[lesson_id]
+        python_version = catalog.lesson_body(lesson, "python")
+        cpp_version = catalog.lesson_body(lesson, "cpp")
+        assert python_example in python_version, lesson_id
+        assert cpp_example in cpp_version, lesson_id
+        assert cpp_example not in python_version, lesson_id
+        assert python_example not in cpp_version, lesson_id
+
     for item in catalog.lessons:
         catalog.lesson_body(item, "python")
         catalog.lesson_body(item, "cpp")
@@ -329,7 +344,7 @@ def test_course_scaffolds_explain_practice_and_preserve_learner_work(tmp_path):
 def test_amazon_sde_oa_course_has_independent_mapped_content():
     catalog = Catalog(ROOT / "content", track="amazon-sde-oa")
     assert catalog.track == "amazon-sde-oa"
-    assert (len(catalog.lessons), len(catalog.exercises), len(catalog.labs), len(catalog.flashcards)) == (44, 67, 6, 160)
+    assert (len(catalog.lessons), len(catalog.exercises), len(catalog.labs), len(catalog.flashcards)) == (45, 89, 6, 160)
     assert (len(catalog.simulations), len(catalog.work_scenarios), len(catalog.work_style)) == (4, 36, 8)
     # A candidate must judge the actions rather than infer ranking from a stable label.
     assert {scenario.recommended_order[-1] for scenario in catalog.work_scenarios} == set("ABCD")
@@ -337,9 +352,9 @@ def test_amazon_sde_oa_course_has_independent_mapped_content():
         assert [option["id"] for option in scenario.options] == list("ABCD")
         assert sorted(scenario.recommended_order) == list("ABCD")
     assert {item.difficulty for item in catalog.exercises} == {"easy", "medium", "hard"}
-    assert sum(item.difficulty == "easy" for item in catalog.exercises) == 22
-    assert sum(item.difficulty == "medium" for item in catalog.exercises) == 35
-    assert sum(item.difficulty == "hard" for item in catalog.exercises) == 10
+    assert sum(item.difficulty == "easy" for item in catalog.exercises) == 25
+    assert sum(item.difficulty == "medium" for item in catalog.exercises) == 51
+    assert sum(item.difficulty == "hard" for item in catalog.exercises) == 13
     assert all(set(item.variants) == {"python", "cpp"} for item in catalog.exercises)
     assert all(item.id == "sde-e-language-trial" or (item.no_ai and item.no_internet and item.timed) for item in catalog.exercises)
     for scenario in catalog.work_scenarios:
@@ -364,13 +379,31 @@ def test_amazon_sde_oa_course_has_independent_mapped_content():
     planned = [lesson_id for day in catalog.study_plan for lesson_id in day["lesson_ids"]]
     planned += [lesson_id for day in catalog.study_plan for choice in day.get("choices", [])
                 for branch in choice["options"].values() for lesson_id in branch.get("lesson_ids", [])]
-    assert len(planned) == len(set(planned)) == len(catalog.lessons)
+    mandatory_ids = {lesson.id for lesson in catalog.lessons if lesson.mandatory}
+    assert len(planned) == len(set(planned)) == len(mandatory_ids)
+    assert set(planned) == mandatory_ids
+    assert not catalog.lesson_by_id["sde-l-trie"].mandatory
+    assert "sde-l-trie" not in planned
     planned_exercises = [exercise_id for day in catalog.study_plan for exercise_id in day.get("exercise_ids", [])]
     assert len(planned_exercises) == len(set(planned_exercises))
     assert {"sde-l-binary-variants", "sde-l-binary-answer"} <= {item.id for item in catalog.lessons}
     assert catalog.exercise_by_id["sde-e-trapping-rainwater"].lesson_id == "sde-l-two-pointers"
     assert catalog.exercise_by_id["sde-e-max-depth"].lesson_id == "sde-l-recursion"
     assert catalog.exercise_by_id["sde-e-climbing-stairs"].lesson_id == "sde-l-dp-memoization"
+    assert {"sde-e-max-product-subarray", "sde-e-longest-consecutive", "sde-e-find-min-rotated",
+            "sde-e-remove-nth-from-end", "sde-e-trie", "sde-e-trie-wildcard",
+            "sde-e-word-search-ii", "sde-e-tree-level-order", "sde-e-pacific-atlantic",
+            "sde-e-valid-tree", "sde-e-median-stream", "sde-e-decode-ways"} <= set(catalog.exercise_by_id)
+    assert catalog.exercise_by_id["sde-e-trie"].lesson_id == "sde-l-trie"
+    assert catalog.exercise_by_id["sde-e-word-search-ii"].difficulty == "hard"
+    first_lesson_examples = {
+        "sde-l-problem-solving": "Dal controllo a mano a una funzione",
+        "sde-l-complexity": "Lo stesso problema, due quantità di lavoro",
+        "sde-l-arrays-strings": "Tracciare la scelta di Kadane",
+        "sde-l-hashmap-set": "Two Sum senza perdere i duplicati",
+    }
+    for lesson_id, worked_example in first_lesson_examples.items():
+        assert worked_example in catalog.lesson_body(catalog.lesson_by_id[lesson_id])
     combination_sum = catalog.exercise_by_id["sde-e-combination-sum"]
     assert "2^n" not in combination_sum.explanation
     assert "target" in combination_sum.explanation and "output" in combination_sum.explanation

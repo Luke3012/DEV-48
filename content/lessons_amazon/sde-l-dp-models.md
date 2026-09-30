@@ -89,4 +89,8 @@ Nel trading con cooldown tieni tre stati distinti: `hold` (azione in possesso), 
 
 Il profitto migliore finale è 3. Il giorno successivo `hold` può partire solo dal `rest` del giorno precedente, che forza un giorno d'attesa dopo una vendita. Calcola il nuovo terzetto usando solo i valori del giorno prima: aggiornare `rest` prima di `hold` può far riusare accidentalmente una vendita appena avvenuta. Per tutte queste DP, il tempo deriva da numero di stati × lavoro di transizione; la memoria dipende da quanti stati precedenti servono davvero.
 
-**Da ricordare.** Uno stato descrive una sottodomanda precisa: cambiare il significato cambia base, transizione, risposta e casi impossibili. **Per praticare:** Massimo bottino senza case adiacenti; Numero minimo di monete; Percorsi in una griglia senza ostacoli; Segmentare una stringa usando un dizionario; Distanza minima tra due stringhe; Trading con un giorno di cooldown.
+### Strada circolare: separare le estremità
+
+In una strada circolare non puoi prendere insieme la prima e l'ultima casa. Ogni soluzione le esclude almeno una: risolvi il caso che esclude l'ultima su `nums[:-1]` e il caso che esclude la prima su `nums[1:]`, poi scegli il migliore. Su `[2,3,2]`, i due casi danno 3 e 3: il 2 iniziale e quello finale non possono sommarsi.
+
+**Da ricordare.** Uno stato descrive una sottodomanda precisa: cambiare il significato cambia base, transizione, risposta e casi impossibili. **Per praticare:** Massimo bottino senza case adiacenti; Numero minimo di monete; Percorsi in una griglia senza ostacoli; Segmentare una stringa usando un dizionario; Distanza minima tra due stringhe; Trading con un giorno di cooldown; Massimo bottino su una strada circolare.

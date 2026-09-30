@@ -4,7 +4,7 @@
     "track_id": "amazon-sde-oa",
     "version": "1.0",
     "language": "it",
-    "estimated_hours": 55.7,
+    "estimated_hours": 66.5,
     "estimated_core_hours": 37.8,
     "study_plan": [
       {
@@ -1038,6 +1038,23 @@
       "summary": "Completare un mock sequenziale che non trasferisce il tempo tra coding e repository.",
       "body_file": "lessons_amazon/sde-l-full-mock.md",
       "recommended_day": 6
+    },
+    {
+      "id": "sde-l-trie",
+      "module": "strutture",
+      "title": "Trie: parole, prefissi e ricerche con wildcard",
+      "minutes": 35,
+      "difficulty": "intermedio",
+      "mandatory": false,
+      "objectives": [
+        "nodo e arco-carattere",
+        "prefisso vs parola completa",
+        "inserimento e lookup",
+        "ricerca wildcard per backtracking"
+      ],
+      "summary": "Costruire una trie da parole condivise, poi estendere il lookup a un carattere wildcard senza confondere prefisso e parola intera.",
+      "body_file": "lessons_amazon/sde-l-trie.md",
+      "recommended_day": null
     }
   ],
   "exercises": [
@@ -6293,6 +6310,2080 @@
             {
               "name": "self loop e archi ripetuti",
               "assertion": "[](){Node a{7,{}};a.neighbors={&a,&a};auto*c=clone_graph(&a);return c&&c->val==7&&a.val==7&&a.neighbors.size()==2&&a.neighbors[0]==&a&&c!=&a&&c->neighbors.size()==2&&c->neighbors[0]==c&&c->neighbors[1]==c;}()"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sde-e-max-product-subarray",
+      "lesson_id": "sde-l-arrays-strings",
+      "title": "Prodotto massimo di un segmento contiguo",
+      "kind": "python",
+      "difficulty": "medium",
+      "minutes": 30,
+      "xp": 35,
+      "prompt": "**Pattern:** DP a stato massimo/minimo.\n\nRestituisci il prodotto massimo di un segmento contiguo non vuoto. `nums` contiene da 1 a 50 interi compresi fra -2 e 2, così il risultato entra in un intero a 64 bit.",
+      "starter": "def max_product(nums):\n    pass\n",
+      "solution": "def max_product(nums):\n    if not nums:\n        return 0\n    current_max = current_min = best = nums[0]\n    for value in nums[1:]:\n        old_max, old_min = (current_max, current_min)\n        current_max = max(value, value * old_max, value * old_min)\n        current_min = min(value, value * old_max, value * old_min)\n        best = max(best, current_max)\n    return best\n",
+      "tests": [
+        {
+          "name": "negativo in mezzo",
+          "expression": "max_product([2,3,-2,4])",
+          "expected": 6
+        },
+        {
+          "name": "due negativi",
+          "expression": "max_product([-2,3,-4])",
+          "expected": 24
+        },
+        {
+          "name": "zero spezza il segmento",
+          "expression": "max_product([-2,0,-1])",
+          "expected": 0
+        },
+        {
+          "name": "singolo negativo",
+          "expression": "max_product([-2])",
+          "expected": -2
+        }
+      ],
+      "hints": [
+        "Conserva sia il massimo sia il minimo che terminano qui: un negativo può invertirne i ruoli.",
+        "Prima di aggiornare, salva entrambi i valori precedenti.",
+        "Il segmento deve essere non vuoto: inizializza dallo stesso primo elemento."
+      ],
+      "explanation": "Alla posizione i, un segmento massimo può partire da nums[i] oppure estendere il massimo o il minimo precedente. Il minimo serve perché moltiplicarlo per un valore negativo può produrre il nuovo massimo. Ogni elemento aggiorna tre candidati: O(n) tempo e O(1) spazio.",
+      "no_ai": true,
+      "no_internet": true,
+      "timed": true,
+      "solution_after_attempts": 2,
+      "variants": {
+        "python": {
+          "kind": "python",
+          "starter": "def max_product(nums):\n    pass\n",
+          "solution": "def max_product(nums):\n    if not nums:\n        return 0\n    current_max = current_min = best = nums[0]\n    for value in nums[1:]:\n        old_max, old_min = (current_max, current_min)\n        current_max = max(value, value * old_max, value * old_min)\n        current_min = min(value, value * old_max, value * old_min)\n        best = max(best, current_max)\n    return best\n",
+          "tests": [
+            {
+              "name": "negativo in mezzo",
+              "expression": "max_product([2,3,-2,4])",
+              "expected": 6
+            },
+            {
+              "name": "due negativi",
+              "expression": "max_product([-2,3,-4])",
+              "expected": 24
+            },
+            {
+              "name": "zero spezza il segmento",
+              "expression": "max_product([-2,0,-1])",
+              "expected": 0
+            },
+            {
+              "name": "singolo negativo",
+              "expression": "max_product([-2])",
+              "expected": -2
+            }
+          ]
+        },
+        "cpp": {
+          "kind": "cpp",
+          "starter": "#include <algorithm>\n#include <vector>\nusing namespace std;\nlong long max_product(const vector<int>& nums) {\n    // TODO\n}\n",
+          "solution": "#include <algorithm>\n#include <vector>\nusing namespace std;\nlong long max_product(const vector<int>& nums) {\n    if (nums.empty()) return 0;\n    long long current_max=nums[0], current_min=nums[0], best=nums[0];\n    for (size_t i=1;i<nums.size();++i) {\n        long long value=nums[i], old_max=current_max, old_min=current_min;\n        current_max=max( {\n            value,value*old_max,value*old_min\n        }\n        );\n        current_min=min( {\n            value,value*old_max,value*old_min\n        }\n        );\n        best=max(best,current_max);\n    }\n    return best;\n}\n",
+          "tests": [
+            {
+              "name": "negativo in mezzo",
+              "assertion": "max_product({2,3,-2,4})==6"
+            },
+            {
+              "name": "due negativi",
+              "assertion": "max_product({-2,3,-4})==24"
+            },
+            {
+              "name": "zero spezza il segmento",
+              "assertion": "max_product({-2,0,-1})==0"
+            },
+            {
+              "name": "singolo negativo",
+              "assertion": "max_product({-2})==-2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sde-e-longest-consecutive",
+      "lesson_id": "sde-l-hashmap-set",
+      "title": "Sequenza consecutiva più lunga senza ordinare",
+      "kind": "python",
+      "difficulty": "medium",
+      "minutes": 25,
+      "xp": 35,
+      "prompt": "**Pattern:** HashSet e inizio di sequenza.\n\nRestituisci la lunghezza della sequenza di interi consecutivi più lunga, anche se i valori sono sparsi e duplicati. Non riordinare l'input; la lista può essere vuota. Vincoli: al massimo 100.000 valori nell'intervallo [-1.000.000.000, 1.000.000.000].",
+      "starter": "def longest_consecutive(nums):\n    pass\n",
+      "solution": "def longest_consecutive(nums):\n    values = set(nums)\n    best = 0\n    for value in values:\n        if value - 1 not in values:\n            length = 1\n            while value + length in values:\n                length += 1\n            best = max(best, length)\n    return best\n",
+      "tests": [
+        {
+          "name": "valori sparsi e duplicati",
+          "expression": "longest_consecutive([100,4,200,1,3,2,2])",
+          "expected": 4
+        },
+        {
+          "name": "sequenza negativa",
+          "expression": "longest_consecutive([-3,-2,-1,8])",
+          "expected": 3
+        },
+        {
+          "name": "nessun valore",
+          "expression": "longest_consecutive([])",
+          "expected": 0
+        }
+      ],
+      "hints": [
+        "Un valore è l'inizio di una sequenza soltanto se il suo predecessore non è presente.",
+        "Espandi soltanto dagli inizi: così non ripercorri ogni tratto da ciascun elemento.",
+        "Deduplicare non cambia la lunghezza della sequenza."
+      ],
+      "explanation": "Il set rende medio-costante il controllo dei vicini; ogni sequenza viene espansa dal solo inizio. Il costo atteso è O(n) tempo e O(n) spazio. La sequenza può essere presente nell'array non ordinato senza che gli elementi siano contigui in memoria.",
+      "no_ai": true,
+      "no_internet": true,
+      "timed": true,
+      "solution_after_attempts": 2,
+      "variants": {
+        "python": {
+          "kind": "python",
+          "starter": "def longest_consecutive(nums):\n    pass\n",
+          "solution": "def longest_consecutive(nums):\n    values = set(nums)\n    best = 0\n    for value in values:\n        if value - 1 not in values:\n            length = 1\n            while value + length in values:\n                length += 1\n            best = max(best, length)\n    return best\n",
+          "tests": [
+            {
+              "name": "valori sparsi e duplicati",
+              "expression": "longest_consecutive([100,4,200,1,3,2,2])",
+              "expected": 4
+            },
+            {
+              "name": "sequenza negativa",
+              "expression": "longest_consecutive([-3,-2,-1,8])",
+              "expected": 3
+            },
+            {
+              "name": "nessun valore",
+              "expression": "longest_consecutive([])",
+              "expected": 0
+            }
+          ]
+        },
+        "cpp": {
+          "kind": "cpp",
+          "starter": "#include <algorithm>\n#include <unordered_set>\n#include <vector>\nusing namespace std;\nint longest_consecutive(const vector<int>& nums) {\n    // TODO\n}\n",
+          "solution": "#include <algorithm>\n#include <unordered_set>\n#include <vector>\nusing namespace std;\nint longest_consecutive(const vector<int>& nums) {\n    unordered_set<int> values(nums.begin(),nums.end());\n    int best=0;\n    for(int value:values) if(!values.count(value-1)) {\n        int length=1;\n        while(values.count(value+length)) ++length;\n        best=max(best,length);\n    }\n    return best;\n}\n",
+          "tests": [
+            {
+              "name": "valori sparsi e duplicati",
+              "assertion": "longest_consecutive({100,4,200,1,3,2,2})==4"
+            },
+            {
+              "name": "sequenza negativa",
+              "assertion": "longest_consecutive({-3,-2,-1,8})==3"
+            },
+            {
+              "name": "nessun valore",
+              "assertion": "longest_consecutive({})==0"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sde-e-find-min-rotated",
+      "lesson_id": "sde-l-binary-variants",
+      "title": "Minimo in un array ruotato",
+      "kind": "python",
+      "difficulty": "medium",
+      "minutes": 20,
+      "xp": 35,
+      "prompt": "**Pattern:** invariante della metà che contiene il minimo.\n\nUn array crescente di valori distinti è stato ruotato un numero qualsiasi di posizioni. Restituisci il valore minimo; l'array non è vuoto.",
+      "starter": "def find_min_rotated(nums):\n    pass\n",
+      "solution": "def find_min_rotated(nums):\n    left, right = (0, len(nums) - 1)\n    while left < right:\n        mid = left + (right - left) // 2\n        if nums[mid] > nums[right]:\n            left = mid + 1\n        else:\n            right = mid\n    return nums[left]\n",
+      "tests": [
+        {
+          "name": "taglio interno",
+          "expression": "find_min_rotated([8,9,12,2,4,6])",
+          "expected": 2
+        },
+        {
+          "name": "già crescente",
+          "expression": "find_min_rotated([1,4,7])",
+          "expected": 1
+        },
+        {
+          "name": "un elemento",
+          "expression": "find_min_rotated([6])",
+          "expected": 6
+        }
+      ],
+      "hints": [
+        "Confronta il medio con l'estremo destro, non cercare un target.",
+        "Se nums[mid] > nums[right], il tratto che contiene il minimo è a destra.",
+        "Se nums[mid] <= nums[right], conserva mid: può già essere il minimo."
+      ],
+      "explanation": "Ogni iterazione conserva un intervallo che contiene il minimo e lo dimezza. Con valori distinti il costo è O(log n) tempo e O(1) spazio; rispetto alla ricerca di un target cambia la risposta conservata dall'invariante.",
+      "no_ai": true,
+      "no_internet": true,
+      "timed": true,
+      "solution_after_attempts": 2,
+      "variants": {
+        "python": {
+          "kind": "python",
+          "starter": "def find_min_rotated(nums):\n    pass\n",
+          "solution": "def find_min_rotated(nums):\n    left, right = (0, len(nums) - 1)\n    while left < right:\n        mid = left + (right - left) // 2\n        if nums[mid] > nums[right]:\n            left = mid + 1\n        else:\n            right = mid\n    return nums[left]\n",
+          "tests": [
+            {
+              "name": "taglio interno",
+              "expression": "find_min_rotated([8,9,12,2,4,6])",
+              "expected": 2
+            },
+            {
+              "name": "già crescente",
+              "expression": "find_min_rotated([1,4,7])",
+              "expected": 1
+            },
+            {
+              "name": "un elemento",
+              "expression": "find_min_rotated([6])",
+              "expected": 6
+            }
+          ]
+        },
+        "cpp": {
+          "kind": "cpp",
+          "starter": "#include <vector>\nusing namespace std;\nint find_min_rotated(const vector<int>& nums) {\n    // TODO\n}\n",
+          "solution": "#include <vector>\nusing namespace std;\nint find_min_rotated(const vector<int>& nums) {\n    int left=0,right=static_cast<int>(nums.size())-1;\n    while(left<right) {\n        int mid=left+(right-left)/2;\n        if(nums[mid]>nums[right]) left=mid+1;\n        else right=mid;\n    }\n    return nums[left];\n}\n",
+          "tests": [
+            {
+              "name": "taglio interno",
+              "assertion": "find_min_rotated({8,9,12,2,4,6})==2"
+            },
+            {
+              "name": "già crescente",
+              "assertion": "find_min_rotated({1,4,7})==1"
+            },
+            {
+              "name": "un elemento",
+              "assertion": "find_min_rotated({6})==6"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sde-e-remove-nth-from-end",
+      "lesson_id": "sde-l-linked-lists",
+      "title": "Rimuovere il nodo N-esimo dalla fine",
+      "kind": "python",
+      "difficulty": "medium",
+      "minutes": 25,
+      "xp": 35,
+      "prompt": "**Pattern:** fast/slow con distanza fissa e dummy.\n\nRimuovi dalla lista collegata non vuota il nodo che si trova in posizione `n` contando dalla fine, con `1 <= n <= lunghezza`. Restituisci la nuova testa.",
+      "starter": "class ListNode:\n    def __init__(self, value=0, next_node=None):\n        self.value, self.next = value, next_node\n\ndef remove_nth_from_end(head, n):\n    pass\n\ndef build_list(values):\n    dummy = ListNode()\n    tail = dummy\n    for value in values:\n        tail.next = ListNode(value)\n        tail = tail.next\n    return dummy.next\n\ndef list_values(head):\n    values = []\n    while head is not None:\n        values.append(head.value)\n        head = head.next\n    return values\n",
+      "solution": "class ListNode:\n\n    def __init__(self, value=0, next_node=None):\n        self.value, self.next = (value, next_node)\n\ndef remove_nth_from_end(head, n):\n    dummy = ListNode(0, head)\n    fast = slow = dummy\n    for _ in range(n):\n        fast = fast.next\n    while fast.next is not None:\n        fast = fast.next\n        slow = slow.next\n    slow.next = slow.next.next\n    return dummy.next\n\ndef build_list(values):\n    dummy = ListNode()\n    tail = dummy\n    for value in values:\n        tail.next = ListNode(value)\n        tail = tail.next\n    return dummy.next\n\ndef list_values(head):\n    result = []\n    while head is not None:\n        result.append(head.value)\n        head = head.next\n    return result\n",
+      "tests": [
+        {
+          "name": "nodo centrale",
+          "expression": "list_values(remove_nth_from_end(build_list([1,2,3,4,5]),2))",
+          "expected": [
+            1,
+            2,
+            3,
+            5
+          ]
+        },
+        {
+          "name": "rimozione della testa",
+          "expression": "list_values(remove_nth_from_end(build_list([8,9,10]),3))",
+          "expected": [
+            9,
+            10
+          ]
+        },
+        {
+          "name": "rimozione dell'unico nodo",
+          "expression": "list_values(remove_nth_from_end(build_list([4]),1))",
+          "expected": []
+        }
+      ],
+      "hints": [
+        "Avanza fast di n nodi mentre slow resta sul dummy.",
+        "Poi sposta entrambi finché fast è sull'ultimo nodo: slow precede il nodo da rimuovere.",
+        "Il dummy rende identico l'aggiornamento quando il nodo rimosso è la testa."
+      ],
+      "explanation": "La distanza fra fast e slow resta n: quando fast raggiunge la fine, slow è subito prima del bersaglio. Un solo passaggio O(n), O(1) spazio. Il dummy evita un ramo speciale per la rimozione della testa.",
+      "no_ai": true,
+      "no_internet": true,
+      "timed": true,
+      "solution_after_attempts": 2,
+      "variants": {
+        "python": {
+          "kind": "python",
+          "starter": "class ListNode:\n    def __init__(self, value=0, next_node=None):\n        self.value, self.next = value, next_node\n\ndef remove_nth_from_end(head, n):\n    pass\n\ndef build_list(values):\n    dummy = ListNode()\n    tail = dummy\n    for value in values:\n        tail.next = ListNode(value)\n        tail = tail.next\n    return dummy.next\n\ndef list_values(head):\n    values = []\n    while head is not None:\n        values.append(head.value)\n        head = head.next\n    return values\n",
+          "solution": "class ListNode:\n\n    def __init__(self, value=0, next_node=None):\n        self.value, self.next = (value, next_node)\n\ndef remove_nth_from_end(head, n):\n    dummy = ListNode(0, head)\n    fast = slow = dummy\n    for _ in range(n):\n        fast = fast.next\n    while fast.next is not None:\n        fast = fast.next\n        slow = slow.next\n    slow.next = slow.next.next\n    return dummy.next\n\ndef build_list(values):\n    dummy = ListNode()\n    tail = dummy\n    for value in values:\n        tail.next = ListNode(value)\n        tail = tail.next\n    return dummy.next\n\ndef list_values(head):\n    result = []\n    while head is not None:\n        result.append(head.value)\n        head = head.next\n    return result\n",
+          "tests": [
+            {
+              "name": "nodo centrale",
+              "expression": "list_values(remove_nth_from_end(build_list([1,2,3,4,5]),2))",
+              "expected": [
+                1,
+                2,
+                3,
+                5
+              ]
+            },
+            {
+              "name": "rimozione della testa",
+              "expression": "list_values(remove_nth_from_end(build_list([8,9,10]),3))",
+              "expected": [
+                9,
+                10
+              ]
+            },
+            {
+              "name": "rimozione dell'unico nodo",
+              "expression": "list_values(remove_nth_from_end(build_list([4]),1))",
+              "expected": []
+            }
+          ]
+        },
+        "cpp": {
+          "kind": "cpp",
+          "starter": "#include <vector>\nusing namespace std;\nstruct ListNode { int value; ListNode* next; };\nListNode* remove_nth_from_end(ListNode* head, int n) {\n    // TODO\n    return head;\n}\nListNode* build_list(const vector<int>& values) {\n    ListNode dummy{0, nullptr}; auto* tail = &dummy;\n    for (int value : values) { tail->next = new ListNode{value, nullptr}; tail = tail->next; }\n    return dummy.next;\n}\nvector<int> list_values(ListNode* head) {\n    vector<int> values; while (head) { values.push_back(head->value); head = head->next; } return values;\n}\n",
+          "solution": "#include <vector>\nusing namespace std;\nstruct ListNode {\n    int value;\n    ListNode* next;\n};\nListNode* remove_nth_from_end(ListNode* head,int n) {\n    ListNode dummy {\n        0,head\n    };\n    auto* fast=&dummy;\n    auto* slow=&dummy;\n    for(int i=0;i<n;++i) fast=fast->next;\n    while(fast->next) {\n        fast=fast->next;\n        slow=slow->next;\n    }\n    auto* removed=slow->next;\n    slow->next=removed->next;\n    delete removed;\n    return dummy.next;\n}\nListNode* build_list(const vector<int>& values) {\n    ListNode dummy {\n        0,nullptr\n    };\n    auto* tail=&dummy;\n    for(int value:values) {\n        tail->next=new ListNode {\n            value,nullptr\n        };\n        tail=tail->next;\n    }\n    return dummy.next;\n}\nvector<int> list_values(ListNode* head) {\n    vector<int> result;\n    while(head) {\n        result.push_back(head->value);\n        head=head->next;\n    }\n    return result;\n}\n",
+          "tests": [
+            {
+              "name": "nodo centrale",
+              "assertion": "list_values(remove_nth_from_end(build_list({1,2,3,4,5}),2))==vector<int>({1,2,3,5})"
+            },
+            {
+              "name": "rimozione della testa",
+              "assertion": "list_values(remove_nth_from_end(build_list({8,9,10}),3))==vector<int>({9,10})"
+            },
+            {
+              "name": "rimozione dell'unico nodo",
+              "assertion": "list_values(remove_nth_from_end(build_list({4}),1)).empty()"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sde-e-invert-tree",
+      "lesson_id": "sde-l-tree-traversal",
+      "title": "Invertire un albero binario",
+      "kind": "python",
+      "difficulty": "easy",
+      "minutes": 20,
+      "xp": 20,
+      "prompt": "**Pattern:** DFS ricorsiva e scambio dei figli.\n\nScambia ricorsivamente il sottoalbero sinistro e destro di ogni nodo e restituisci la radice. L'albero può essere vuoto.",
+      "starter": "class TreeNode:\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = value, left, right\n\ndef invert_tree(root):\n    pass\n",
+      "solution": "class TreeNode:\n\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = (value, left, right)\n\ndef invert_tree(root):\n    if root is None:\n        return None\n    root.left, root.right = (invert_tree(root.right), invert_tree(root.left))\n    return root\n",
+      "tests": [
+        {
+          "name": "radice e due livelli",
+          "expression": "(lambda n:(lambda r:[r.value,r.left.value,r.right.value,r.right.right.value])(invert_tree(n)))(TreeNode(4,TreeNode(2,TreeNode(1)),TreeNode(7)))",
+          "expected": [
+            4,
+            7,
+            2,
+            1
+          ]
+        },
+        {
+          "name": "albero vuoto",
+          "expression": "invert_tree(None)",
+          "expected": null
+        },
+        {
+          "name": "foglia",
+          "expression": "invert_tree(TreeNode(5)).value",
+          "expected": 5
+        }
+      ],
+      "hints": [
+        "Invertire solo la radice non basta: visita entrambi i sottoalberi.",
+        "Puoi scambiare i puntatori prima o dopo le chiamate ricorsive.",
+        "Il caso vuoto è la base che termina la ricorsione."
+      ],
+      "explanation": "Ogni nodo viene visitato una volta: O(n) tempo e O(h) stack ricorsivo, dove h è l'altezza.",
+      "no_ai": true,
+      "no_internet": true,
+      "timed": true,
+      "solution_after_attempts": 2,
+      "variants": {
+        "python": {
+          "kind": "python",
+          "starter": "class TreeNode:\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = value, left, right\n\ndef invert_tree(root):\n    pass\n",
+          "solution": "class TreeNode:\n\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = (value, left, right)\n\ndef invert_tree(root):\n    if root is None:\n        return None\n    root.left, root.right = (invert_tree(root.right), invert_tree(root.left))\n    return root\n",
+          "tests": [
+            {
+              "name": "radice e due livelli",
+              "expression": "(lambda n:(lambda r:[r.value,r.left.value,r.right.value,r.right.right.value])(invert_tree(n)))(TreeNode(4,TreeNode(2,TreeNode(1)),TreeNode(7)))",
+              "expected": [
+                4,
+                7,
+                2,
+                1
+              ]
+            },
+            {
+              "name": "albero vuoto",
+              "expression": "invert_tree(None)",
+              "expected": null
+            },
+            {
+              "name": "foglia",
+              "expression": "invert_tree(TreeNode(5)).value",
+              "expected": 5
+            }
+          ]
+        },
+        "cpp": {
+          "kind": "cpp",
+          "starter": "#include <algorithm>\nusing namespace std;\nstruct TreeNode { int value; TreeNode* left; TreeNode* right; };\nTreeNode* invert_tree(TreeNode* root) {\n    // TODO\n    return {};\n}\n",
+          "solution": "#include <algorithm>\nstruct TreeNode {\n    int value;\n    TreeNode* left;\n    TreeNode* right;\n};\nTreeNode* invert_tree(TreeNode* root) {\n    if (!root) return nullptr;\n    std::swap(root->left, root->right);\n    invert_tree(root->left);\n    invert_tree(root->right);\n    return root;\n}\n",
+          "tests": [
+            {
+              "name": "radice e due livelli",
+              "assertion": "[](){auto* n=new TreeNode{4,new TreeNode{2,new TreeNode{1,nullptr,nullptr},nullptr},new TreeNode{7,nullptr,nullptr}};auto* r=invert_tree(n);return r->value==4&&r->left->value==7&&r->right->value==2&&r->right->right->value==1;}()"
+            },
+            {
+              "name": "albero vuoto",
+              "assertion": "invert_tree(nullptr)==nullptr"
+            },
+            {
+              "name": "foglia",
+              "assertion": "invert_tree(new TreeNode{5,nullptr,nullptr})->value==5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sde-e-same-tree",
+      "lesson_id": "sde-l-tree-traversal",
+      "title": "Confrontare due alberi",
+      "kind": "python",
+      "difficulty": "easy",
+      "minutes": 20,
+      "xp": 20,
+      "prompt": "**Pattern:** corrispondenza strutturale ricorsiva.\n\nRestituisci true solo se i due alberi hanno la stessa struttura e lo stesso valore in ogni posizione. Entrambi possono essere vuoti.",
+      "starter": "class TreeNode:\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = value, left, right\n\ndef same_tree(first, second):\n    pass\n",
+      "solution": "class TreeNode:\n\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = (value, left, right)\n\ndef same_tree(first, second):\n    if first is None or second is None:\n        return first is second\n    return first.value == second.value and same_tree(first.left, second.left) and same_tree(first.right, second.right)\n",
+      "tests": [
+        {
+          "name": "stessi nodi e valori",
+          "expression": "same_tree(TreeNode(1,TreeNode(2),TreeNode(3)),TreeNode(1,TreeNode(2),TreeNode(3)))",
+          "expected": true
+        },
+        {
+          "name": "stesso numero ma forma diversa",
+          "expression": "same_tree(TreeNode(1,TreeNode(2)),TreeNode(1,None,TreeNode(2)))",
+          "expected": false
+        },
+        {
+          "name": "due vuoti",
+          "expression": "same_tree(None,None)",
+          "expected": true
+        }
+      ],
+      "hints": [
+        "Confronta sempre valore, figlio sinistro e figlio destro nella stessa posizione.",
+        "Se uno solo dei nodi è nullo, le strutture sono diverse.",
+        "Due sottoalberi nulli corrispondono."
+      ],
+      "explanation": "La visita termina al primo disaccordo; nel caso peggiore visita n nodi in O(n) tempo e usa O(h) stack.",
+      "no_ai": true,
+      "no_internet": true,
+      "timed": true,
+      "solution_after_attempts": 2,
+      "variants": {
+        "python": {
+          "kind": "python",
+          "starter": "class TreeNode:\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = value, left, right\n\ndef same_tree(first, second):\n    pass\n",
+          "solution": "class TreeNode:\n\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = (value, left, right)\n\ndef same_tree(first, second):\n    if first is None or second is None:\n        return first is second\n    return first.value == second.value and same_tree(first.left, second.left) and same_tree(first.right, second.right)\n",
+          "tests": [
+            {
+              "name": "stessi nodi e valori",
+              "expression": "same_tree(TreeNode(1,TreeNode(2),TreeNode(3)),TreeNode(1,TreeNode(2),TreeNode(3)))",
+              "expected": true
+            },
+            {
+              "name": "stesso numero ma forma diversa",
+              "expression": "same_tree(TreeNode(1,TreeNode(2)),TreeNode(1,None,TreeNode(2)))",
+              "expected": false
+            },
+            {
+              "name": "due vuoti",
+              "expression": "same_tree(None,None)",
+              "expected": true
+            }
+          ]
+        },
+        "cpp": {
+          "kind": "cpp",
+          "starter": "using namespace std;\nstruct TreeNode { int value; TreeNode* left; TreeNode* right; };\nbool same_tree(TreeNode* first, TreeNode* second) {\n    // TODO\n    return {};\n}\n",
+          "solution": "struct TreeNode {\n    int value;\n    TreeNode* left;\n    TreeNode* right;\n};\nbool same_tree(TreeNode* first, TreeNode* second) {\n    if (!first || !second) return first == second;\n    return first->value == second->value && same_tree(first->left, second->left) && same_tree(first->right, second->right);\n}\n",
+          "tests": [
+            {
+              "name": "stessi nodi e valori",
+              "assertion": "same_tree(new TreeNode{1,new TreeNode{2,nullptr,nullptr},new TreeNode{3,nullptr,nullptr}},new TreeNode{1,new TreeNode{2,nullptr,nullptr},new TreeNode{3,nullptr,nullptr}})"
+            },
+            {
+              "name": "stesso numero ma forma diversa",
+              "assertion": "!same_tree(new TreeNode{1,new TreeNode{2,nullptr,nullptr},nullptr},new TreeNode{1,nullptr,new TreeNode{2,nullptr,nullptr}})"
+            },
+            {
+              "name": "due vuoti",
+              "assertion": "same_tree(nullptr,nullptr)"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sde-e-subtree",
+      "lesson_id": "sde-l-tree-traversal",
+      "title": "Verificare se un albero contiene un sottoalbero",
+      "kind": "python",
+      "difficulty": "easy",
+      "minutes": 25,
+      "xp": 20,
+      "prompt": "**Pattern:** cercare radici candidate e confrontare strutture.\n\nRestituisci true se `candidate` coincide per struttura e valori con un sottoalbero di `root`. Un candidato vuoto è considerato presente.",
+      "starter": "class TreeNode:\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = value, left, right\n\ndef is_subtree(root, candidate):\n    pass\n",
+      "solution": "class TreeNode:\n\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = (value, left, right)\n\ndef is_subtree(root, candidate):\n\n    def same(a, b):\n        if a is None or b is None:\n            return a is b\n        return a.value == b.value and same(a.left, b.left) and same(a.right, b.right)\n    if candidate is None:\n        return True\n    if root is None:\n        return False\n    return same(root, candidate) or is_subtree(root.left, candidate) or is_subtree(root.right, candidate)\n",
+      "tests": [
+        {
+          "name": "ramo presente",
+          "expression": "is_subtree(TreeNode(3,TreeNode(4,TreeNode(1),TreeNode(2)),TreeNode(5)),TreeNode(4,TreeNode(1),TreeNode(2)))",
+          "expected": true
+        },
+        {
+          "name": "valori simili ma forma diversa",
+          "expression": "is_subtree(TreeNode(3,TreeNode(4,TreeNode(1))),TreeNode(4,None,TreeNode(1)))",
+          "expected": false
+        },
+        {
+          "name": "candidato vuoto",
+          "expression": "is_subtree(TreeNode(1),None)",
+          "expected": true
+        }
+      ],
+      "hints": [
+        "Il valore della radice può ricomparire senza che tutto il candidato corrisponda.",
+        "Per ogni nodo candidato alla radice, verifica anche forma e figli.",
+        "Definisci il caso del sottoalbero vuoto secondo il contratto."
+      ],
+      "explanation": "Nel caso peggiore si confronta il candidato in più posizioni: O(n·m) tempo e O(h) spazio ricorsivo.",
+      "no_ai": true,
+      "no_internet": true,
+      "timed": true,
+      "solution_after_attempts": 2,
+      "variants": {
+        "python": {
+          "kind": "python",
+          "starter": "class TreeNode:\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = value, left, right\n\ndef is_subtree(root, candidate):\n    pass\n",
+          "solution": "class TreeNode:\n\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = (value, left, right)\n\ndef is_subtree(root, candidate):\n\n    def same(a, b):\n        if a is None or b is None:\n            return a is b\n        return a.value == b.value and same(a.left, b.left) and same(a.right, b.right)\n    if candidate is None:\n        return True\n    if root is None:\n        return False\n    return same(root, candidate) or is_subtree(root.left, candidate) or is_subtree(root.right, candidate)\n",
+          "tests": [
+            {
+              "name": "ramo presente",
+              "expression": "is_subtree(TreeNode(3,TreeNode(4,TreeNode(1),TreeNode(2)),TreeNode(5)),TreeNode(4,TreeNode(1),TreeNode(2)))",
+              "expected": true
+            },
+            {
+              "name": "valori simili ma forma diversa",
+              "expression": "is_subtree(TreeNode(3,TreeNode(4,TreeNode(1))),TreeNode(4,None,TreeNode(1)))",
+              "expected": false
+            },
+            {
+              "name": "candidato vuoto",
+              "expression": "is_subtree(TreeNode(1),None)",
+              "expected": true
+            }
+          ]
+        },
+        "cpp": {
+          "kind": "cpp",
+          "starter": "using namespace std;\nstruct TreeNode { int value; TreeNode* left; TreeNode* right; };\nbool is_subtree(TreeNode* root, TreeNode* candidate) {\n    // TODO\n    return {};\n}\n",
+          "solution": "struct TreeNode {\n    int value;\n    TreeNode* left;\n    TreeNode* right;\n};\nbool same_subtree(TreeNode* a, TreeNode* b) {\n    if (!a || !b) return a == b;\n    return a->value == b->value && same_subtree(a->left,b->left) && same_subtree(a->right,b->right);\n}\nbool is_subtree(TreeNode* root, TreeNode* candidate) {\n    if (!candidate) return true;\n    if (!root) return false;\n    return same_subtree(root,candidate) || is_subtree(root->left,candidate) || is_subtree(root->right,candidate);\n}\n",
+          "tests": [
+            {
+              "name": "ramo presente",
+              "assertion": "is_subtree(new TreeNode{3,new TreeNode{4,new TreeNode{1,nullptr,nullptr},new TreeNode{2,nullptr,nullptr}},new TreeNode{5,nullptr,nullptr}},new TreeNode{4,new TreeNode{1,nullptr,nullptr},new TreeNode{2,nullptr,nullptr}})"
+            },
+            {
+              "name": "valori simili ma forma diversa",
+              "assertion": "!is_subtree(new TreeNode{3,new TreeNode{4,new TreeNode{1,nullptr,nullptr},nullptr},nullptr},new TreeNode{4,nullptr,new TreeNode{1,nullptr,nullptr}})"
+            },
+            {
+              "name": "candidato vuoto",
+              "assertion": "is_subtree(new TreeNode{1,nullptr,nullptr},nullptr)"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sde-e-tree-level-order",
+      "lesson_id": "sde-l-tree-traversal",
+      "title": "Visitare un albero per livelli",
+      "kind": "python",
+      "difficulty": "medium",
+      "minutes": 25,
+      "xp": 35,
+      "prompt": "**Pattern:** BFS con coda e dimensione del livello.\n\nRestituisci i valori dell'albero raggruppati per livello, da sinistra a destra. Un albero vuoto produce una lista vuota.",
+      "starter": "class TreeNode:\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = value, left, right\n\ndef level_order(root):\n    pass\n",
+      "solution": "class TreeNode:\n\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = (value, left, right)\nfrom collections import deque\n\ndef level_order(root):\n    if root is None:\n        return []\n    result, queue = ([], deque([root]))\n    while queue:\n        level = []\n        for _ in range(len(queue)):\n            node = queue.popleft()\n            level.append(node.value)\n            if node.left:\n                queue.append(node.left)\n            if node.right:\n                queue.append(node.right)\n        result.append(level)\n    return result\n",
+      "tests": [
+        {
+          "name": "tre livelli non completi",
+          "expression": "level_order(TreeNode(3,TreeNode(9),TreeNode(20,TreeNode(15),TreeNode(7))))",
+          "expected": [
+            [
+              3
+            ],
+            [
+              9,
+              20
+            ],
+            [
+              15,
+              7
+            ]
+          ]
+        },
+        {
+          "name": "albero vuoto",
+          "expression": "level_order(None)",
+          "expected": []
+        },
+        {
+          "name": "solo radice",
+          "expression": "level_order(TreeNode(8))",
+          "expected": [
+            [
+              8
+            ]
+          ]
+        }
+      ],
+      "hints": [
+        "La coda conserva l'ordine di visita FIFO.",
+        "Memorizza len(queue) prima di consumare il livello: i figli aggiunti appartengono al successivo.",
+        "Aggiungi prima il figlio sinistro e poi il destro."
+      ],
+      "explanation": "Ogni nodo entra ed esce una volta: O(n) tempo e O(w) spazio per la frontiera massima, oltre all'output.",
+      "no_ai": true,
+      "no_internet": true,
+      "timed": true,
+      "solution_after_attempts": 2,
+      "variants": {
+        "python": {
+          "kind": "python",
+          "starter": "class TreeNode:\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = value, left, right\n\ndef level_order(root):\n    pass\n",
+          "solution": "class TreeNode:\n\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = (value, left, right)\nfrom collections import deque\n\ndef level_order(root):\n    if root is None:\n        return []\n    result, queue = ([], deque([root]))\n    while queue:\n        level = []\n        for _ in range(len(queue)):\n            node = queue.popleft()\n            level.append(node.value)\n            if node.left:\n                queue.append(node.left)\n            if node.right:\n                queue.append(node.right)\n        result.append(level)\n    return result\n",
+          "tests": [
+            {
+              "name": "tre livelli non completi",
+              "expression": "level_order(TreeNode(3,TreeNode(9),TreeNode(20,TreeNode(15),TreeNode(7))))",
+              "expected": [
+                [
+                  3
+                ],
+                [
+                  9,
+                  20
+                ],
+                [
+                  15,
+                  7
+                ]
+              ]
+            },
+            {
+              "name": "albero vuoto",
+              "expression": "level_order(None)",
+              "expected": []
+            },
+            {
+              "name": "solo radice",
+              "expression": "level_order(TreeNode(8))",
+              "expected": [
+                [
+                  8
+                ]
+              ]
+            }
+          ]
+        },
+        "cpp": {
+          "kind": "cpp",
+          "starter": "#include <queue>\n#include <vector>\nusing namespace std;\nstruct TreeNode { int value; TreeNode* left; TreeNode* right; };\nvector<vector<int>> level_order(TreeNode* root) {\n    // TODO\n    return {};\n}\n",
+          "solution": "#include <queue>\n#include <vector>\nusing namespace std;\nstruct TreeNode {\n    int value;\n    TreeNode* left;\n    TreeNode* right;\n};\nvector<vector<int>> level_order(TreeNode* root) {\n    if (!root) return {\n    };\n    vector<vector<int>> result;\n    queue<TreeNode*> q;\n    q.push(root);\n    while (!q.empty()) {\n        int count=q.size();\n        vector<int> level;\n        while (count--) {\n            auto* node=q.front();\n            q.pop();\n            level.push_back(node->value);\n            if(node->left) q.push(node->left);\n            if(node->right) q.push(node->right);\n        }\n        result.push_back(level);\n    }\n    return result;\n}\n",
+          "tests": [
+            {
+              "name": "tre livelli non completi",
+              "assertion": "level_order(new TreeNode{3,new TreeNode{9,nullptr,nullptr},new TreeNode{20,new TreeNode{15,nullptr,nullptr},new TreeNode{7,nullptr,nullptr}}})==vector<vector<int>>({{3},{9,20},{15,7}})"
+            },
+            {
+              "name": "albero vuoto",
+              "assertion": "level_order(nullptr).empty()"
+            },
+            {
+              "name": "solo radice",
+              "assertion": "level_order(new TreeNode{8,nullptr,nullptr})==vector<vector<int>>({{8}})"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sde-e-kth-smallest",
+      "lesson_id": "sde-l-bst-paths",
+      "title": "K-esimo valore più piccolo in un BST",
+      "kind": "python",
+      "difficulty": "medium",
+      "minutes": 25,
+      "xp": 35,
+      "prompt": "**Pattern:** inorder iterativo e arresto anticipato.\n\nIn un BST con valori distinti, restituisci il k-esimo valore in ordine crescente. `k` è compreso tra 1 e il numero dei nodi.",
+      "starter": "class TreeNode:\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = value, left, right\n\ndef kth_smallest(root, k):\n    pass\n",
+      "solution": "class TreeNode:\n\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = (value, left, right)\n\ndef kth_smallest(root, k):\n    stack, node = ([], root)\n    while node or stack:\n        while node:\n            stack.append(node)\n            node = node.left\n        node = stack.pop()\n        k -= 1\n        if k == 0:\n            return node.value\n        node = node.right\n",
+      "tests": [
+        {
+          "name": "ordine non è quello per livelli",
+          "expression": "kth_smallest(TreeNode(5,TreeNode(3,TreeNode(2),TreeNode(4)),TreeNode(7,TreeNode(6),None)),3)",
+          "expected": 4
+        },
+        {
+          "name": "primo",
+          "expression": "kth_smallest(TreeNode(2,None,TreeNode(3)),1)",
+          "expected": 2
+        },
+        {
+          "name": "ultimo",
+          "expression": "kth_smallest(TreeNode(2,TreeNode(1),TreeNode(3)),3)",
+          "expected": 3
+        }
+      ],
+      "hints": [
+        "Inorder in un BST visita i valori in ordine crescente.",
+        "Scendi a sinistra finché puoi, poi conta il nodo e visita il destro.",
+        "Puoi fermarti appena il contatore raggiunge k."
+      ],
+      "explanation": "Si visitano soltanto i nodi necessari fino al k-esimo: O(h+k) nel caso tipico, O(n) nel peggiore e O(h) spazio.",
+      "no_ai": true,
+      "no_internet": true,
+      "timed": true,
+      "solution_after_attempts": 2,
+      "variants": {
+        "python": {
+          "kind": "python",
+          "starter": "class TreeNode:\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = value, left, right\n\ndef kth_smallest(root, k):\n    pass\n",
+          "solution": "class TreeNode:\n\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = (value, left, right)\n\ndef kth_smallest(root, k):\n    stack, node = ([], root)\n    while node or stack:\n        while node:\n            stack.append(node)\n            node = node.left\n        node = stack.pop()\n        k -= 1\n        if k == 0:\n            return node.value\n        node = node.right\n",
+          "tests": [
+            {
+              "name": "ordine non è quello per livelli",
+              "expression": "kth_smallest(TreeNode(5,TreeNode(3,TreeNode(2),TreeNode(4)),TreeNode(7,TreeNode(6),None)),3)",
+              "expected": 4
+            },
+            {
+              "name": "primo",
+              "expression": "kth_smallest(TreeNode(2,None,TreeNode(3)),1)",
+              "expected": 2
+            },
+            {
+              "name": "ultimo",
+              "expression": "kth_smallest(TreeNode(2,TreeNode(1),TreeNode(3)),3)",
+              "expected": 3
+            }
+          ]
+        },
+        "cpp": {
+          "kind": "cpp",
+          "starter": "#include <vector>\nusing namespace std;\nstruct TreeNode { int value; TreeNode* left; TreeNode* right; };\nint kth_smallest(TreeNode* root, int k) {\n    // TODO\n    return {};\n}\n",
+          "solution": "#include <vector>\nusing namespace std;\nstruct TreeNode {\n    int value;\n    TreeNode* left;\n    TreeNode* right;\n};\nint kth_smallest(TreeNode* root, int k) {\n    vector<TreeNode*> stack;\n    auto* node=root;\n    while(node || !stack.empty()) {\n        while(node) {\n            stack.push_back(node);\n            node=node->left;\n        }\n        node=stack.back();\n        stack.pop_back();\n        if(--k==0) return node->value;\n        node=node->right;\n    }\n    return 0;\n}\n",
+          "tests": [
+            {
+              "name": "ordine non è quello per livelli",
+              "assertion": "kth_smallest(new TreeNode{5,new TreeNode{3,new TreeNode{2,nullptr,nullptr},new TreeNode{4,nullptr,nullptr}},new TreeNode{7,new TreeNode{6,nullptr,nullptr},nullptr}},3)==4"
+            },
+            {
+              "name": "primo",
+              "assertion": "kth_smallest(new TreeNode{2,nullptr,new TreeNode{3,nullptr,nullptr}},1)==2"
+            },
+            {
+              "name": "ultimo",
+              "assertion": "kth_smallest(new TreeNode{2,new TreeNode{1,nullptr,nullptr},new TreeNode{3,nullptr,nullptr}},3)==3"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sde-e-build-tree-pre-in",
+      "lesson_id": "sde-l-tree-traversal",
+      "title": "Ricostruire un albero da preorder e inorder",
+      "kind": "python",
+      "difficulty": "medium",
+      "minutes": 30,
+      "xp": 35,
+      "prompt": "**Pattern:** radice del preorder e intervallo inorder.\n\nRicostruisci l'albero binario con valori distinti dato il preorder e l'inorder dello stesso albero. Le due liste hanno uguale lunghezza.",
+      "starter": "class TreeNode:\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = value, left, right\n\ndef build_tree(preorder, inorder):\n    pass\n",
+      "solution": "class TreeNode:\n\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = (value, left, right)\n\ndef build_tree(preorder, inorder):\n    positions = {value: i for i, value in enumerate(inorder)}\n    cursor = 0\n\n    def build(left, right):\n        nonlocal cursor\n        if left == right:\n            return None\n        value = preorder[cursor]\n        cursor += 1\n        root = TreeNode(value)\n        split = positions[value]\n        root.left = build(left, split)\n        root.right = build(split + 1, right)\n        return root\n    return build(0, len(inorder))\n",
+      "tests": [
+        {
+          "name": "radice con due sottoalberi",
+          "expression": "(lambda r:[r.value,r.left.value,r.right.value,r.right.left.value,r.right.right.value])(build_tree([3,9,20,15,7],[9,3,15,20,7]))",
+          "expected": [
+            3,
+            9,
+            20,
+            15,
+            7
+          ]
+        },
+        {
+          "name": "albero vuoto",
+          "expression": "build_tree([],[])",
+          "expected": null
+        },
+        {
+          "name": "solo radice",
+          "expression": "build_tree([5],[5]).value",
+          "expected": 5
+        }
+      ],
+      "hints": [
+        "Il primo valore preorder è la radice del sottoalbero corrente.",
+        "La sua posizione in inorder separa i valori a sinistra e a destra.",
+        "Una mappa evita di ricercare ogni volta la posizione della radice."
+      ],
+      "explanation": "La mappa costa O(n) spazio e ogni valore viene elaborato una volta: O(n) tempo, O(h) stack ricorsivo.",
+      "no_ai": true,
+      "no_internet": true,
+      "timed": true,
+      "solution_after_attempts": 2,
+      "variants": {
+        "python": {
+          "kind": "python",
+          "starter": "class TreeNode:\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = value, left, right\n\ndef build_tree(preorder, inorder):\n    pass\n",
+          "solution": "class TreeNode:\n\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = (value, left, right)\n\ndef build_tree(preorder, inorder):\n    positions = {value: i for i, value in enumerate(inorder)}\n    cursor = 0\n\n    def build(left, right):\n        nonlocal cursor\n        if left == right:\n            return None\n        value = preorder[cursor]\n        cursor += 1\n        root = TreeNode(value)\n        split = positions[value]\n        root.left = build(left, split)\n        root.right = build(split + 1, right)\n        return root\n    return build(0, len(inorder))\n",
+          "tests": [
+            {
+              "name": "radice con due sottoalberi",
+              "expression": "(lambda r:[r.value,r.left.value,r.right.value,r.right.left.value,r.right.right.value])(build_tree([3,9,20,15,7],[9,3,15,20,7]))",
+              "expected": [
+                3,
+                9,
+                20,
+                15,
+                7
+              ]
+            },
+            {
+              "name": "albero vuoto",
+              "expression": "build_tree([],[])",
+              "expected": null
+            },
+            {
+              "name": "solo radice",
+              "expression": "build_tree([5],[5]).value",
+              "expected": 5
+            }
+          ]
+        },
+        "cpp": {
+          "kind": "cpp",
+          "starter": "#include <unordered_map>\n#include <vector>\nusing namespace std;\nstruct TreeNode { int value; TreeNode* left; TreeNode* right; };\nTreeNode* build_tree(const vector<int>& preorder, const vector<int>& inorder) {\n    // TODO\n    return {};\n}\n",
+          "solution": "#include <unordered_map>\n#include <vector>\nusing namespace std;\nstruct TreeNode {\n    int value;\n    TreeNode* left;\n    TreeNode* right;\n};\nTreeNode* build_tree(const vector<int>& preorder, const vector<int>& inorder) {\n    unordered_map<int,int> position;\n    for(int i=0;i<(int)inorder.size();++i) position[inorder[i]]=i;\n    int cursor=0;\n    auto build = [&](auto&& self,int left,int right)->TreeNode* {\n        if(left==right) return nullptr;\n        int value=preorder[cursor++], split=position[value];\n        auto* root=new TreeNode {\n            value,nullptr,nullptr\n        };\n        root->left=self(self,left,split);\n        root->right=self(self,split+1,right);\n        return root;\n    };\n    return build(build,0,inorder.size());\n}\n",
+          "tests": [
+            {
+              "name": "radice con due sottoalberi",
+              "assertion": "[](){auto* r=build_tree({3,9,20,15,7},{9,3,15,20,7});return r->value==3&&r->left->value==9&&r->right->value==20&&r->right->left->value==15&&r->right->right->value==7;}()"
+            },
+            {
+              "name": "albero vuoto",
+              "assertion": "build_tree({}, {})==nullptr"
+            },
+            {
+              "name": "solo radice",
+              "assertion": "build_tree({5},{5})->value==5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sde-e-serialize-tree",
+      "lesson_id": "sde-l-tree-traversal",
+      "title": "Serializzare e ricostruire un albero",
+      "kind": "python",
+      "difficulty": "hard",
+      "minutes": 35,
+      "xp": 50,
+      "prompt": "**Pattern:** BFS con marcatori espliciti dei nodi nulli.\n\nImplementa una serializzazione BFS reversibile: valori interi separati da virgole, `#` per i figli nulli e rimozione dei marcatori nulli finali. La stringa vuota rappresenta l'albero vuoto.",
+      "starter": "class TreeNode:\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = value, left, right\n\ndef serialize_tree(root):\n    pass\n\ndef deserialize_tree(data):\n    pass\n",
+      "solution": "class TreeNode:\n\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = (value, left, right)\nfrom collections import deque\n\ndef serialize_tree(root):\n    if root is None:\n        return ''\n    tokens, queue = ([], deque([root]))\n    while queue:\n        node = queue.popleft()\n        if node is None:\n            tokens.append('#')\n        else:\n            tokens.append(str(node.value))\n            queue.append(node.left)\n            queue.append(node.right)\n    while tokens and tokens[-1] == '#':\n        tokens.pop()\n    return ','.join(tokens)\n\ndef deserialize_tree(data):\n    if not data:\n        return None\n    tokens = data.split(',')\n    root = TreeNode(int(tokens[0]))\n    queue, index = (deque([root]), 1)\n    while queue and index < len(tokens):\n        node = queue.popleft()\n        if index < len(tokens) and tokens[index] != '#':\n            node.left = TreeNode(int(tokens[index]))\n            queue.append(node.left)\n        index += 1\n        if index < len(tokens) and tokens[index] != '#':\n            node.right = TreeNode(int(tokens[index]))\n            queue.append(node.right)\n        index += 1\n    return root\n",
+      "tests": [
+        {
+          "name": "round trip con figlio sinistro",
+          "expression": "serialize_tree(deserialize_tree(serialize_tree(TreeNode(1,TreeNode(2),None))))",
+          "expected": "1,2"
+        },
+        {
+          "name": "ramo destro e valore negativo",
+          "expression": "serialize_tree(deserialize_tree(\"-1,#,2\"))",
+          "expected": "-1,#,2"
+        },
+        {
+          "name": "albero vuoto",
+          "expression": "serialize_tree(deserialize_tree(\"\"))",
+          "expected": ""
+        }
+      ],
+      "hints": [
+        "Il marcatore `#` distingue un figlio assente da un nodo con valore sentinella.",
+        "Consuma i token nello stesso ordine FIFO usato per serializzarli.",
+        "Dopo aver eliminato i null finali, i figli mancanti alla fine sono implicitamente nulli."
+      ],
+      "explanation": "La BFS visita ogni nodo e marcatore al massimo una volta: O(n) tempo e O(n) spazio per coda e stringa.",
+      "no_ai": true,
+      "no_internet": true,
+      "timed": true,
+      "solution_after_attempts": 2,
+      "variants": {
+        "python": {
+          "kind": "python",
+          "starter": "class TreeNode:\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = value, left, right\n\ndef serialize_tree(root):\n    pass\n\ndef deserialize_tree(data):\n    pass\n",
+          "solution": "class TreeNode:\n\n    def __init__(self, value=0, left=None, right=None):\n        self.value, self.left, self.right = (value, left, right)\nfrom collections import deque\n\ndef serialize_tree(root):\n    if root is None:\n        return ''\n    tokens, queue = ([], deque([root]))\n    while queue:\n        node = queue.popleft()\n        if node is None:\n            tokens.append('#')\n        else:\n            tokens.append(str(node.value))\n            queue.append(node.left)\n            queue.append(node.right)\n    while tokens and tokens[-1] == '#':\n        tokens.pop()\n    return ','.join(tokens)\n\ndef deserialize_tree(data):\n    if not data:\n        return None\n    tokens = data.split(',')\n    root = TreeNode(int(tokens[0]))\n    queue, index = (deque([root]), 1)\n    while queue and index < len(tokens):\n        node = queue.popleft()\n        if index < len(tokens) and tokens[index] != '#':\n            node.left = TreeNode(int(tokens[index]))\n            queue.append(node.left)\n        index += 1\n        if index < len(tokens) and tokens[index] != '#':\n            node.right = TreeNode(int(tokens[index]))\n            queue.append(node.right)\n        index += 1\n    return root\n",
+          "tests": [
+            {
+              "name": "round trip con figlio sinistro",
+              "expression": "serialize_tree(deserialize_tree(serialize_tree(TreeNode(1,TreeNode(2),None))))",
+              "expected": "1,2"
+            },
+            {
+              "name": "ramo destro e valore negativo",
+              "expression": "serialize_tree(deserialize_tree(\"-1,#,2\"))",
+              "expected": "-1,#,2"
+            },
+            {
+              "name": "albero vuoto",
+              "expression": "serialize_tree(deserialize_tree(\"\"))",
+              "expected": ""
+            }
+          ]
+        },
+        "cpp": {
+          "kind": "cpp",
+          "starter": "#include <string>\nusing namespace std;\nstruct TreeNode { int value; TreeNode* left; TreeNode* right; };\nstring serialize_tree(const TreeNode* root) {\n    // TODO\n    return {};\n}\nTreeNode* deserialize_tree(const string& data) {\n    // TODO\n    return nullptr;\n}\n",
+          "solution": "#include <queue>\n#include <sstream>\n#include <string>\n#include <vector>\nusing namespace std;\nstruct TreeNode {\n    int value;\n    TreeNode* left;\n    TreeNode* right;\n};\nstring serialize_tree(const TreeNode* root) {\n    if(!root) return \"\";\n    queue<const TreeNode*> q;\n    q.push(root);\n    vector<string> tokens;\n    while(!q.empty()) {\n        auto* node=q.front();\n        q.pop();\n        if(!node) tokens.push_back(\"#\");\n        else {\n            tokens.push_back(to_string(node->value));\n            q.push(node->left);\n            q.push(node->right);\n        }\n    }\n    while(!tokens.empty()&&tokens.back()==\"#\") tokens.pop_back();\n    string out;\n    for(const auto& token:tokens) {\n        if(!out.empty()) out+=\",\";\n        out+=token;\n    }\n    return out;\n}\nTreeNode* deserialize_tree(const string& data) {\n    if(data.empty()) return nullptr;\n    stringstream stream(data);\n    string token;\n    vector<string> tokens;\n    while(getline(stream,token,',')) tokens.push_back(token);\n    auto* root=new TreeNode {\n        stoi(tokens[0]),nullptr,nullptr\n    };\n    queue<TreeNode*> q;\n    q.push(root);\n    size_t i=1;\n    while(!q.empty()&&i<tokens.size()) {\n        auto* node=q.front();\n        q.pop();\n        if(i<tokens.size()&&tokens[i]!=\"#\") {\n            node->left=new TreeNode {\n                stoi(tokens[i]),nullptr,nullptr\n            };\n            q.push(node->left);\n        }\n        ++i;\n        if(i<tokens.size()&&tokens[i]!=\"#\") {\n            node->right=new TreeNode {\n                stoi(tokens[i]),nullptr,nullptr\n            };\n            q.push(node->right);\n        }\n        ++i;\n    }\n    return root;\n}\n",
+          "tests": [
+            {
+              "name": "round trip con figlio sinistro",
+              "assertion": "serialize_tree(deserialize_tree(serialize_tree(new TreeNode{1,new TreeNode{2,nullptr,nullptr},nullptr})))==\"1,2\""
+            },
+            {
+              "name": "ramo destro e valore negativo",
+              "assertion": "serialize_tree(deserialize_tree(\"-1,#,2\"))==\"-1,#,2\""
+            },
+            {
+              "name": "albero vuoto",
+              "assertion": "serialize_tree(deserialize_tree(\"\")).empty()"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sde-e-median-stream",
+      "lesson_id": "sde-l-heap",
+      "title": "Mediana di uno stream",
+      "kind": "python",
+      "difficulty": "hard",
+      "minutes": 35,
+      "xp": 50,
+      "prompt": "**Pattern:** due heap bilanciati.\n\nSupporta inserimento di numeri interi e lettura della mediana dopo ogni inserimento. Se il numero di valori è pari, restituisci la media dei due centrali; lo stream usato dal wrapper non è vuoto.",
+      "starter": "import heapq\n\nclass MedianFinder:\n    def __init__(self):\n        self.lower = []\n        self.upper = []\n    def add_number(self, value):\n        pass\n    def median(self):\n        return 0.0\n\ndef running_medians(values):\n    finder = MedianFinder()\n    result = []\n    for value in values:\n        finder.add_number(value)\n        result.append(finder.median())\n    return result\n",
+      "solution": "import heapq\n\nclass MedianFinder:\n\n    def __init__(self):\n        self.lower, self.upper = ([], [])\n\n    def add_number(self, value):\n        if not self.lower or value <= -self.lower[0]:\n            heapq.heappush(self.lower, -value)\n        else:\n            heapq.heappush(self.upper, value)\n        if len(self.lower) > len(self.upper) + 1:\n            heapq.heappush(self.upper, -heapq.heappop(self.lower))\n        elif len(self.upper) > len(self.lower):\n            heapq.heappush(self.lower, -heapq.heappop(self.upper))\n\n    def median(self):\n        if len(self.lower) > len(self.upper):\n            return float(-self.lower[0])\n        return (-self.lower[0] + self.upper[0]) / 2.0\n\ndef running_medians(values):\n    finder, result = (MedianFinder(), [])\n    for value in values:\n        finder.add_number(value)\n        result.append(finder.median())\n    return result\n",
+      "tests": [
+        {
+          "name": "passaggio dispari-pari",
+          "expression": "running_medians([5,1,9,3])",
+          "expected": [
+            5.0,
+            3.0,
+            5.0,
+            4.0
+          ]
+        },
+        {
+          "name": "valori negativi e ripetuti",
+          "expression": "running_medians([-2,-2,4])",
+          "expected": [
+            -2.0,
+            -2.0,
+            -2.0
+          ]
+        },
+        {
+          "name": "un valore",
+          "expression": "running_medians([7])",
+          "expected": [
+            7.0
+          ]
+        }
+      ],
+      "hints": [
+        "`lower` contiene la metà bassa come max-heap; `upper` contiene la metà alta come min-heap.",
+        "Mantieni le dimensioni uguali o con un elemento in più in `lower`.",
+        "Il massimo di lower non deve superare il minimo di upper."
+      ],
+      "explanation": "Ogni inserimento costa O(log n); leggere la mediana costa O(1). I due heap conservano O(n) valori.",
+      "no_ai": true,
+      "no_internet": true,
+      "timed": true,
+      "solution_after_attempts": 2,
+      "variants": {
+        "python": {
+          "kind": "python",
+          "starter": "import heapq\n\nclass MedianFinder:\n    def __init__(self):\n        self.lower = []\n        self.upper = []\n    def add_number(self, value):\n        pass\n    def median(self):\n        return 0.0\n\ndef running_medians(values):\n    finder = MedianFinder()\n    result = []\n    for value in values:\n        finder.add_number(value)\n        result.append(finder.median())\n    return result\n",
+          "solution": "import heapq\n\nclass MedianFinder:\n\n    def __init__(self):\n        self.lower, self.upper = ([], [])\n\n    def add_number(self, value):\n        if not self.lower or value <= -self.lower[0]:\n            heapq.heappush(self.lower, -value)\n        else:\n            heapq.heappush(self.upper, value)\n        if len(self.lower) > len(self.upper) + 1:\n            heapq.heappush(self.upper, -heapq.heappop(self.lower))\n        elif len(self.upper) > len(self.lower):\n            heapq.heappush(self.lower, -heapq.heappop(self.upper))\n\n    def median(self):\n        if len(self.lower) > len(self.upper):\n            return float(-self.lower[0])\n        return (-self.lower[0] + self.upper[0]) / 2.0\n\ndef running_medians(values):\n    finder, result = (MedianFinder(), [])\n    for value in values:\n        finder.add_number(value)\n        result.append(finder.median())\n    return result\n",
+          "tests": [
+            {
+              "name": "passaggio dispari-pari",
+              "expression": "running_medians([5,1,9,3])",
+              "expected": [
+                5.0,
+                3.0,
+                5.0,
+                4.0
+              ]
+            },
+            {
+              "name": "valori negativi e ripetuti",
+              "expression": "running_medians([-2,-2,4])",
+              "expected": [
+                -2.0,
+                -2.0,
+                -2.0
+              ]
+            },
+            {
+              "name": "un valore",
+              "expression": "running_medians([7])",
+              "expected": [
+                7.0
+              ]
+            }
+          ]
+        },
+        "cpp": {
+          "kind": "cpp",
+          "starter": "#include <functional>\n#include <queue>\n#include <vector>\nusing namespace std;\nclass MedianFinder {\n    priority_queue<int> lower;\n    priority_queue<int, vector<int>, greater<int>> upper;\npublic:\n    void add_number(int value) {}\n    double median() const { return 0.0; }\n};\nvector<double> running_medians(const vector<int>& values) {\n    MedianFinder finder; vector<double> result; for (int value : values) { finder.add_number(value); result.push_back(finder.median()); } return result;\n}\n",
+          "solution": "#include <functional>\n#include <queue>\n#include <vector>\nusing namespace std;\nclass MedianFinder {\n    priority_queue<int> lower;\n    priority_queue<int,vector<int>,greater<int>> upper;\n    public: void add_number(int value) {\n        if(lower.empty()||value<=lower.top()) lower.push(value);\n        else upper.push(value);\n        if(lower.size()>upper.size()+1) {\n            upper.push(lower.top());\n            lower.pop();\n        }\n        else if(upper.size()>lower.size()) {\n            lower.push(upper.top());\n            upper.pop();\n        }\n    }\n    double median() const {\n        if(lower.size()>upper.size()) return lower.top();\n        return (static_cast<double>(lower.top())+upper.top())/2.0;\n    }\n};\nvector<double> running_medians(const vector<int>& values) {\n    MedianFinder finder;\n    vector<double> result;\n    for(int value:values) {\n        finder.add_number(value);\n        result.push_back(finder.median());\n    }\n    return result;\n}\n",
+          "tests": [
+            {
+              "name": "passaggio dispari-pari",
+              "assertion": "running_medians({5,1,9,3})==vector<double>({5,3,5,4})"
+            },
+            {
+              "name": "valori negativi e ripetuti",
+              "assertion": "running_medians({-2,-2,4})==vector<double>({-2,-2,-2})"
+            },
+            {
+              "name": "un valore",
+              "assertion": "running_medians({7})==vector<double>({7})"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sde-e-pacific-atlantic",
+      "lesson_id": "sde-l-bfs-dfs-grid",
+      "title": "Celle che raggiungono entrambi gli oceani",
+      "kind": "python",
+      "difficulty": "medium",
+      "minutes": 35,
+      "xp": 35,
+      "prompt": "**Pattern:** BFS inversa dai bordi.\n\nData una matrice rettangolare di altezze positive, restituisci in ordine lessicografico le coordinate da cui l'acqua può scorrere verso entrambi i bordi: nord/ovest e sud/est. L'acqua scorre verso una cella ad altezza minore o uguale.",
+      "starter": "def pacific_atlantic(heights):\n    pass\n",
+      "solution": "from collections import deque\n\ndef pacific_atlantic(heights):\n    if not heights or not heights[0]:\n        return []\n    rows, cols = (len(heights), len(heights[0]))\n\n    def reachable(starts):\n        seen, queue = (set(starts), deque(starts))\n        while queue:\n            r, c = queue.popleft()\n            for nr, nc in ((r - 1, c), (r + 1, c), (r, c - 1), (r, c + 1)):\n                if 0 <= nr < rows and 0 <= nc < cols and ((nr, nc) not in seen) and (heights[nr][nc] >= heights[r][c]):\n                    seen.add((nr, nc))\n                    queue.append((nr, nc))\n        return seen\n    pacific = [(0, c) for c in range(cols)] + [(r, 0) for r in range(rows)]\n    atlantic = [(rows - 1, c) for c in range(cols)] + [(r, cols - 1) for r in range(rows)]\n    return [list(cell) for cell in sorted(reachable(pacific) & reachable(atlantic))]\n",
+      "tests": [
+        {
+          "name": "altopiano centrale e salite inverse",
+          "expression": "pacific_atlantic([[1,2,2],[3,2,3],[2,4,5]])",
+          "expected": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        {
+          "name": "una cella",
+          "expression": "pacific_atlantic([[7]])",
+          "expected": [
+            [
+              0,
+              0
+            ]
+          ]
+        },
+        {
+          "name": "matrice vuota",
+          "expression": "pacific_atlantic([])",
+          "expected": []
+        }
+      ],
+      "hints": [
+        "Parti dai bordi e percorri la matrice al contrario: puoi salire o restare alla stessa altezza.",
+        "Esegui una visita per ciascun oceano e interseca le celle raggiungibili.",
+        "L'ordinamento finale rende l'output deterministico."
+      ],
+      "explanation": "Ogni cella entra una volta per ciascuna visita: O(RC) tempo e O(RC) spazio.",
+      "no_ai": true,
+      "no_internet": true,
+      "timed": true,
+      "solution_after_attempts": 2,
+      "variants": {
+        "python": {
+          "kind": "python",
+          "starter": "def pacific_atlantic(heights):\n    pass\n",
+          "solution": "from collections import deque\n\ndef pacific_atlantic(heights):\n    if not heights or not heights[0]:\n        return []\n    rows, cols = (len(heights), len(heights[0]))\n\n    def reachable(starts):\n        seen, queue = (set(starts), deque(starts))\n        while queue:\n            r, c = queue.popleft()\n            for nr, nc in ((r - 1, c), (r + 1, c), (r, c - 1), (r, c + 1)):\n                if 0 <= nr < rows and 0 <= nc < cols and ((nr, nc) not in seen) and (heights[nr][nc] >= heights[r][c]):\n                    seen.add((nr, nc))\n                    queue.append((nr, nc))\n        return seen\n    pacific = [(0, c) for c in range(cols)] + [(r, 0) for r in range(rows)]\n    atlantic = [(rows - 1, c) for c in range(cols)] + [(r, cols - 1) for r in range(rows)]\n    return [list(cell) for cell in sorted(reachable(pacific) & reachable(atlantic))]\n",
+          "tests": [
+            {
+              "name": "altopiano centrale e salite inverse",
+              "expression": "pacific_atlantic([[1,2,2],[3,2,3],[2,4,5]])",
+              "expected": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  2
+                ],
+                [
+                  1,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  0
+                ],
+                [
+                  2,
+                  1
+                ],
+                [
+                  2,
+                  2
+                ]
+              ]
+            },
+            {
+              "name": "una cella",
+              "expression": "pacific_atlantic([[7]])",
+              "expected": [
+                [
+                  0,
+                  0
+                ]
+              ]
+            },
+            {
+              "name": "matrice vuota",
+              "expression": "pacific_atlantic([])",
+              "expected": []
+            }
+          ]
+        },
+        "cpp": {
+          "kind": "cpp",
+          "starter": "#include <algorithm>\n#include <queue>\n#include <set>\n#include <vector>\nusing namespace std;\nvector<vector<int>> pacific_atlantic(const vector<vector<int>>& heights) {\n    // TODO\n}\n",
+          "solution": "#include <algorithm>\n#include <queue>\n#include <set>\n#include <vector>\nusing namespace std;\nvector<vector<int>> pacific_atlantic(const vector<vector<int>>& heights) {\n    if(heights.empty()||heights[0].empty()) return {\n    };\n    int rows=heights.size(),cols=heights[0].size();\n    auto reachable=[&](vector<pair<int,int>> starts) {\n        set<pair<int,int>> seen(starts.begin(),starts.end());\n        queue<pair<int,int>> q;\n        for(auto p:starts) q.push(p);\n        int dr[4]= {\n            -1,1,0,0\n        }\n        ,dc[4]= {\n            0,0,-1,1\n        };\n        while(!q.empty()) {\n            auto [r,c]=q.front();\n            q.pop();\n            for(int d=0;d<4;++d) {\n                int nr=r+dr[d],nc=c+dc[d];\n                if(nr>=0&&nr<rows&&nc>=0&&nc<cols&&heights[nr][nc]>=heights[r][c]&&!seen.count( {\n                    nr,nc\n                }\n                )) {\n                    seen.insert( {\n                        nr,nc\n                    }\n                    );\n                    q.push( {\n                        nr,nc\n                    }\n                    );\n                }\n            }\n        }\n        return seen;\n    };\n    vector<pair<int,int>> p,a;\n    for(int c=0;c<cols;++c) {\n        p.push_back( {\n            0,c\n        }\n        );\n        a.push_back( {\n            rows-1,c\n        }\n        );\n    }\n    for(int r=0;r<rows;++r) {\n        p.push_back( {\n            r,0\n        }\n        );\n        a.push_back( {\n            r,cols-1\n        }\n        );\n    }\n    auto ps=reachable(p), as=reachable(a);\n    vector<vector<int>> result;\n    for(auto cell:ps) if(as.count(cell)) result.push_back( {\n        cell.first,cell.second\n    }\n    );\n    sort(result.begin(),result.end());\n    return result;\n}\n",
+          "tests": [
+            {
+              "name": "altopiano centrale e salite inverse",
+              "assertion": "pacific_atlantic({{1,2,2},{3,2,3},{2,4,5}})==vector<vector<int>>({{0,1},{0,2},{1,0},{1,1},{1,2},{2,0},{2,1},{2,2}})"
+            },
+            {
+              "name": "una cella",
+              "assertion": "pacific_atlantic({{7}})==vector<vector<int>>({{0,0}})"
+            },
+            {
+              "name": "matrice vuota",
+              "assertion": "pacific_atlantic({}).empty()"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sde-e-valid-tree",
+      "lesson_id": "sde-l-graphs",
+      "title": "Verificare se gli archi formano un albero",
+      "kind": "python",
+      "difficulty": "medium",
+      "minutes": 25,
+      "xp": 35,
+      "prompt": "**Pattern:** n-1 archi e visita connessa.\n\nIl grafo non orientato ha n nodi numerati da 0 a n-1 e può contenere archi duplicati. Restituisci true se è connesso e privo di cicli; n è almeno 1.",
+      "starter": "def valid_tree(n, edges):\n    pass\n",
+      "solution": "from collections import deque\n\ndef valid_tree(n, edges):\n    if len(edges) != n - 1:\n        return False\n    graph = [[] for _ in range(n)]\n    for a, b in edges:\n        graph[a].append(b)\n        graph[b].append(a)\n    seen, queue = ({0}, deque([0]))\n    while queue:\n        node = queue.popleft()\n        for neighbor in graph[node]:\n            if neighbor not in seen:\n                seen.add(neighbor)\n                queue.append(neighbor)\n    return len(seen) == n\n",
+      "tests": [
+        {
+          "name": "albero con ramificazione",
+          "expression": "valid_tree(5,[[0,1],[0,2],[0,3],[1,4]])",
+          "expected": true
+        },
+        {
+          "name": "ciclo più nodo isolato",
+          "expression": "valid_tree(4,[[0,1],[1,2],[2,0]])",
+          "expected": false
+        },
+        {
+          "name": "un nodo senza archi",
+          "expression": "valid_tree(1,[])",
+          "expected": true
+        }
+      ],
+      "hints": [
+        "Un albero connesso su n nodi ha esattamente n-1 archi.",
+        "Il conteggio degli archi da solo non basta: controlla che tutti i nodi siano raggiungibili.",
+        "In un grafo non orientato, n-1 archi e connessione implicano assenza di cicli."
+      ],
+      "explanation": "La costruzione delle adiacenze e BFS costano O(n+m) tempo e spazio; qui m deve essere n-1.",
+      "no_ai": true,
+      "no_internet": true,
+      "timed": true,
+      "solution_after_attempts": 2,
+      "variants": {
+        "python": {
+          "kind": "python",
+          "starter": "def valid_tree(n, edges):\n    pass\n",
+          "solution": "from collections import deque\n\ndef valid_tree(n, edges):\n    if len(edges) != n - 1:\n        return False\n    graph = [[] for _ in range(n)]\n    for a, b in edges:\n        graph[a].append(b)\n        graph[b].append(a)\n    seen, queue = ({0}, deque([0]))\n    while queue:\n        node = queue.popleft()\n        for neighbor in graph[node]:\n            if neighbor not in seen:\n                seen.add(neighbor)\n                queue.append(neighbor)\n    return len(seen) == n\n",
+          "tests": [
+            {
+              "name": "albero con ramificazione",
+              "expression": "valid_tree(5,[[0,1],[0,2],[0,3],[1,4]])",
+              "expected": true
+            },
+            {
+              "name": "ciclo più nodo isolato",
+              "expression": "valid_tree(4,[[0,1],[1,2],[2,0]])",
+              "expected": false
+            },
+            {
+              "name": "un nodo senza archi",
+              "expression": "valid_tree(1,[])",
+              "expected": true
+            }
+          ]
+        },
+        "cpp": {
+          "kind": "cpp",
+          "starter": "#include <queue>\n#include <vector>\nusing namespace std;\nbool valid_tree(int n,const vector<vector<int>>& edges) {\n    // TODO\n}\n",
+          "solution": "#include <queue>\n#include <vector>\nusing namespace std;\nbool valid_tree(int n,const vector<vector<int>>& edges) {\n    if((int)edges.size()!=n-1) return false;\n    vector<vector<int>> graph(n);\n    for(const auto& edge:edges) {\n        graph[edge[0]].push_back(edge[1]);\n        graph[edge[1]].push_back(edge[0]);\n    }\n    vector<bool> seen(n,false);\n    queue<int> q;\n    q.push(0);\n    seen[0]=true;\n    int count=0;\n    while(!q.empty()) {\n        int node=q.front();\n        q.pop();\n        ++count;\n        for(int next:graph[node]) if(!seen[next]) {\n            seen[next]=true;\n            q.push(next);\n        }\n    }\n    return count==n;\n}\n",
+          "tests": [
+            {
+              "name": "albero con ramificazione",
+              "assertion": "valid_tree(5,{{0,1},{0,2},{0,3},{1,4}})"
+            },
+            {
+              "name": "ciclo più nodo isolato",
+              "assertion": "!valid_tree(4,{{0,1},{1,2},{2,0}})"
+            },
+            {
+              "name": "un nodo senza archi",
+              "assertion": "valid_tree(1,{})"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sde-e-trie",
+      "lesson_id": "sde-l-trie",
+      "title": "Implementare ricerca di parole e prefissi con una Trie",
+      "kind": "python",
+      "difficulty": "medium",
+      "minutes": 30,
+      "xp": 35,
+      "prompt": "**Pattern:** albero di prefissi e flag terminale.\n\nImplementa `insert`, `search` per la parola esatta e `starts_with` per un prefisso. Le parole contengono lettere minuscole; una stringa vuota è un prefisso valido.",
+      "starter": "class TrieNode:\n    def __init__(self):\n        self.children = {}\n        self.terminal = False\n\nclass Trie:\n    def __init__(self):\n        self.root = TrieNode()\n    def insert(self, word):\n        pass\n    def search(self, word):\n        return False\n    def starts_with(self, prefix):\n        return False\n\ndef trie_probe(words, exact_queries, prefix_queries):\n    trie = Trie()\n    for word in words:\n        trie.insert(word)\n    return [[trie.search(word) for word in exact_queries], [trie.starts_with(prefix) for prefix in prefix_queries]]\n",
+      "solution": "class TrieNode:\n\n    def __init__(self):\n        self.children, self.terminal = ({}, False)\n\nclass Trie:\n\n    def __init__(self):\n        self.root = TrieNode()\n\n    def insert(self, word):\n        node = self.root\n        for char in word:\n            node = node.children.setdefault(char, TrieNode())\n        node.terminal = True\n\n    def search(self, word):\n        node = self.root\n        for char in word:\n            if char not in node.children:\n                return False\n            node = node.children[char]\n        return node.terminal\n\n    def starts_with(self, prefix):\n        node = self.root\n        for char in prefix:\n            if char not in node.children:\n                return False\n            node = node.children[char]\n        return True\n\ndef trie_probe(words, exact_queries, prefix_queries):\n    trie = Trie()\n    for word in words:\n        trie.insert(word)\n    return [[trie.search(word) for word in exact_queries], [trie.starts_with(prefix) for prefix in prefix_queries]]\n",
+      "tests": [
+        {
+          "name": "parola e prefisso",
+          "expression": "trie_probe(['cat','car','dog'],['cat','ca','cab','dog'],['ca','do','z',''])",
+          "expected": [
+            [
+              true,
+              false,
+              false,
+              true
+            ],
+            [
+              true,
+              true,
+              false,
+              true
+            ]
+          ]
+        },
+        {
+          "name": "parola vuota inserita",
+          "expression": "trie_probe([''],['','a'],[''])",
+          "expected": [
+            [
+              true,
+              false
+            ],
+            [
+              true
+            ]
+          ]
+        }
+      ],
+      "hints": [
+        "Ogni arco aggiunge un carattere e ogni nodo rappresenta il prefisso raggiunto.",
+        "Arrivare al nodo non prova che la parola esista: la ricerca esatta controlla anche terminal.",
+        "Per un prefisso basta che il percorso esista; la stringa vuota raggiunge la radice."
+      ],
+      "explanation": "Inserimento e ricerca visitano O(L) archi per parola lunga L; lo spazio è proporzionale ai nodi creati.",
+      "no_ai": true,
+      "no_internet": true,
+      "timed": true,
+      "solution_after_attempts": 2,
+      "variants": {
+        "python": {
+          "kind": "python",
+          "starter": "class TrieNode:\n    def __init__(self):\n        self.children = {}\n        self.terminal = False\n\nclass Trie:\n    def __init__(self):\n        self.root = TrieNode()\n    def insert(self, word):\n        pass\n    def search(self, word):\n        return False\n    def starts_with(self, prefix):\n        return False\n\ndef trie_probe(words, exact_queries, prefix_queries):\n    trie = Trie()\n    for word in words:\n        trie.insert(word)\n    return [[trie.search(word) for word in exact_queries], [trie.starts_with(prefix) for prefix in prefix_queries]]\n",
+          "solution": "class TrieNode:\n\n    def __init__(self):\n        self.children, self.terminal = ({}, False)\n\nclass Trie:\n\n    def __init__(self):\n        self.root = TrieNode()\n\n    def insert(self, word):\n        node = self.root\n        for char in word:\n            node = node.children.setdefault(char, TrieNode())\n        node.terminal = True\n\n    def search(self, word):\n        node = self.root\n        for char in word:\n            if char not in node.children:\n                return False\n            node = node.children[char]\n        return node.terminal\n\n    def starts_with(self, prefix):\n        node = self.root\n        for char in prefix:\n            if char not in node.children:\n                return False\n            node = node.children[char]\n        return True\n\ndef trie_probe(words, exact_queries, prefix_queries):\n    trie = Trie()\n    for word in words:\n        trie.insert(word)\n    return [[trie.search(word) for word in exact_queries], [trie.starts_with(prefix) for prefix in prefix_queries]]\n",
+          "tests": [
+            {
+              "name": "parola e prefisso",
+              "expression": "trie_probe(['cat','car','dog'],['cat','ca','cab','dog'],['ca','do','z',''])",
+              "expected": [
+                [
+                  true,
+                  false,
+                  false,
+                  true
+                ],
+                [
+                  true,
+                  true,
+                  false,
+                  true
+                ]
+              ]
+            },
+            {
+              "name": "parola vuota inserita",
+              "expression": "trie_probe([''],['','a'],[''])",
+              "expected": [
+                [
+                  true,
+                  false
+                ],
+                [
+                  true
+                ]
+              ]
+            }
+          ]
+        },
+        "cpp": {
+          "kind": "cpp",
+          "starter": "#include <string>\n#include <unordered_map>\n#include <vector>\nusing namespace std;\nclass Trie {\n    struct Node { unordered_map<char, int> children; bool terminal = false; };\n    vector<Node> nodes{1};\npublic:\n    void insert(const string& word) {}\n    bool search(const string& word) const { return false; }\n    bool starts_with(const string& prefix) const { return false; }\n};\nvector<vector<bool>> trie_probe(const vector<string>& words, const vector<string>& exact_queries, const vector<string>& prefix_queries) {\n    Trie trie; for (const auto& word : words) trie.insert(word);\n    vector<bool> exact, prefixes; for (const auto& word : exact_queries) exact.push_back(trie.search(word));\n    for (const auto& prefix : prefix_queries) prefixes.push_back(trie.starts_with(prefix));\n    return {exact, prefixes};\n}\n",
+          "solution": "#include <string>\n#include <unordered_map>\n#include <vector>\nusing namespace std;\nclass Trie {\n    struct Node {\n        unordered_map<char,int> children;\n        bool terminal=false;\n    };\n    vector<Node> nodes {\n        1\n    };\n    public: void insert(const string& word) {\n        int node=0;\n        for(char c:word) {\n            auto it=nodes[node].children.find(c);\n            if(it==nodes[node].children.end()) {\n                int child=nodes.size();\n                nodes[node].children[c]=child;\n                nodes.emplace_back();\n                node=child;\n            }\n            else node=it->second;\n        }\n        nodes[node].terminal=true;\n    }\n    bool search(const string& word) const {\n        int node=0;\n        for(char c:word) {\n            auto it=nodes[node].children.find(c);\n            if(it==nodes[node].children.end()) return false;\n            node=it->second;\n        }\n        return nodes[node].terminal;\n    }\n    bool starts_with(const string& prefix) const {\n        int node=0;\n        for(char c:prefix) {\n            auto it=nodes[node].children.find(c);\n            if(it==nodes[node].children.end()) return false;\n            node=it->second;\n        }\n        return true;\n    }\n};\nvector<vector<bool>> trie_probe(const vector<string>& words,const vector<string>& exact_queries,const vector<string>& prefix_queries) {\n    Trie trie;\n    for(const auto& word:words) trie.insert(word);\n    vector<bool> exact,prefixes;\n    for(const auto& word:exact_queries) exact.push_back(trie.search(word));\n    for(const auto& prefix:prefix_queries) prefixes.push_back(trie.starts_with(prefix));\n    return {\n        exact,prefixes\n    };\n}\n",
+          "tests": [
+            {
+              "name": "parola e prefisso",
+              "assertion": "trie_probe({\"cat\",\"car\",\"dog\"},{\"cat\",\"ca\",\"cab\",\"dog\"},{\"ca\",\"do\",\"z\",\"\"})==vector<vector<bool>>({{true,false,false,true},{true,true,false,true}})"
+            },
+            {
+              "name": "parola vuota inserita",
+              "assertion": "trie_probe({\"\"},{\"\",\"a\"},{\"\"})==vector<vector<bool>>({{true,false},{true}})"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sde-e-trie-wildcard",
+      "lesson_id": "sde-l-trie",
+      "title": "Cercare parole con caratteri wildcard",
+      "kind": "python",
+      "difficulty": "medium",
+      "minutes": 30,
+      "xp": 35,
+      "prompt": "**Pattern:** Trie e backtracking nei rami wildcard.\n\nAggiungi parole a un dizionario e cerca pattern in cui `.` corrisponde a una singola lettera minuscola. La corrispondenza deve arrivare a una parola completa.",
+      "starter": "class TrieNode:\n    def __init__(self):\n        self.children = {}\n        self.terminal = False\n\nclass WordDictionary:\n    def __init__(self):\n        self.root = TrieNode()\n    def add_word(self, word):\n        pass\n    def search(self, pattern):\n        return False\n\ndef wildcard_probe(words, patterns):\n    trie = WordDictionary()\n    for word in words:\n        trie.add_word(word)\n    return [trie.search(pattern) for pattern in patterns]\n",
+      "solution": "class TrieNode:\n\n    def __init__(self):\n        self.children, self.terminal = ({}, False)\n\nclass WordDictionary:\n\n    def __init__(self):\n        self.root = TrieNode()\n\n    def add_word(self, word):\n        node = self.root\n        for char in word:\n            node = node.children.setdefault(char, TrieNode())\n        node.terminal = True\n\n    def search(self, pattern):\n\n        def visit(node, index):\n            if index == len(pattern):\n                return node.terminal\n            char = pattern[index]\n            if char != '.':\n                return char in node.children and visit(node.children[char], index + 1)\n            return any((visit(child, index + 1) for child in node.children.values()))\n        return visit(self.root, 0)\n\ndef wildcard_probe(words, patterns):\n    dictionary = WordDictionary()\n    for word in words:\n        dictionary.add_word(word)\n    return [dictionary.search(pattern) for pattern in patterns]\n",
+      "tests": [
+        {
+          "name": "wildcard, lunghezza e terminale",
+          "expression": "wildcard_probe(['bad','dad','mad'],['pad','bad','.ad','b..','ba','....'])",
+          "expected": [
+            false,
+            true,
+            true,
+            true,
+            false,
+            false
+          ]
+        },
+        {
+          "name": "pattern vuoto",
+          "expression": "wildcard_probe([''],['','.'])",
+          "expected": [
+            true,
+            false
+          ]
+        }
+      ],
+      "hints": [
+        "Un carattere noto segue un solo arco; il punto prova i figli disponibili.",
+        "Ogni carattere consuma esattamente un livello della Trie.",
+        "Al termine del pattern controlla terminal, non soltanto che il nodo esista."
+      ],
+      "explanation": "Senza wildcard il costo è O(L); i punti possono esplorare più rami e nel caso peggiore la ricerca visita molti nodi.",
+      "no_ai": true,
+      "no_internet": true,
+      "timed": true,
+      "solution_after_attempts": 2,
+      "variants": {
+        "python": {
+          "kind": "python",
+          "starter": "class TrieNode:\n    def __init__(self):\n        self.children = {}\n        self.terminal = False\n\nclass WordDictionary:\n    def __init__(self):\n        self.root = TrieNode()\n    def add_word(self, word):\n        pass\n    def search(self, pattern):\n        return False\n\ndef wildcard_probe(words, patterns):\n    trie = WordDictionary()\n    for word in words:\n        trie.add_word(word)\n    return [trie.search(pattern) for pattern in patterns]\n",
+          "solution": "class TrieNode:\n\n    def __init__(self):\n        self.children, self.terminal = ({}, False)\n\nclass WordDictionary:\n\n    def __init__(self):\n        self.root = TrieNode()\n\n    def add_word(self, word):\n        node = self.root\n        for char in word:\n            node = node.children.setdefault(char, TrieNode())\n        node.terminal = True\n\n    def search(self, pattern):\n\n        def visit(node, index):\n            if index == len(pattern):\n                return node.terminal\n            char = pattern[index]\n            if char != '.':\n                return char in node.children and visit(node.children[char], index + 1)\n            return any((visit(child, index + 1) for child in node.children.values()))\n        return visit(self.root, 0)\n\ndef wildcard_probe(words, patterns):\n    dictionary = WordDictionary()\n    for word in words:\n        dictionary.add_word(word)\n    return [dictionary.search(pattern) for pattern in patterns]\n",
+          "tests": [
+            {
+              "name": "wildcard, lunghezza e terminale",
+              "expression": "wildcard_probe(['bad','dad','mad'],['pad','bad','.ad','b..','ba','....'])",
+              "expected": [
+                false,
+                true,
+                true,
+                true,
+                false,
+                false
+              ]
+            },
+            {
+              "name": "pattern vuoto",
+              "expression": "wildcard_probe([''],['','.'])",
+              "expected": [
+                true,
+                false
+              ]
+            }
+          ]
+        },
+        "cpp": {
+          "kind": "cpp",
+          "starter": "#include <string>\n#include <unordered_map>\n#include <vector>\nusing namespace std;\nclass WordDictionary {\n    struct Node { unordered_map<char, int> children; bool terminal = false; };\n    vector<Node> nodes{1};\npublic:\n    void add_word(const string& word) {}\n    bool search(const string& pattern) const { return false; }\n};\nvector<bool> wildcard_probe(const vector<string>& words, const vector<string>& patterns) {\n    WordDictionary dictionary; for (const auto& word : words) dictionary.add_word(word);\n    vector<bool> result; for (const auto& pattern : patterns) result.push_back(dictionary.search(pattern)); return result;\n}\n",
+          "solution": "#include <string>\n#include <unordered_map>\n#include <vector>\nusing namespace std;\nclass WordDictionary {\n    struct Node {\n        unordered_map<char,int> children;\n        bool terminal=false;\n    };\n    vector<Node> nodes {\n        1\n    };\n    bool visit(int node,const string& pattern,size_t index) const {\n        if(index==pattern.size()) return nodes[node].terminal;\n        if(pattern[index]!='.') {\n            auto it=nodes[node].children.find(pattern[index]);\n            return it!=nodes[node].children.end()&&visit(it->second,pattern,index+1);\n        }\n        for(const auto& [ch,next]:nodes[node].children) if(visit(next,pattern,index+1)) return true;\n        return false;\n    }\n    public: void add_word(const string& word) {\n        int node=0;\n        for(char c:word) {\n            auto it=nodes[node].children.find(c);\n            if(it==nodes[node].children.end()) {\n                int child=nodes.size();\n                nodes[node].children[c]=child;\n                nodes.emplace_back();\n                node=child;\n            }\n            else node=it->second;\n        }\n        nodes[node].terminal=true;\n    }\n    bool search(const string& pattern) const {\n        return visit(0,pattern,0);\n    }\n};\nvector<bool> wildcard_probe(const vector<string>& words,const vector<string>& patterns) {\n    WordDictionary dictionary;\n    for(const auto& word:words) dictionary.add_word(word);\n    vector<bool> result;\n    for(const auto& pattern:patterns) result.push_back(dictionary.search(pattern));\n    return result;\n}\n",
+          "tests": [
+            {
+              "name": "wildcard, lunghezza e terminale",
+              "assertion": "wildcard_probe({\"bad\",\"dad\",\"mad\"},{\"pad\",\"bad\",\".ad\",\"b..\",\"ba\",\"....\"})==vector<bool>({false,true,true,true,false,false})"
+            },
+            {
+              "name": "pattern vuoto",
+              "assertion": "wildcard_probe({\"\"},{\"\",\".\"})==vector<bool>({true,false})"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sde-e-word-search-ii",
+      "lesson_id": "sde-l-trie",
+      "title": "Trovare parole su una griglia senza riusare celle",
+      "kind": "python",
+      "difficulty": "hard",
+      "minutes": 40,
+      "xp": 50,
+      "prompt": "**Pattern:** Trie condivisa e DFS con backtracking.\n\nLa griglia e le parole contengono lettere minuscole. Restituisci le parole distinte costruibili da celle adiacenti in orizzontale o verticale senza riutilizzare una cella nello stesso percorso. Ordina il risultato lessicograficamente.",
+      "starter": "def find_words(board, words):\n    pass\n",
+      "solution": "def find_words(board, words):\n    trie = {}\n    for word in set(words):\n        node = trie\n        for char in word:\n            node = node.setdefault(char, {})\n        node['$'] = word\n    rows, cols, found = (len(board), len(board[0]), set())\n\n    def visit(r, c, node):\n        char = board[r][c]\n        if char not in node:\n            return\n        child = node[char]\n        if '$' in child:\n            found.add(child.pop('$'))\n        board[r][c] = '#'\n        for nr, nc in ((r - 1, c), (r + 1, c), (r, c - 1), (r, c + 1)):\n            if 0 <= nr < rows and 0 <= nc < cols and (board[nr][nc] != '#'):\n                visit(nr, nc, child)\n        board[r][c] = char\n        if not child:\n            node.pop(char)\n    for r in range(rows):\n        for c in range(cols):\n            visit(r, c, trie)\n    return sorted(found)\n",
+      "tests": [
+        {
+          "name": "prefissi condivisi e parole non presenti",
+          "expression": "find_words([['c','a','t'],['x','r','e'],['d','o','g']],['cat','car','dog','cab','cat'])",
+          "expected": [
+            "car",
+            "cat",
+            "dog"
+          ]
+        },
+        {
+          "name": "una sola cella",
+          "expression": "find_words([['a']],['a','aa'])",
+          "expected": [
+            "a"
+          ]
+        }
+      ],
+      "hints": [
+        "Inserisci tutte le parole in una Trie per condividere i prefissi.",
+        "La cella corrente va marcata durante la DFS e ripristinata al backtrack.",
+        "Quando trovi una parola, evita duplicati; rimuovi i rami esauriti per potare ricerche successive."
+      ],
+      "explanation": "Con R righe, C colonne, L lunghezza massima delle parole e un alfabeto finito, il caso peggiore può arrivare a O(RC·4^L); la Trie e il pruning condividono i prefissi e riducono il lavoro nei dati ordinari.",
+      "no_ai": true,
+      "no_internet": true,
+      "timed": true,
+      "solution_after_attempts": 2,
+      "variants": {
+        "python": {
+          "kind": "python",
+          "starter": "def find_words(board, words):\n    pass\n",
+          "solution": "def find_words(board, words):\n    trie = {}\n    for word in set(words):\n        node = trie\n        for char in word:\n            node = node.setdefault(char, {})\n        node['$'] = word\n    rows, cols, found = (len(board), len(board[0]), set())\n\n    def visit(r, c, node):\n        char = board[r][c]\n        if char not in node:\n            return\n        child = node[char]\n        if '$' in child:\n            found.add(child.pop('$'))\n        board[r][c] = '#'\n        for nr, nc in ((r - 1, c), (r + 1, c), (r, c - 1), (r, c + 1)):\n            if 0 <= nr < rows and 0 <= nc < cols and (board[nr][nc] != '#'):\n                visit(nr, nc, child)\n        board[r][c] = char\n        if not child:\n            node.pop(char)\n    for r in range(rows):\n        for c in range(cols):\n            visit(r, c, trie)\n    return sorted(found)\n",
+          "tests": [
+            {
+              "name": "prefissi condivisi e parole non presenti",
+              "expression": "find_words([['c','a','t'],['x','r','e'],['d','o','g']],['cat','car','dog','cab','cat'])",
+              "expected": [
+                "car",
+                "cat",
+                "dog"
+              ]
+            },
+            {
+              "name": "una sola cella",
+              "expression": "find_words([['a']],['a','aa'])",
+              "expected": [
+                "a"
+              ]
+            }
+          ]
+        },
+        "cpp": {
+          "kind": "cpp",
+          "starter": "#include <algorithm>\n#include <array>\n#include <string>\n#include <unordered_map>\n#include <vector>\nusing namespace std;\nvector<string> find_words(const vector<vector<char>>& board,const vector<string>& words) {\n    // TODO\n}\n",
+          "solution": "#include <algorithm>\n#include <array>\n#include <string>\n#include <unordered_map>\n#include <vector>\nusing namespace std;\nvector<string> find_words(const vector<vector<char>>& board,const vector<string>& words) {\n    struct Node {\n        unordered_map<char,int> children;\n        string word;\n    };\n    vector<Node> trie(1);\n    for(const auto& word:words) {\n        int node=0;\n        for(char c:word) {\n            auto it=trie[node].children.find(c);\n            if(it==trie[node].children.end()) {\n                int next=trie.size();\n                trie[node].children[c]=next;\n                trie.emplace_back();\n                node=next;\n            }\n            else node=it->second;\n        }\n        trie[node].word=word;\n    }\n    if(board.empty()||board[0].empty()) return {\n    };\n    auto cells=board;\n    int rows=cells.size(),cols=cells[0].size();\n    vector<string> found;\n    auto visit=[&](auto&& self,int r,int c,int node)->void {\n        char ch=cells[r][c];\n        auto it=trie[node].children.find(ch);\n        if(it==trie[node].children.end()) return;\n        int child=it->second;\n        if(!trie[child].word.empty()) {\n            found.push_back(trie[child].word);\n            trie[child].word.clear();\n        }\n        cells[r][c]='#';\n        int dr[4]= {\n            -1,1,0,0\n        }\n        ,dc[4]= {\n            0,0,-1,1\n        };\n        for(int d=0;d<4;++d) {\n            int nr=r+dr[d],nc=c+dc[d];\n            if(nr>=0&&nr<rows&&nc>=0&&nc<cols&&cells[nr][nc]!='#') self(self,nr,nc,child);\n        }\n        cells[r][c]=ch;\n        if(trie[child].word.empty()&&trie[child].children.empty()) trie[node].children.erase(ch);\n    };\n    for(int r=0;r<rows;++r) for(int c=0;c<cols;++c) visit(visit,r,c,0);\n    sort(found.begin(),found.end());\n    return found;\n}\n",
+          "tests": [
+            {
+              "name": "prefissi condivisi e parole non presenti",
+              "assertion": "find_words({{'c','a','t'},{'x','r','e'},{'d','o','g'}},{\"cat\",\"car\",\"dog\",\"cab\",\"cat\"})==vector<string>({\"car\",\"cat\",\"dog\"})"
+            },
+            {
+              "name": "una sola cella",
+              "assertion": "find_words({{'a'}},{\"a\",\"aa\"})==vector<string>({\"a\"})"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sde-e-palindromic-substrings",
+      "lesson_id": "sde-l-two-pointers",
+      "title": "Contare i sottostringhe palindromiche",
+      "kind": "python",
+      "difficulty": "medium",
+      "minutes": 25,
+      "xp": 35,
+      "prompt": "**Pattern:** espansione dai centri pari e dispari.\n\nConta tutte le sottostringhe non vuote che sono palindrome. Le occorrenze in posizioni diverse si contano separatamente; la stringa può essere vuota.",
+      "starter": "def count_palindromic_substrings(text):\n    pass\n",
+      "solution": "def count_palindromic_substrings(text):\n    count = 0\n    for center in range(len(text)):\n        for left, right in ((center, center), (center, center + 1)):\n            while left >= 0 and right < len(text) and (text[left] == text[right]):\n                count += 1\n                left -= 1\n                right += 1\n    return count\n",
+      "tests": [
+        {
+          "name": "centri dispari e pari",
+          "expression": "count_palindromic_substrings('aaa')",
+          "expected": 6
+        },
+        {
+          "name": "palindromi isolati",
+          "expression": "count_palindromic_substrings('abc')",
+          "expected": 3
+        },
+        {
+          "name": "vuota",
+          "expression": "count_palindromic_substrings('')",
+          "expected": 0
+        }
+      ],
+      "hints": [
+        "Ogni palindromo ha un centro: una posizione per lunghezza dispari o uno spazio fra due caratteri per lunghezza pari.",
+        "Espandi finché i due caratteri coincidono e restano nei limiti.",
+        "Conta ogni espansione riuscita; non deduplicare stringhe uguali in posizioni diverse."
+      ],
+      "explanation": "Ci sono 2n-1 centri e ciascuno può estendersi fino a O(n): O(n²) tempo e O(1) spazio.",
+      "no_ai": true,
+      "no_internet": true,
+      "timed": true,
+      "solution_after_attempts": 2,
+      "variants": {
+        "python": {
+          "kind": "python",
+          "starter": "def count_palindromic_substrings(text):\n    pass\n",
+          "solution": "def count_palindromic_substrings(text):\n    count = 0\n    for center in range(len(text)):\n        for left, right in ((center, center), (center, center + 1)):\n            while left >= 0 and right < len(text) and (text[left] == text[right]):\n                count += 1\n                left -= 1\n                right += 1\n    return count\n",
+          "tests": [
+            {
+              "name": "centri dispari e pari",
+              "expression": "count_palindromic_substrings('aaa')",
+              "expected": 6
+            },
+            {
+              "name": "palindromi isolati",
+              "expression": "count_palindromic_substrings('abc')",
+              "expected": 3
+            },
+            {
+              "name": "vuota",
+              "expression": "count_palindromic_substrings('')",
+              "expected": 0
+            }
+          ]
+        },
+        "cpp": {
+          "kind": "cpp",
+          "starter": "#include <string>\n#include <utility>\nusing namespace std;\nint count_palindromic_substrings(const string& text) {\n    // TODO\n}\n",
+          "solution": "#include <string>\n#include <utility>\nusing namespace std;\nint count_palindromic_substrings(const string& text) {\n    int count=0,n=text.size();\n    for(int center=0;center<n;++center) for(auto [left,right]: {\n        pair<int,int> {\n            center,center\n        }\n        ,pair<int,int> {\n            center,center+1\n        }\n    }\n    ) while(left>=0&&right<n&&text[left]==text[right]) {\n        ++count;\n        --left;\n        ++right;\n    }\n    return count;\n}\n",
+          "tests": [
+            {
+              "name": "centri dispari e pari",
+              "assertion": "count_palindromic_substrings(\"aaa\")==6"
+            },
+            {
+              "name": "palindromi isolati",
+              "assertion": "count_palindromic_substrings(\"abc\")==3"
+            },
+            {
+              "name": "vuota",
+              "assertion": "count_palindromic_substrings(\"\")==0"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sde-e-lis",
+      "lesson_id": "sde-l-dp-memoization",
+      "title": "Sottosequenza strettamente crescente più lunga",
+      "kind": "python",
+      "difficulty": "medium",
+      "minutes": 30,
+      "xp": 35,
+      "prompt": "**Pattern:** DP quadratica sugli indici.\n\nRestituisci la lunghezza della sottosequenza strettamente crescente più lunga; gli elementi scelti non devono essere adiacenti. L'input può essere vuoto.",
+      "starter": "def lis_length(nums):\n    pass\n",
+      "solution": "def lis_length(nums):\n    if not nums:\n        return 0\n    dp = [1] * len(nums)\n    for i in range(len(nums)):\n        for j in range(i):\n            if nums[j] < nums[i]:\n                dp[i] = max(dp[i], dp[j] + 1)\n    return max(dp)\n",
+      "tests": [
+        {
+          "name": "elementi non adiacenti",
+          "expression": "lis_length([10,9,2,5,3,7,101,18])",
+          "expected": 4
+        },
+        {
+          "name": "duplicati non crescono",
+          "expression": "lis_length([2,2,2])",
+          "expected": 1
+        },
+        {
+          "name": "vuoto",
+          "expression": "lis_length([])",
+          "expected": 0
+        }
+      ],
+      "hints": [
+        "`dp[i]` è la lunghezza migliore di una sottosequenza che termina proprio in i.",
+        "Prova solo predecessori j<i con valore strettamente minore.",
+        "La risposta è il massimo di tutti gli stati finali, non necessariamente dp dell'ultimo indice."
+      ],
+      "explanation": "Due cicli visitano le coppie di indici: O(n²) tempo e O(n) spazio. La versione con tails O(n log n) è un raffinamento successivo, non necessario per capire lo stato.",
+      "no_ai": true,
+      "no_internet": true,
+      "timed": true,
+      "solution_after_attempts": 2,
+      "variants": {
+        "python": {
+          "kind": "python",
+          "starter": "def lis_length(nums):\n    pass\n",
+          "solution": "def lis_length(nums):\n    if not nums:\n        return 0\n    dp = [1] * len(nums)\n    for i in range(len(nums)):\n        for j in range(i):\n            if nums[j] < nums[i]:\n                dp[i] = max(dp[i], dp[j] + 1)\n    return max(dp)\n",
+          "tests": [
+            {
+              "name": "elementi non adiacenti",
+              "expression": "lis_length([10,9,2,5,3,7,101,18])",
+              "expected": 4
+            },
+            {
+              "name": "duplicati non crescono",
+              "expression": "lis_length([2,2,2])",
+              "expected": 1
+            },
+            {
+              "name": "vuoto",
+              "expression": "lis_length([])",
+              "expected": 0
+            }
+          ]
+        },
+        "cpp": {
+          "kind": "cpp",
+          "starter": "#include <algorithm>\n#include <vector>\nusing namespace std;\nint lis_length(const vector<int>& nums) {\n    // TODO\n}\n",
+          "solution": "#include <algorithm>\n#include <vector>\nusing namespace std;\nint lis_length(const vector<int>& nums) {\n    if(nums.empty()) return 0;\n    vector<int> dp(nums.size(),1);\n    int best=1;\n    for(int i=0;i<(int)nums.size();++i) for(int j=0;j<i;++j) if(nums[j]<nums[i]) dp[i]=max(dp[i],dp[j]+1);\n    for(int length:dp) best=max(best,length);\n    return best;\n}\n",
+          "tests": [
+            {
+              "name": "elementi non adiacenti",
+              "assertion": "lis_length({10,9,2,5,3,7,101,18})==4"
+            },
+            {
+              "name": "duplicati non crescono",
+              "assertion": "lis_length({2,2,2})==1"
+            },
+            {
+              "name": "vuoto",
+              "assertion": "lis_length({})==0"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sde-e-house-robber-ii",
+      "lesson_id": "sde-l-dp-models",
+      "title": "Massimo bottino su una strada circolare",
+      "kind": "python",
+      "difficulty": "medium",
+      "minutes": 30,
+      "xp": 35,
+      "prompt": "**Pattern:** due casi lineari che escludono una delle estremità.\n\nOgni valore non negativo indica il bottino di una casa; case adiacenti non si possono scegliere. Le estremità sono adiacenti perché la strada è circolare. Restituisci il bottino massimo; la lista può essere vuota.",
+      "starter": "def rob_circular(nums):\n    pass\n",
+      "solution": "def rob_circular(nums):\n\n    def linear(values):\n        two_back = one_back = 0\n        for value in values:\n            two_back, one_back = (one_back, max(one_back, two_back + value))\n        return one_back\n    if len(nums) <= 1:\n        return nums[0] if nums else 0\n    return max(linear(nums[:-1]), linear(nums[1:]))\n",
+      "tests": [
+        {
+          "name": "estremi in conflitto",
+          "expression": "rob_circular([2,3,2])",
+          "expected": 3
+        },
+        {
+          "name": "scegliere case non contigue",
+          "expression": "rob_circular([1,2,3,1])",
+          "expected": 4
+        },
+        {
+          "name": "una casa",
+          "expression": "rob_circular([8])",
+          "expected": 8
+        },
+        {
+          "name": "vuoto",
+          "expression": "rob_circular([])",
+          "expected": 0
+        }
+      ],
+      "hints": [
+        "Non puoi scegliere insieme la prima e l'ultima casa.",
+        "Ogni soluzione valida esclude almeno uno dei due estremi: calcola i due casi lineari.",
+        "All'interno di ogni caso usa il DP a due accumuli già visto."
+      ],
+      "explanation": "Le due scansioni sono lineari e usano O(1) spazio ausiliario: O(n) tempo e O(1) spazio.",
+      "no_ai": true,
+      "no_internet": true,
+      "timed": true,
+      "solution_after_attempts": 2,
+      "variants": {
+        "python": {
+          "kind": "python",
+          "starter": "def rob_circular(nums):\n    pass\n",
+          "solution": "def rob_circular(nums):\n\n    def linear(values):\n        two_back = one_back = 0\n        for value in values:\n            two_back, one_back = (one_back, max(one_back, two_back + value))\n        return one_back\n    if len(nums) <= 1:\n        return nums[0] if nums else 0\n    return max(linear(nums[:-1]), linear(nums[1:]))\n",
+          "tests": [
+            {
+              "name": "estremi in conflitto",
+              "expression": "rob_circular([2,3,2])",
+              "expected": 3
+            },
+            {
+              "name": "scegliere case non contigue",
+              "expression": "rob_circular([1,2,3,1])",
+              "expected": 4
+            },
+            {
+              "name": "una casa",
+              "expression": "rob_circular([8])",
+              "expected": 8
+            },
+            {
+              "name": "vuoto",
+              "expression": "rob_circular([])",
+              "expected": 0
+            }
+          ]
+        },
+        "cpp": {
+          "kind": "cpp",
+          "starter": "#include <algorithm>\n#include <vector>\nusing namespace std;\nlong long rob_circular(const vector<int>& nums) {\n    // TODO\n}\n",
+          "solution": "#include <algorithm>\n#include <vector>\nusing namespace std;\nlong long rob_circular(const vector<int>& nums) {\n    auto linear=[&](int left,int right) {\n        long long two=0,one=0;\n        for(int i=left;i<right;++i) {\n            long long best=max(one,two+nums[i]);\n            two=one;\n            one=best;\n        }\n        return one;\n    };\n    if(nums.empty()) return 0;\n    if(nums.size()==1) return nums[0];\n    return max(linear(0,nums.size()-1),linear(1,nums.size()));\n}\n",
+          "tests": [
+            {
+              "name": "estremi in conflitto",
+              "assertion": "rob_circular({2,3,2})==3"
+            },
+            {
+              "name": "scegliere case non contigue",
+              "assertion": "rob_circular({1,2,3,1})==4"
+            },
+            {
+              "name": "una casa",
+              "assertion": "rob_circular({8})==8"
+            },
+            {
+              "name": "vuoto",
+              "assertion": "rob_circular({})==0"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sde-e-decode-ways",
+      "lesson_id": "sde-l-dp-memoization",
+      "title": "Contare le decodifiche di una stringa numerica",
+      "kind": "python",
+      "difficulty": "medium",
+      "minutes": 30,
+      "xp": 35,
+      "prompt": "**Pattern:** DP a uno o due caratteri.\n\nLe cifre da 1 a 26 corrispondono ad A-Z; zero da solo non è valido. Restituisci il numero di decodifiche della stringa; l'input contiene solo cifre e può essere vuoto. Usa un intero a 64 bit per il risultato.",
+      "starter": "def decode_ways(text):\n    pass\n",
+      "solution": "def decode_ways(text):\n    if not text or text[0] == '0':\n        return 0\n    dp_two_back, dp_one_back = (1, 1)\n    for i in range(1, len(text)):\n        current = dp_one_back if text[i] != '0' else 0\n        pair = int(text[i - 1:i + 1])\n        if 10 <= pair <= 26:\n            current += dp_two_back\n        dp_two_back, dp_one_back = (dp_one_back, current)\n    return dp_one_back\n",
+      "tests": [
+        {
+          "name": "ramificazioni singole e doppie",
+          "expression": "decode_ways('226')",
+          "expected": 3
+        },
+        {
+          "name": "zero ammesso solo in coppia",
+          "expression": "decode_ways('06')",
+          "expected": 0
+        },
+        {
+          "name": "zero dopo dieci",
+          "expression": "decode_ways('10')",
+          "expected": 1
+        },
+        {
+          "name": "coppia oltre 26",
+          "expression": "decode_ways('27')",
+          "expected": 1
+        },
+        {
+          "name": "stringa vuota",
+          "expression": "decode_ways('')",
+          "expected": 0
+        }
+      ],
+      "hints": [
+        "`dp[i]` conta i modi di decodificare il prefisso lungo i.",
+        "La cifra corrente aggiunge i modi precedenti se non è zero.",
+        "La coppia aggiunge i modi di due posizioni fa soltanto se rappresenta 10..26."
+      ],
+      "explanation": "Ogni posizione applica al massimo due transizioni: O(n) tempo e O(1) spazio compresso. Il tipo a 64 bit protegge i conteggi nei vincoli dichiarati.",
+      "no_ai": true,
+      "no_internet": true,
+      "timed": true,
+      "solution_after_attempts": 2,
+      "variants": {
+        "python": {
+          "kind": "python",
+          "starter": "def decode_ways(text):\n    pass\n",
+          "solution": "def decode_ways(text):\n    if not text or text[0] == '0':\n        return 0\n    dp_two_back, dp_one_back = (1, 1)\n    for i in range(1, len(text)):\n        current = dp_one_back if text[i] != '0' else 0\n        pair = int(text[i - 1:i + 1])\n        if 10 <= pair <= 26:\n            current += dp_two_back\n        dp_two_back, dp_one_back = (dp_one_back, current)\n    return dp_one_back\n",
+          "tests": [
+            {
+              "name": "ramificazioni singole e doppie",
+              "expression": "decode_ways('226')",
+              "expected": 3
+            },
+            {
+              "name": "zero ammesso solo in coppia",
+              "expression": "decode_ways('06')",
+              "expected": 0
+            },
+            {
+              "name": "zero dopo dieci",
+              "expression": "decode_ways('10')",
+              "expected": 1
+            },
+            {
+              "name": "coppia oltre 26",
+              "expression": "decode_ways('27')",
+              "expected": 1
+            },
+            {
+              "name": "stringa vuota",
+              "expression": "decode_ways('')",
+              "expected": 0
+            }
+          ]
+        },
+        "cpp": {
+          "kind": "cpp",
+          "starter": "#include <string>\nusing namespace std;\nlong long decode_ways(const string& text) {\n    // TODO\n}\n",
+          "solution": "#include <string>\nusing namespace std;\nlong long decode_ways(const string& text) {\n    if(text.empty()||text[0]=='0') return 0;\n    long long two=1,one=1;\n    for(int i=1;i<(int)text.size();++i) {\n        long long current=text[i]!='0'?one:0;\n        int pair=(text[i-1]-'0')*10+(text[i]-'0');\n        if(pair>=10&&pair<=26) current+=two;\n        two=one;\n        one=current;\n    }\n    return one;\n}\n",
+          "tests": [
+            {
+              "name": "ramificazioni singole e doppie",
+              "assertion": "decode_ways(\"226\")==3"
+            },
+            {
+              "name": "zero ammesso solo in coppia",
+              "assertion": "decode_ways(\"06\")==0"
+            },
+            {
+              "name": "zero dopo dieci",
+              "assertion": "decode_ways(\"10\")==1"
+            },
+            {
+              "name": "coppia oltre 26",
+              "assertion": "decode_ways(\"27\")==1"
+            },
+            {
+              "name": "stringa vuota",
+              "assertion": "decode_ways(\"\")==0"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sde-e-jump-game",
+      "lesson_id": "sde-l-greedy",
+      "title": "Verificare se si può raggiungere l'ultima posizione",
+      "kind": "python",
+      "difficulty": "medium",
+      "minutes": 25,
+      "xp": 35,
+      "prompt": "**Pattern:** massima frontiera raggiungibile.\n\nOgni elemento non negativo indica la distanza massima di un salto da quella posizione. Restituisci se l'ultima posizione è raggiungibile; una lista vuota non contiene una destinazione e restituisce false.",
+      "starter": "def can_reach_end(nums):\n    pass\n",
+      "solution": "def can_reach_end(nums):\n    if not nums:\n        return False\n    farthest = 0\n    for index, distance in enumerate(nums):\n        if index > farthest:\n            return False\n        farthest = max(farthest, index + distance)\n        if farthest >= len(nums) - 1:\n            return True\n    return True\n",
+      "tests": [
+        {
+          "name": "salto possibile anche se breve",
+          "expression": "can_reach_end([2,3,1,1,4])",
+          "expected": true
+        },
+        {
+          "name": "frontiera si ferma",
+          "expression": "can_reach_end([3,2,1,0,4])",
+          "expected": false
+        },
+        {
+          "name": "già alla destinazione",
+          "expression": "can_reach_end([0])",
+          "expected": true
+        },
+        {
+          "name": "nessuna posizione",
+          "expression": "can_reach_end([])",
+          "expected": false
+        }
+      ],
+      "hints": [
+        "`farthest` riassume la frontiera più lontana raggiunta da tutte le posizioni visitate.",
+        "Se l'indice corrente supera la frontiera, nessun salto può arrivarci.",
+        "Aggiorna la frontiera prima di passare all'indice successivo."
+      ],
+      "explanation": "Una scansione e spazio costante: O(n) tempo e O(1) spazio.",
+      "no_ai": true,
+      "no_internet": true,
+      "timed": true,
+      "solution_after_attempts": 2,
+      "variants": {
+        "python": {
+          "kind": "python",
+          "starter": "def can_reach_end(nums):\n    pass\n",
+          "solution": "def can_reach_end(nums):\n    if not nums:\n        return False\n    farthest = 0\n    for index, distance in enumerate(nums):\n        if index > farthest:\n            return False\n        farthest = max(farthest, index + distance)\n        if farthest >= len(nums) - 1:\n            return True\n    return True\n",
+          "tests": [
+            {
+              "name": "salto possibile anche se breve",
+              "expression": "can_reach_end([2,3,1,1,4])",
+              "expected": true
+            },
+            {
+              "name": "frontiera si ferma",
+              "expression": "can_reach_end([3,2,1,0,4])",
+              "expected": false
+            },
+            {
+              "name": "già alla destinazione",
+              "expression": "can_reach_end([0])",
+              "expected": true
+            },
+            {
+              "name": "nessuna posizione",
+              "expression": "can_reach_end([])",
+              "expected": false
+            }
+          ]
+        },
+        "cpp": {
+          "kind": "cpp",
+          "starter": "#include <algorithm>\n#include <vector>\nusing namespace std;\nbool can_reach_end(const vector<int>& nums) {\n    // TODO\n}\n",
+          "solution": "#include <algorithm>\n#include <vector>\nusing namespace std;\nbool can_reach_end(const vector<int>& nums) {\n    if(nums.empty()) return false;\n    int farthest=0;\n    for(int i=0;i<(int)nums.size();++i) {\n        if(i>farthest) return false;\n        farthest=max(farthest,i+nums[i]);\n        if(farthest>=(int)nums.size()-1) return true;\n    }\n    return true;\n}\n",
+          "tests": [
+            {
+              "name": "salto possibile anche se breve",
+              "assertion": "can_reach_end({2,3,1,1,4})"
+            },
+            {
+              "name": "frontiera si ferma",
+              "assertion": "!can_reach_end({3,2,1,0,4})"
+            },
+            {
+              "name": "già alla destinazione",
+              "assertion": "can_reach_end({0})"
+            },
+            {
+              "name": "nessuna posizione",
+              "assertion": "!can_reach_end({})"
             }
           ]
         }

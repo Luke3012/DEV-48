@@ -64,4 +64,8 @@ Se `nums[left]`, `nums[mid]` e `nums[right]` sono uguali, il confronto non rivel
 
 Questa ricerca cerca un elemento in una sequenza ruotata. Binary Search on Answer non confronta i valori dell'array: ordina il dominio di una possibile risposta e cerca dove un predicato passa da falso a vero.
 
-**Da ricordare.** La rotazione conserva una metà ordinata; restringi l'intervallo in base ai suoi estremi e alle ipotesi sui duplicati. **Per praticare:** Ricerca binaria in un array ruotato.
+### Cercare il minimo di un array ruotato
+
+Con valori distinti confronta `nums[mid]` con `nums[right]`. Se il medio è maggiore, il minimo deve trovarsi dopo `mid`; altrimenti il minimo è tra `left` e `mid`, incluso il medio. Per `[8,9,12,2,4,6]`, il confronto sposta prima `left` verso 3, poi conserva l'intervallo che contiene 2. L'invariante è che il minimo resta sempre dentro l'intervallo chiuso `[left,right]`; quando gli estremi coincidono hai la risposta.
+
+**Da ricordare.** La rotazione conserva una metà ordinata; restringi l'intervallo in base ai suoi estremi e alle ipotesi sui duplicati. **Per praticare:** Ricerca binaria in un array ruotato; Minimo in un array ruotato.

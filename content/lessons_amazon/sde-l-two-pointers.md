@@ -85,4 +85,8 @@ In `Container With Most Water`, l'area dipende dalla parete più bassa. Spostare
 
 Per `Three Sum`, ordina una copia, fissa un valore e usa la ricerca agli estremi per il complemento. Dopo aver trovato una tripletta, salta i valori uguali per non produrre lo stesso risultato più volte: l'ordinamento aiuta sia la decisione sia il controllo dei duplicati. Il tempo è `O(n²)` dopo l'ordinamento; se ordini una copia, essa richiede `O(n)` spazio.
 
-**Da ricordare.** Due puntatori funzionano quando una proprietà consente di motivare quale parte dei candidati eliminare a ogni passo. **Per praticare:** Coppia con somma in una lista ordinata; Triplette distinte con somma zero; Acqua trattenuta fra le pareti.
+### Contare palindromi espandendo dai centri
+
+`abba` ha un centro fra i due caratteri b: espandendo da `(1,2)` trovi `bb`, poi `abba`. `aba` ha un centro sul carattere a: espandendo da `(1,1)` trovi `b` e poi `aba`. Prova entrambi i tipi di centro per ogni posizione. Conta ogni espansione valida, anche se la stessa sequenza di lettere appare in un'altra posizione: si contano le sottostringhe, non i contenuti distinti.
+
+**Da ricordare.** Due puntatori funzionano quando una proprietà consente di motivare quale parte dei candidati eliminare a ogni passo. **Per praticare:** Coppia con somma in una lista ordinata; Triplette distinte con somma zero; Acqua trattenuta fra le pareti; Contare i sottostringhe palindromiche.

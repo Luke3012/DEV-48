@@ -106,4 +106,8 @@ Nella griglia `1 1 0 / 0 1 0 / 1 0 1`, una DFS avviata da `(0,0)` aggiunge `(0,1
 
 Una cella marcata sul posto risparmia la matrice `visited`, ma cambia l'input. Se il chiamante deve conservarlo, tieni una struttura separata: nel caso peggiore occupa `O(R·C)` spazio, come la coda della BFS.
 
-**Da ricordare.** Tratta ogni cella accessibile come nodo, controlla i limiti prima di leggerla e marca la visita prima di accodare. **Per praticare:** Contare componenti di terra; Propagazione a livelli simultanei.
+### Due visite inverse dai bordi
+
+Per sapere quali celle raggiungono ciascun oceano, parti dai bordi e percorri gli archi al contrario: dall'altezza h puoi visitare una vicina di altezza almeno h, perché l'acqua potrà poi scendere verso la cella precedente. Avvia una BFS dal bordo nord/ovest e una dal sud/est; le celle presenti in entrambi gli insiemi raggiungono entrambi gli oceani. Così ogni cella viene visitata al massimo una volta per oceano invece di lanciare una ricerca da ciascuna posizione.
+
+**Da ricordare.** Tratta ogni cella accessibile come nodo, controlla i limiti prima di leggerla e marca la visita prima di accodare. **Per praticare:** Contare componenti di terra; Propagazione a livelli simultanei; Celle che raggiungono entrambi gli oceani.

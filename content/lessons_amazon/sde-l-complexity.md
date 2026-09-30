@@ -64,4 +64,10 @@ La formula generale è `n(n-1)/2`. Il termine dominante è `n²`, perciò la cla
 
 Per stimare lo spazio, fai una domanda separata: «che cosa resta allocato mentre elaboro tutti gli elementi?». Due indici e un contatore occupano `O(1)` spazio aggiuntivo; un dizionario con una voce per ogni valore distinto cresce fino a `O(n)`. La lista restituita fa parte dell'output e va distinta dalla memoria ausiliaria. Big-O descrive questa crescita, non i millisecondi esatti.
 
+### Lo stesso problema, due quantità di lavoro
+
+Cerchiamo una coppia che sommi a 10 in `[4, 1, 7, 3]`. Una ricerca che prova tutte le coppie controlla, nel caso senza risposta, `(4,1)`, `(4,7)`, `(4,3)`, `(1,7)`, `(1,3)`, `(7,3)`: 6 confronti. Per n elementi le coppie distinte sono `n(n-1)/2`, quindi il lavoro cresce quadraticamente.
+
+Una scansione che consulta una mappa fa al massimo una ricerca per elemento: 4 consultazioni qui, con al più 4 inserimenti. La mappa richiede spazio che cresce con i valori già visti; il ciclo annidato usa solo indici aggiuntivi. Per n molto piccolo la prima soluzione può essere più semplice e sufficiente, ma quando n cresce il conteggio rende chiaro perché convenga pagare memoria per ridurre il tempo. È una stima delle operazioni, non una promessa di millisecondi.
+
 **Da ricordare.** Descrivi quante volte vengono visitati gli elementi e quale memoria cresce con n; poi confronta la stima coi vincoli. **Per praticare:** Due valori che completano il target; Rilevare un duplicato senza ordinare.

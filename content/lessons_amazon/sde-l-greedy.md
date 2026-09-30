@@ -56,4 +56,10 @@ Se ogni intervallo ha un profitto, massimizzare il numero di intervalli non equi
 
 Anche i confini fanno parte dell'input: per `[start,end)` il contatto è compatibile con `start >= last_end`; se gli estremi sono inclusivi, serve una regola diversa. Cambiare una sola convenzione può modificare il numero di intervalli selezionati.
 
-**Da ricordare.** Una scelta greedy richiede una dimostrazione che le decisioni locali possano essere estese a una soluzione ottima. **Per praticare:** Selezionare il massimo numero di intervalli compatibili.
+### Intervalli: liberare presto la linea temporale
+
+Per conservare il massimo numero di attività compatibili, ordina per ora di fine e scegli l'attività che termina prima; dopo averla scelta, accetta la prossima che inizia non prima di quella fine. Una fine anticipata lascia almeno lo stesso spazio residuo di una scelta che termina più tardi. Con `[1,3)`, `[2,4)`, `[3,5)`, scegli la prima e la terza: gli intervalli che si toccano sono compatibili secondo il contratto semiaperto.
+
+Per rimuovere il minimo numero di intervalli sovrapposti calcoli il complemento di quelli conservati. Jump Game usa invece un'altra frontiera greedy: `farthest` riassume fino a dove puoi arrivare dalle posizioni già visitate. Se l'indice corrente la supera, il traguardo non è raggiungibile.
+
+**Da ricordare.** Una scelta greedy richiede una dimostrazione che le decisioni locali possano essere estese a una soluzione ottima. **Per praticare:** Selezionare il massimo numero di intervalli compatibili; Verificare se si può raggiungere l'ultima posizione.

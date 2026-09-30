@@ -1,6 +1,6 @@
 # FINAL READINESS REPORT
 
-Data: 29 settembre 2026. Working tree locale, successivo all'audit iniziale.
+Data: 1 ottobre 2026. Working tree locale, successivo all'audit iniziale.
 
 ## Stato
 
@@ -10,7 +10,7 @@ READY FOR STUDY
 
 La decisione significa che si può iniziare a studiare senza un'altra riprogettazione materiale; non prevede il superamento Amazon. Sono stati confrontati teoria, pratica, timer, repository e comportamento, corretti i problemi concreti trovati e verificato il software.
 
-Catalogo corrente: 44 lezioni, 10 moduli, 67 problemi logici (67 varianti Python e 67 C++), 6 laboratori logici, 160 flashcard, 36 scenari, 8 riflessioni Work Style, 4 simulazioni. Difficoltà: 22 Easy, 35 Medium, 10 Hard. La doppia variante non raddoppia il numero dei problemi.
+Catalogo corrente: 45 lezioni (44 obbligatorie e 1 Trie facoltativa), 10 moduli, 89 problemi logici (89 varianti Python e 89 C++), 6 laboratori logici, 160 flashcard, 36 scenari, 8 riflessioni Work Style, 4 simulazioni. Difficoltà: 25 Easy, 51 Medium, 13 Hard. La doppia variante non raddoppia il numero dei problemi.
 
 ## Confronto con fonti
 
@@ -44,7 +44,7 @@ Fonti consultate durante questa validazione il 29 settembre 2026:
 
 ## DSA coverage
 
-Nessun gap importante individuato per il Core OA. Matrice teoria→pratica→timer: [amazon-sde-coverage.md](amazon-sde-coverage.md).
+Nessun gap bloccante individuato per il Core OA. Matrice teoria→pratica→timer: [amazon-sde-coverage.md](amazon-sde-coverage.md). Confronto deduplicato di 172 titoli Blind 75 / Grind 75 / LeetCode 75: [amazon-blind75-coverage.md](amazon-blind75-coverage.md). I benchmark descrivono pattern generali e non frequenza Amazon.
 
 | Benchmark richiesti | Task locale, prefisso sde-e- |
 |---|---|
@@ -53,17 +53,17 @@ Nessun gap importante individuato per il Core OA. Matrice teoria→pratica→tim
 | Container; Longest Substring; Minimum Window | container-water; longest-substring; min-window |
 | Parentheses; Daily Temperatures; Binary Search | valid-parentheses; daily-temperatures; binary-search |
 | Rotated Search; Search on Answer; Merge Intervals | search-rotated; min-eating-speed; merge-intervals |
-| Reverse List; Linked List Cycle; Tree Level Order | reverse-list; linked-list-cycle; modello equivalente a livelli in oranges-rotting e teoria tree-traversal |
+| Reverse List; Linked List Cycle; Tree Level Order | reverse-list; linked-list-cycle; tree-level-order |
 | Validate BST; Islands; Clone Graph | validate-bst; number-islands; clone-graph |
 | Oranges; Course Schedule; Kth Largest | oranges-rotting; course-schedule; kth-largest |
 | K Closest; Subsets; Combination Sum | k-closest; subsets; combination-sum |
 | House Robber; Coin Change; Word Break | house-robber; coin-change; word-break |
 
-Tree Level Order non è un task diretto: frontiera a livelli praticata su grid e spiegata sugli alberi. Dijkstra/network-delay e Clone Graph sono Extra, con spiegazione e pratica disponibili.
+Tree Level Order ha ora un task diretto Extended; la BFS multi-sorgente su grid resta un esempio distinto. Clone Graph è già presente nel catalogo e Dijkstra/network-delay resta Extra.
 
 ## Practice quality
 
-Easy recuperano sintassi, indici e casi base. I 35 Medium includono finestre con frequenze, prefissi/mappe, confini, ricerca sulla risposta, grafi e DP con stato da scegliere. I 10 Hard sono approfondimenti limitati, non un requisito per completare il Core.
+I 25 Easy recuperano sintassi, indici e casi base. I 51 Medium includono finestre con frequenze, prefissi/mappe, confini, ricerca sulla risposta, grafi e DP con stato da scegliere. I 13 Hard sono approfondimenti limitati, non un requisito per completare il Core.
 
 La pratica mista combina window/map, graph/BFS, graph/heap, sorting/greedy, prefix/map e heap/Top K. Pattern visibile nello studio, rimosso nelle prove a tempo. Simulazioni: 25 min longest-substring, 40 min coin-change, repository 60 e full mock 40+60 (three-sum/Parcel). Quest'ultimo è riservato al giorno 6.
 
@@ -98,30 +98,35 @@ Modifiche: lab anticipati ai giorni 2/3, toolkit separati, task ridondanti rimos
 
 Riletto campione trasversale di formato/metodo, toolkit, HashMap, Sliding Window, ricerche/confini/risposta, liste, BFS/DFS/grafi, heap, DP, backtracking, stack choice, AI e behavior. Rivisti contratti/spiegazioni della banca, tutte le carte e i 36 scenari.
 
-Lezioni concrete e navigabili, con esempi e collegamenti; il giorno è un piano sopra il curriculum. Ripetizione di mappe/invarianti/stato in contesti diversi. Tre carte duplicative sostituite; tracce aggiunte per DP/ricerca sulla risposta/backtracking; soluzioni impaginate e complessità di copie/sottostringhe corrette. Nomi brevi convenzionali restano leggibili nel contesto.
+Lezioni concrete e navigabili, con esempi e collegamenti; il giorno è un piano sopra il curriculum. Ripetizione di mappe/invarianti/stato in contesti diversi. Tre carte duplicative sostituite; tracce aggiunte per DP/ricerca sulla risposta/backtracking; soluzioni impaginate e complessità di copie/sottostringhe corrette. In questa revisione, le prime lezioni aggiungono esempi svolti di scansione, confronto di complessità, compattazione in-place, Kadane e Two Sum; le versioni di codice Python e C++ seguono il selettore di lingua.
 
 Due scenari poco pertinenti riscritti per payload incompleto e denominatori diversi. Alcune alternative deboli restano riconoscibili: formazione sui tradeoff, non replica della psicometria Amazon.
 
 ## Technical verification
 
-- Suite finale: **65 passed, 0 failed, 0 skipped**, in 128,58 secondi; comando `.venv\Scripts\python.exe -m pytest -q -rs`.
+- Suite finale: **94 passed, 4 skipped, 0 failed**, in 158,62 secondi; comando `.venv\Scripts\python.exe -m pytest -q -rs`. I quattro skip riguardano l'esecuzione UI dei laboratori React, non il track Amazon.
 - Doctor: exit 0; tre cataloghi, scrittura e runner JavaScript/Python/C++20/C# verificati.
-- Soluzioni: tutti i 67 task Python e 67 C++ eseguiti; anche soluzioni degli altri percorsi.
+- Soluzioni: tutti gli 89 task Python e 89 C++ eseguiti; anche soluzioni degli altri percorsi.
 - Runner: syntax/runtime error, risposte errate, timeout, limiti output e anomalie compilazione/esecuzione.
 - Lab: failure iniziali e riparazioni reali, Parcel in entrambi gli stack.
 - UI: tre track/Ctrl+T, persistenza/statistiche separate, editor/layout corto e largo, behavior, stack e timer sequenziali. Timer del mock avanza mentre il runner è occupato; risultato tardivo ignorato dopo cambio sezione.
 - Coding simulation: starter fresco e traccia nascosta prestart, niente pausa/reset/cambio lingua dopo start, editor bloccato alla scadenza; test dedicato.
-- Determinismo: JSON e 44 lezioni identici dopo rigenerazione. Diff check senza errori, soli avvisi LF/CRLF.
+- Determinismo: due rigenerazioni consecutive hanno prodotto gli stessi JSON e 45 file lezione Amazon (46 artefatti totali). `tools/doctor.py` exit 0 sui tre cataloghi e runner Python, C++20, JavaScript e C#.
+- Reset: il dashboard Amazon mostra già “Ricomincia il percorso” e richiede conferma. Il test dedicato verifica che vengano rimossi i progressi di entrambe le varianti linguistiche e che restino intatti gli altri percorsi, il linguaggio scelto e i file di laboratorio.
 - Offline: materiali/runner/lab locali senza pacchetti applicativi da scaricare. Socket negati nel processo di verifica materiali e API Node negate nel lab. Non è isolamento di rete dell'intero OS o dei figli Python/C++.
 - Batch Windows: verificato nella precedente fase da copia isolata con tre dashboard e chiusura exit 0; launcher invariato qui. Nuova UI verificata via Textual, installazione da zero non ripetuta.
 
 ## Ultime correzioni effettuate
 
-Pattern/prompt prestart protetti; clock mock asincrono; simulazioni senza pausa/reset e senza risposta vecchia; scelta stack persistente; Parcel ampliato; ciclo lista e clone grafo; Coin Change/Three Sum edge case; overflow Missing Number C++; constraints espliciti; soluzioni impaginate e tokenizer corretto; complessità copie/substrings; tracce DP/backtracking/ricerca; carte/scenari corretti; piano Core/Extra/recall.
+Pattern/prompt prestart protetti; clock mock asincrono; simulazioni senza pausa/reset e senza risposta vecchia; scelta stack persistente; Parcel ampliato; ciclo lista e clone grafo; Coin Change/Three Sum edge case; overflow Missing Number C++; constraints espliciti; soluzioni impaginate e tokenizer corretto; complessità copie/substrings; tracce DP/backtracking/ricerca; carte/scenari corretti; piano Core/Extra/recall. Questa revisione aggiunge 22 esercizi Extended e una lezione Trie facoltativa, conserva tutti gli ID del piano Core, aggiorna la matrice benchmark e testa il reset del percorso.
 
 ## Limitazioni residue
 
 Nessuna garanzia di esito Amazon; problemi/stack possono variare. Il mock fisso perde valore di prova mai vista dopo il primo tentativo. Soluzioni accessibili nei file: disciplina personale necessaria. Nessun proctoring, cloud IDE, IntelliSense o AI HackerRank riprodotto.
+
+## Confronto con la versione precedente
+
+Il percorso è cambiato rispetto alla prima pubblicazione: il commit `5240d9c` ha ampliato e riorganizzato la teoria Amazon in 46 file del track (4.392 inserimenti e 415 rimozioni), mantenendo però 44 lezioni e 67 esercizi. Anche gli snapshot dei commit successivi `fbc3090`, `4369190` e `a212166` conservavano quei conteggi; gli ultimi due non modificano file Amazon. Il catalogo corrente aggiunge contenuti, senza rimuovere il piano di studio: restano invariati i 44 ID di lezione pianificati.
 
 Durate e difficoltà repo sono stime, non misure su candidati. Test ed editoriale non dimostrano assenza assoluta di bug. Clone Graph C++ affida la proprietà dei nodi copiati al chiamante: esempio algoritmico, non modello production di memory ownership.
 

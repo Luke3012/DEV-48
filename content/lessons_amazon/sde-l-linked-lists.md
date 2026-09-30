@@ -50,4 +50,10 @@ In `1→2→3→4→2`, il nodo 4 torna al 2. Partendo entrambi da 1, dopo un pa
 
 Per fondere `k` liste ordinate, un min-heap conserva una sola testa per lista: estrai la più piccola, collegala al risultato e inserisci il suo successore. Con `N` nodi, il tempo è `O(N log k)` e lo heap usa `O(k)` spazio. Una LRU aggiunge invece una mappa chiave→nodo e due link per spostare un nodo noto in testa in `O(1)`; le sentinelle semplificano le operazioni ai bordi.
 
-**Da ricordare.** I collegamenti sono riferimenti modificabili: conserva il prossimo nodo prima di riscriverli e usa una mappa solo quando serve accesso diretto. **Per praticare:** Invertire una lista collegata; Rilevare un ciclo nei collegamenti; Cache LRU con capacità limitata.
+### Rimuovere un nodo contando dalla fine
+
+Per togliere il secondo nodo dalla fine di `1 → 2 → 3 → 4 → 5`, avanza `fast` di due collegamenti mentre `slow` resta su un nodo fittizio prima della testa. Poi avanza entrambi finché `fast` è l'ultimo nodo: `slow` è sul 3, il predecessore del 4 da eliminare. Collega `slow.next` al 5.
+
+Se `n` è la lunghezza, `slow` resta sul dummy e rimuove la testa. Il nodo fittizio evita un aggiornamento speciale alla radice; la distanza fissa tra i puntatori rende il passaggio singolo O(n) e usa O(1) spazio.
+
+**Da ricordare.** I collegamenti sono riferimenti modificabili: conserva il prossimo nodo prima di riscriverli e usa una mappa solo quando serve accesso diretto. **Per praticare:** Invertire una lista collegata; Rilevare un ciclo nei collegamenti; Cache LRU con capacità limitata; Rimuovere il nodo N-esimo dalla fine.

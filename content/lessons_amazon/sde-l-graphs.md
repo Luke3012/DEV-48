@@ -90,4 +90,8 @@ In Word Ladder i nodi non vengono elencati come archi: sono parole e due parole 
 
 Qui gli archi hanno costo unitario. Se hanno pesi positivi, BFS non confronta i costi: usa Dijkstra con priorità, spiegato nella lezione Heap. Per copiare un grafo conserva una mappa per identità del nodo, non per valore: due nodi con `val=5` possono essere distinti e avere vicini diversi.
 
-**Da ricordare.** Prima definisci nodi, direzione e peso degli archi; questi tre dettagli determinano rappresentazione e visita corretta. **Per praticare:** Contare componenti di un grafo non diretto; Trasformazione minima tra parole; Copiare una rete conservando le connessioni.
+### Quando il conteggio degli archi basta
+
+Un albero non orientato su n nodi ha n-1 archi ed è connesso. Quindi puoi controllare il numero degli archi e poi fare una BFS/DFS da un nodo: se raggiungi tutti, non può restare un ciclo. Il solo conteggio non basta: un ciclo su tre nodi più un nodo isolato può comunque avere n-1 archi. Per input generali, o se vuoi rilevare il ciclo direttamente, serve una visita con parent o Union-Find.
+
+**Da ricordare.** Prima definisci nodi, direzione e peso degli archi; questi tre dettagli determinano rappresentazione e visita corretta. **Per praticare:** Contare componenti di un grafo non diretto; Trasformazione minima tra parole; Copiare una rete conservando le connessioni; Verificare se gli archi formano un albero.

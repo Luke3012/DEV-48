@@ -372,8 +372,13 @@ class Catalog:
                         for item_id in branch.get("lab_ids", []):
                             if item_id not in self.lab_by_id:
                                 errors.append(f"Piano di studio: lab opzionale sconosciuto {item_id}")
-            if set(planned) != known_lessons:
-                errors.append("Piano di studio: ogni lezione deve comparire almeno una volta")
+            expected_lessons = (
+                {lesson.id for lesson in self.lessons if lesson.mandatory}
+                if self.track == "amazon-sde-oa"
+                else known_lessons
+            )
+            if set(planned) != expected_lessons:
+                errors.append("Piano di studio: ogni lezione obbligatoria deve comparire almeno una volta")
             if len(planned) != len(set(planned)):
                 errors.append("Piano di studio: una lezione compare in più giorni")
         return errors

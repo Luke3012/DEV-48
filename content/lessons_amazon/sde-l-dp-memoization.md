@@ -67,4 +67,10 @@ Climbing Stairs usa la stessa dipendenza dagli ultimi due stati, ma `ways(0)=1`:
 
 Coin Change cambia la transizione: per un importo `x` provi ciascuna moneta `c<=x` e confronti `1+dp[x-c]`. Il sentinel per uno stato irraggiungibile deve restare distinto da zero. Prima conta quanti stati esistono, poi quante transizioni prova ciascuno; così ricavi il tempo invece di ricordare una formula.
 
-**Da ricordare.** La DP evita di risolvere più volte lo stesso stato; definizione dello stato, base e transizione vengono prima dell'ottimizzazione dello spazio. **Per praticare:** Contare i modi per salire le scale; Massimo bottino senza case adiacenti.
+### Crescita e decodifica: stati definiti sugli indici
+
+Per la sottosequenza crescente quadratica, `dp[i]` è la migliore lunghezza che termina proprio in i. Con `[3,1,2,5]`, gli stati diventano `[1,1,2,3]`: da 2 puoi estendere il sottoproblema che termina in 1, poi da 5 puoi estendere quello che termina in 2. Il massimo globale è 3; la sequenza non deve occupare posizioni adiacenti.
+
+Per `226`, il prefisso `2` ha un modo; `22` ne ha due (`2|2` e `22`); `226` ne ha tre aggiungendo 6 singolo ai due modi precedenti o aggiungendo 26 al primo. Uno zero non apre un ramo singolo: `10` ha una sola decodifica, `06` nessuna. Definire i due stati precedenti rende possibile comprimere la tabella a due contatori.
+
+**Da ricordare.** La DP evita di risolvere più volte lo stesso stato; definizione dello stato, base e transizione vengono prima dell'ottimizzazione dello spazio. **Per praticare:** Contare i modi per salire le scale; Massimo bottino senza case adiacenti; Sottosequenza strettamente crescente più lunga; Contare le decodifiche di una stringa numerica.

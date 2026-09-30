@@ -105,4 +105,18 @@ Il caso `left == right` è valido e vuoto; non devi leggere `values[right]`. Per
 
 Nel compattamento in-place della lezione, `read` indica il prossimo elemento da esaminare e `write` la prossima posizione del prefisso valido. Se nessun elemento supera il filtro, `write` rimane 0: il risultato è un prefisso vuoto anche se la vecchia memoria dell'array contiene ancora valori oltre il confine. Chi usa il risultato deve rispettare la lunghezza restituita.
 
-**Da ricordare.** Gli indici di lettura e scrittura rendono esplicito il prefisso già valido; inizializza gli accumuli in base ai casi ammessi. **Per praticare:** Compattare i valori non nulli; Massima somma di un segmento contiguo; Miglior guadagno da un acquisto e una vendita.
+### Tracciare la scelta di Kadane
+
+Per ogni valore confrontiamo due possibilità: iniziare un segmento nuovo qui oppure estendere quello migliore che terminava nella posizione precedente. Con `[-2, 3, -1, 4, -6]` la tabella mostra entrambe:
+
+| Valore | Somma precedente + valore | Nuovo segmento | Migliore somma che termina qui | Migliore globale |
+| ---: | ---: | ---: | ---: | ---: |
+| -2 | — | -2 | -2 | -2 |
+| 3 | 1 | 3 | 3 | 3 |
+| -1 | 2 | -1 | 2 | 3 |
+| 4 | 6 | 4 | 6 | 6 |
+| -6 | 0 | -6 | 0 | 6 |
+
+Quando arriva `3`, continuare il segmento che valeva `-2` produrrebbe solo `1`, perciò conviene ripartire da `3`. Con `4`, invece, `2 + 4 = 6` batte il segmento nuovo. Il risultato è 6, ottenuto da `[3,-1,4]`. In un input tutto negativo come `[-5,-2,-8]`, la risposta è `-2`: per questo inizializziamo gli accumuli al primo elemento, senza imporre che la risposta sia almeno zero.
+
+**Da ricordare.** Gli indici di lettura e scrittura rendono esplicito il prefisso già valido; inizializza gli accumuli in base ai casi ammessi. **Per praticare:** Compattare i valori non nulli; Massima somma di un segmento contiguo; Miglior guadagno da un acquisto e una vendita; Prodotto massimo di un segmento contiguo.

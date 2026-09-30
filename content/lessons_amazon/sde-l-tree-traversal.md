@@ -63,4 +63,14 @@ Maximum Path Sum usa un'altra combinazione postorder. Con radice `-10`, figlio s
 
 I guadagni negativi si sostituiscono con zero quando li si aggiunge a un cammino più grande. Il massimo globale va però inizializzato dal primo nodo, non da zero: con soli valori negativi la risposta è il nodo meno negativo, non il cammino vuoto.
 
-**Da ricordare.** Preorder, inorder, postorder e BFS differiscono per il momento in cui elaborano un nodo; il dato richiesto decide l'ordine. **Per praticare:** Diametro di un albero binario; Massima somma di un cammino in un albero.
+### Dal percorso ricorsivo alla visita per livelli
+
+Invertire un albero significa scambiare i figli di ogni nodo; confrontare due alberi richiede che valori e posizione dei figli coincidano. Per cercare un sottoalbero prova ogni nodo come possibile radice e confronta l'intera struttura: trovare il valore della radice da solo non basta.
+
+Per raggruppare i livelli usa una coda. Con radice 3 e figli 9 e 20, la coda parte da `[3]`: consumi una sola voce, raccogli `[3]` e accodi 9 e 20; la dimensione iniziale della coda delimita il livello successivo `[9,20]`. Non consumare i figli appena accodati nel livello corrente.
+
+Per ricostruire l'albero da preorder e inorder, il primo valore preorder è la radice. La sua posizione in inorder separa il sottoalbero sinistro dal destro. Con preorder `[3,9,20,15,7]` e inorder `[9,3,15,20,7]`, 3 divide `[9]` da `[20,15,7]`; ricorri sui due intervalli. Una mappa delle posizioni evita di riscanalizzare inorder a ogni passo.
+
+Una serializzazione deve distinguere i figli mancanti dalla fine dei token. In BFS, `1,#,2` descrive una radice con solo figlio destro; senza `#`, il 2 potrebbe essere interpretato come figlio sinistro. Definisci un formato preciso e fai il round trip serializza → deserializza → serializza.
+
+**Da ricordare.** Preorder, inorder, postorder e BFS differiscono per il momento in cui elaborano un nodo; il dato richiesto decide l'ordine. **Per praticare:** Diametro di un albero binario; Massima somma di un cammino in un albero; Invertire un albero binario; Confrontare due alberi; Verificare se un albero contiene un sottoalbero; Visitare un albero per livelli; Ricostruire un albero da preorder e inorder; Serializzare e ricostruire un albero.
