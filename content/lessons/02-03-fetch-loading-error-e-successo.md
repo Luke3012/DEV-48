@@ -8,7 +8,9 @@ Implementare una richiesta robusta e rappresentarne tutti gli stati nella UI.
 
 `fetch` risolve la Promise anche quando il server risponde 404 o 500, quindi devi controllare `response.ok`. La UI deve inoltre distinguere attesa, dati disponibili, risultato vuoto ed errore.
 
-Separiamo il trasporto dalla UI. Questa funzione restituisce i soggetti oppure rifiuta con un errore; il componente che la usa decide quando mostrare caricamento, lista vuota o retry. Il controllo HTTP avviene prima di leggere il JSON. JSON valido sintatticamente non significa che abbia la forma prevista dall'applicazione.
+Una richiesta attraversa passaggi distinti: contatto con il server, risposta HTTP, lettura del corpo e controllo della forma dei dati. Se mostri tutto come “successo o errore” senza sapere a quale passaggio sei arrivato, è difficile capire il guasto.
+
+Costruiamo quindi la funzione a piccoli passi. `fetch` restituisce una `Promise<Response>`, non il JSON. Prima controlliamo `response.ok` perché un `404` è comunque una risposta HTTP; dopo aver accettato la risposta leggiamo il corpo con `response.json()`. Questa lettura è a sua volta asincrona e può fallire se il corpo non è JSON valido. Infine controlliamo il contratto minimo che l'app si aspetta.
 
 ## Le parole da riconoscere
 
@@ -16,21 +18,29 @@ Separiamo il trasporto dalla UI. Questa funzione restituisce i soggetti oppure r
 
 ## Un esempio concreto
 
-```text
-async function fetchSubjects(url, signal) {
-  const response = await fetch(url, { signal });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+```javascript
+async function readSubjects(url) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error("HTTP " + response.status);
+  }
+
   const data = await response.json();
-  if (!Array.isArray(data) || !data.every(item =>
-    item !== null && typeof item === 'object' &&
-    Number.isInteger(item.id) && typeof item.name === 'string'
-  )) throw new Error('Risposta non valida');
+  if (!Array.isArray(data)) {
+    throw new Error("La risposta non è una lista");
+  }
+
   return data;
 }
-// Chiamante: await fetchSubjects('/api/subjects', controller.signal)
 ```
 
-Fetch non rifiuta per uno status 404: response.ok è falso e dobbiamo lanciare l'errore. Può invece rifiutare per rete o annullamento. Passare signal permette ad AbortController di interrompere la richiesta; non annulla automaticamente il lavoro già eseguito dal server. La gestione degli esiti fuori ordine sarà nella lezione sui dati remoti.
+La prima `await` aspetta la risposta del trasporto. Un errore di rete, un URL irraggiungibile o una richiesta annullata rifiutano la Promise; un `404` invece arriva come `Response` e richiede il controllo esplicito di `ok`. Quando `ok` è `false`, lanciamo l'errore prima di leggere il corpo.
+
+Solo dopo passiamo alla seconda `await`. `response.json()` può rifiutare durante il parsing: ricevere byte dal server non garantisce che siano JSON leggibile. Se il parse riesce, `data` è ancora un valore esterno non fidato. `Array.isArray` controlla il contenitore, ma non dimostra che ogni elemento abbia `id` e `name` validi; per quel contratto serve la stessa validazione runtime introdotta ai confini dei dati esterni.
+
+La funzione trasforma il trasporto in due esiti per il chiamante: una lista valida, anche vuota, oppure un errore che può essere gestito più in alto. La UI può rappresentare una richiesta in caricamento, un errore recuperabile, un successo vuoto o una lista piena. Una lista vuota non dice se la richiesta sia partita né se sia fallita, quindi questi stati vanno tenuti distinti.
+
+Qui non aggiungiamo ancora `AbortController`. Prima rendiamo chiari risposta, status, parsing ed errore; la lezione sul caricamento remoto aggiungerà cleanup e richieste fuori ordine.
 
 ## Prova tu
 

@@ -8,7 +8,19 @@ Mantenere input, validazione e submit coerenti con lo state React.
 
 In un input controllato, il valore mostrato viene dallo state e `onChange` aggiorna quello state. Hai così un'unica fonte di verità per validazione, invio e messaggi di errore.
 
-Il browser sa inviare un form e può ricaricare la pagina; preventDefault impedisce quel comportamento quando React gestisce l'invio. L'input controllato legge il valore dallo stato e onChange registra ogni modifica. Inizia con una stringa, anche vuota, evitando il passaggio da undefined a un valore controllato. Validazione e richiesta restano nel submit, perché dipendono dall'azione dell'utente.
+Un input controllato crea un giro completo tra React e il browser:
+
+~~~text
+state React
+   ↓
+value mostrato nell'input
+   ↑
+utente digita → onChange → setState → nuovo render
+~~~
+
+Il valore parte dallo state, quindi React sa che cosa mostrare. Quando l'utente digita, onChange legge il testo corrente dall'evento e aggiorna lo state; il render successivo restituisce quel testo come value. Se il gestore non aggiorna lo state, React continua a fornire il valore precedente e il campo sembra bloccato.
+
+Il submit è un evento distinto. L'handler può impedire il ricaricamento predefinito, validare i dati e inviare solo ciò che rispetta il contratto.
 
 ## Le parole da riconoscere
 
@@ -37,7 +49,11 @@ export default function SubjectForm({ onSave }) {
 }
 ```
 
-Il form aggiorna il campo su onChange ma salva soltanto sul submit. noValidate rende osservabile la validazione dell'esempio invece di lasciarla al browser. Una stringa di soli spazi produce l'errore e non chiama onSave; il collegamento aria-describedby associa il messaggio al campo. L'esempio è sincrono: per un salvataggio remoto il reset deve avvenire solo dopo il successo.
+Il campo parte da una stringa vuota, non da `undefined`: resta controllato fin dal primo render. `value={name}` mostra lo state; `onChange` legge `event.target.value`, che è una stringa, e `setName` richiede il render che la mostrerà. La `label` fornisce il nome accessibile del campo, mentre `aria-invalid` e `aria-describedby` comunicano errore e messaggio associato.
+
+La validazione avviene dentro `submit` perché è l'utente ad aver chiesto di salvare. `trim()` rimuove gli spazi esterni: una stringa composta solo da spazi produce un errore e non chiama `onSave`. `noValidate` rende esplicito questo ramo dell'esempio senza lasciare che la validazione nativa del browser lo intercetti prima. `preventDefault()` impedisce la normale navigazione/invio del form, così è il gestore React a elaborare il submit.
+
+Questo esempio salva in modo sincrono. Con un server, conserviamo il testo e gli errori se la richiesta fallisce e svuotiamo il campo solo dopo il successo. Anche quando il client valida, il server deve controllare di nuovo il contratto e i permessi.
 
 ## Prova tu
 

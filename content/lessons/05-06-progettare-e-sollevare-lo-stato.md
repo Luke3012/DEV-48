@@ -8,7 +8,19 @@ Collocare ogni informazione nel proprietario comune più vicino evitando duplica
 
 Lo state dovrebbe vivere nel componente comune più vicino a tutti quelli che lo usano. Un valore calcolabile da props e state esistenti non va duplicato: puoi ricalcolarlo durante il render.
 
-Se filtro e conteggio devono descrivere la stessa lista, il genitore comune conserva items e query; i figli ricevono dati e callback. La lista visibile è un calcolo, non un secondo archivio da sincronizzare. Uno stato duplicato richiederebbe aggiornare contemporaneamente items e visible dopo ogni creazione, eliminazione o cambio di ricerca: basta dimenticare un percorso per mostrare dati incoerenti.
+Immagina che SearchBox tenga query="ann" in uno state e Results abbia una propria copia query="anna". Le due parti possono divergere: ogni modifica deve essere copiata manualmente da una all'altra, e un aggiornamento dimenticato mostra conteggio e lista incoerenti.
+
+Quando due componenti devono leggere lo stesso valore, spostane la proprietà nel loro genitore comune. Il genitore passa query e una callback al campo; passa i risultati calcolati alla lista. Così c'è una sola fonte di verità:
+
+~~~text
+             Archive
+          query = "anna"
+            /                  ↓         ↓
+     SearchBox     Results
+       valore       lista filtrata
+~~~
+
+La lista filtrata dipende interamente da items e query: non è un terzo stato da mantenere. Calcolala durante il render, come una formula sui valori correnti.
 
 ## Le parole da riconoscere
 
@@ -17,22 +29,40 @@ Se filtro e conteggio devono descrivere la stessa lista, il genitore comune cons
 ## Un esempio concreto
 
 ```jsx
-import { useState } from 'react';
-function Search({ query, onChange }) {
-  return <label>Cerca <input value={query} onChange={event => onChange(event.target.value)} /></label>;
+import { useState } from "react";
+
+function SearchBox({ query, onChange }) {
+  return <label>Cerca
+    <input value={query} onChange={event => onChange(event.target.value)} />
+  </label>;
 }
+
+function Results({ items, query }) {
+  return <section>
+    <p>Risultati per: {query || "tutti"}</p>
+    <ul>{items.map(item => <li key={item.id}>{item.name}</li>)}</ul>
+  </section>;
+}
+
 export default function Archive({ items }) {
-  const [query, setQuery] = useState('');
-  const visible = items.filter(item => item.name.toLowerCase().includes(query.toLowerCase()));
-  return <main>
-    <Search query={query} onChange={setQuery} />
-    <p>{visible.length} risultati</p>
-    <ul>{visible.map(item => <li key={item.id}>{item.name}</li>)}</ul>
-  </main>;
+  const [query, setQuery] = useState("");
+  const normalizedQuery = query.trim().toLowerCase();
+  const visibleItems = items.filter(item =>
+    item.name.toLowerCase().includes(normalizedQuery)
+  );
+
+  return <>
+    <SearchBox query={query} onChange={setQuery} />
+    <Results items={visibleItems} query={query} />
+  </>;
 }
 ```
 
-Search non ha una copia di query. Il genitore ricalcola visible a ogni render con i dati correnti. Qui un filtro piccolo non richiede useMemo: introduci una cache soltanto dopo aver misurato un costo rilevante, senza usarla per correggere la logica. Il reset della ricerca avviene in un evento, non in un effect dedicato a sincronizzare due copie.
+SearchBox non possiede una seconda `query`: mostra quella ricevuta e segnala il testo nuovo con `onChange`. Archive conserva lo state condiviso e lo passa ai componenti che ne hanno bisogno. Se la ricerca è vuota, `includes("")` conserva tutti i nomi; altrimenti il filtro crea l'array che Results mostra. Quando `items` cambia, il render rifà lo stesso calcolo e lista e conteggio restano basati sui dati correnti.
+
+Confrontalo con `visibleItems` salvato in `useState` e sincronizzato da un Effect. Quando `items` o `query` cambiano, React può prima renderizzare con il vecchio `visibleItems`; solo dopo il commit l'Effect lo aggiorna e provoca un altro render. Se la sincronizzazione dimentica una dipendenza, i risultati possono restare vecchi. Qui `visibleItems` è una formula, quindi lo stato duplicato non aggiunge informazione e può divergere.
+
+Un filtro così piccolo non richiede `useMemo`. Una cache introduce complessità e serve solo se una misurazione mostra un costo rilevante. “Lifting state up” risolve chi possiede il valore condiviso; non significa spostare tutto lo state in cima all'applicazione.
 
 ## Prova tu
 

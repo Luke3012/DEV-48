@@ -6,7 +6,9 @@ Capire cosa contiene una variabile e prevedere conversioni e confronti.
 
 JavaScript può convertire automaticamente un valore durante un confronto. Usare `===` e controllare il tipo rende il risultato più prevedibile, soprattutto quando i dati arrivano da form o API.
 
-Una variabile contiene un valore, e il tipo influenza ciò che puoi farci. `const` dichiara un riferimento che non puoi riassegnare; `let` consente la riassegnazione. `if` sceglie un ramo in base a una condizione e `return`, che useremo nelle funzioni, termina la chiamata restituendo un valore. Parti da confronti espliciti quando il requisito riguarda un tipo preciso.
+La stessa schermata può consegnare valori che sembrano uguali ma hanno tipi diversi. Prima di scegliere un confronto, chiediti quale domanda vuoi fare: i valori hanno lo stesso tipo e lo stesso contenuto? Vuoi consentire una conversione? Oppure vuoi sapere se un ramo `if` verrà eseguito?
+
+Considera `value` uguale alla stringa `"0"`. La variabile contiene tre caratteri, non il numero zero. Guardiamo la stessa variabile con tre operazioni: `===` confronta senza conversioni, `==` può convertire, mentre `Boolean(...)` chiede soltanto se il valore è truthy. Sono domande diverse e possono quindi dare risposte diverse.
 
 ## Le parole da riconoscere
 
@@ -15,15 +17,27 @@ Una variabile contiene un valore, e il tipo influenza ciò che puoi farci. `cons
 ## Un esempio concreto
 
 ```javascript
-const fromInput = '0';
-console.log(typeof fromInput); // 'string'
-console.log(fromInput === 0); // false
-console.log(Number(fromInput) === 0); // true
-if (fromInput) console.log('stringa non vuota');
-console.log(typeof null); // 'object': particolarità storica
+const value = "0";
+
+console.log(typeof value);   // "string"
+console.log(value === 0);    // false
+console.log(value == 0);     // true
+console.log(Boolean(value)); // true
+
+if (value) {
+  console.log("Il ramo viene eseguito");
+}
+
+console.log(Boolean(0));  // false
+console.log(Boolean("")); // false
+console.log(typeof null); // "object": particolarità storica
 ```
 
-`'0'` è una stringa non vuota, quindi è truthy; il numero `0` è falsy. `===` confronta senza la conversione implicita di `==`. `null` esprime spesso un'assenza intenzionale; `undefined` compare, per esempio, leggendo una proprietà che manca. Non usare soltanto `typeof` per distinguerli.
+La prima riga conserva l'input come stringa. Perciò `value === 0` è `false`: una stringa e un numero non diventano uguali durante il confronto stretto. Con `value == 0` JavaScript converte la stringa numerica e confronta due zeri; il risultato è `true`. Questo mostra perché `==` può sorprendere, non perché sia la scelta da preferire.
+
+`Boolean(value)` risponde a una terza domanda. Una stringa non vuota è truthy anche quando il suo contenuto è `"0"`; il numero `0` e la stringa vuota sono falsy. Truthy non significa “uguale a `true`” e falsy non significa “uguale a zero”.
+
+Un campo HTML arriva come stringa. Se il programma deve usarlo come numero, controlla prima che non sia vuoto, convertilo esplicitamente e valida il risultato. Altrimenti un controllo come `if (!value)` confonde l'assenza con il numero zero, mentre un confronto permissivo può nascondere la conversione. `null` indica spesso un'assenza scelta dal programma; `undefined` può indicare una proprietà che non esiste. `typeof null` è un'eccezione storica, quindi non serve a distinguere i due casi.
 
 ## Prova tu
 
@@ -40,3 +54,5 @@ Prevedi prima l'esito di `'' === false`, `0 === false` e `null === undefined`. P
 > Qual è la differenza tra == e ===?
 
 Confronta la tua spiegazione con la flashcard dedicata alla domanda.
+
+Riferimento: [documentazione ufficiale](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Equality_comparisons_and_sameness).

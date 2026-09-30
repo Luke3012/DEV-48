@@ -8,7 +8,9 @@ Leggere e creare copie aggiornate di strutture dati applicative.
 
 Destructuring rende espliciti i campi che stai leggendo; spread aiuta a creare una copia con alcuni campi aggiornati. Ricorda però che la copia è superficiale: gli oggetti annidati restano condivisi se non li copi a loro volta.
 
-Un oggetto associa proprietà a valori. Due variabili possono indicare lo stesso oggetto: una modifica attraverso l'una sarà visibile dall'altra. `const` impedisce di riassegnare la variabile, non di modificarne le proprietà. Spread copia soltanto il primo livello, quindi devi ricostruire ogni livello del percorso che vuoi cambiare.
+Gli oggetti contengono proprietà; il valore di una proprietà può essere a sua volta un riferimento a un altro oggetto. Perciò due oggetti distinti possono ancora condividere una parte della loro struttura.
+
+`{ ...user }` copia le proprietà del primo livello. Se `user.address` punta a un altro oggetto, la copia riceve lo stesso riferimento. Per aggiornare la città senza toccare l'originale, devi ricreare sia l'oggetto esterno sia `address`; gli altri campi dell'indirizzo restano copiati.
 
 ## Le parole da riconoscere
 
@@ -17,16 +19,45 @@ Un oggetto associa proprietà a valori. Due variabili possono indicare lo stesso
 ## Un esempio concreto
 
 ```javascript
-const user = { id: 1, profile: { city: 'Roma', age: 30 } };
+const user = {
+  name: "Anna",
+  address: {
+    city: "Napoli",
+    postalCode: "80100"
+  }
+};
+
 const shallow = { ...user };
-console.log(shallow.profile === user.profile); // true
-const updated = { ...user, profile: { ...user.profile, city: 'Milano' } };
-console.log(user.profile.city, updated.profile.city); // 'Roma', 'Milano'
-const { id } = updated;
-console.log(id, updated.profile?.city ?? 'N/D'); // 1, 'Milano'
+console.log(shallow !== user); // true: oggetto esterno nuovo
+console.log(shallow.address === user.address); // true: indirizzo condiviso
+
+const updated = {
+  ...user,
+  address: { ...user.address, city: "Milano" }
+};
+
+console.log(user.address.city); // "Napoli"
+console.log(updated.address.city); // "Milano"
+console.log(updated.address.postalCode); // "80100"
+
+const { name, address } = updated;
+console.log(name, address.city); // "Anna", "Milano"
+console.log(updated.address?.city ?? "N/D"); // città mostrata: Milano
 ```
 
-`shallow` è un oggetto nuovo ma contiene il riferimento al vecchio `profile`. Una scrittura su `shallow.profile.city` cambierebbe anche `user`. `updated` ricrea entrambi i livelli e conserva `age`. `?.` interrompe l'accesso su null/undefined; `??` usa il default soltanto per quei due valori, conservando zero e stringa vuota.
+Dopo il primo spread, `shallow` e `user` sono due oggetti esterni, ma la proprietà `address` conduce allo stesso oggetto:
+
+~~~text
+user   ──────→ { name, address } ──────→ { city: "Napoli", postalCode: "80100" }
+                                          ↑
+shallow ─────→ { name, address } ─────────┘
+~~~
+
+Quindi una scrittura come `shallow.address.city = "Milano"` cambierebbe anche `user.address.city`. Non basta copiare il contenitore che sta sopra: si deve copiare ogni oggetto lungo il percorso modificato. In `updated`, il secondo spread crea un nuovo `address`; `postalCode` viene conservato, mentre `city` riceve il nuovo valore.
+
+Il destructuring estrae proprietà dai dati già ottenuti: `const { name, address } = updated` non fa una copia profonda. L'optional chaining `?.` interrompe la lettura se il valore a sinistra è `null` o `undefined`; `??` applica il default soltanto in quei due casi, quindi conserva valori come `0` e stringa vuota.
+
+La stessa regola servirà in React: lo state può contenere più livelli di oggetti e array, e un aggiornamento deve produrre riferimenti nuovi per i livelli modificati senza alterare i dati precedenti.
 
 ## Prova tu
 

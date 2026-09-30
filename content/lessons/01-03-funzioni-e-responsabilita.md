@@ -8,7 +8,9 @@ Scrivere funzioni piccole, prevedibili e con input/output espliciti.
 
 Una buona funzione riceve pochi dati, svolge un compito riconoscibile e restituisce un risultato chiaro. Se per descriverla servono molti verbi, probabilmente contiene più responsabilità da separare.
 
-Definire una funzione non la esegue: la chiamata passa argomenti ai parametri e riceve il valore di `return`. Senza `return` il risultato è `undefined`. Una funzione pura può essere chiamata più volte sugli stessi dati senza modificarli né cambiare variabili esterne. Una callback è una funzione passata a un'altra funzione, che decide quando chiamarla.
+Una funzione trasforma input in output. Quando la chiami, gli argomenti diventano parametri; il corpo esegue i passaggi e `return` consegna un risultato al chiamante. Tenere visibili questi tre momenti rende più facile capire chi possiede i dati e dove aspettarsi un effetto.
+
+Prendiamo `calculateTotal(12, 2)`: i due numeri sono gli input, la moltiplicazione è l'elaborazione e il valore restituito è `24`. Una funzione diversa può stampare quel risultato. Calcolare un valore e scrivere nella console sono responsabilità diverse.
 
 ## Le parole da riconoscere
 
@@ -17,19 +19,24 @@ Definire una funzione non la esegue: la chiamata passa argomenti ai parametri e 
 ## Un esempio concreto
 
 ```javascript
-function fullName(first, last = '') {
-  const clean = first.trim();
-  if (clean === '') return 'Unknown';
-  return `${clean} ${last.trim()}`.trim();
+function calculateTotal(unitPrice, quantity) {
+  return unitPrice * quantity;
 }
-function apply(value, transform) {
-  return transform(value);
+
+function printTotal(total) {
+  console.log("Totale: " + total + " euro");
 }
-console.log(fullName(' Anna ', ' Bianchi ')); // 'Anna Bianchi'
-console.log(apply(' anna ', text => text.trim())); // 'anna'
+
+const total = calculateTotal(12, 2);
+console.log(total); // 24: valore restituito
+printTotal(total);  // Totale: 24 euro: effetto sulla console
 ```
 
-Il parametro `last` usa il default soltanto se l'argomento manca o è `undefined`, non se è `null`. L'arrow `text => text.trim()` restituisce implicitamente l'espressione; con `{ ... }` serve un `return` esplicito. In `apply` passiamo la funzione, senza chiamarla prima: sarà `transform(value)` a eseguirla.
+Nella chiamata `calculateTotal(12, 2)`, `unitPrice` riceve 12 e `quantity` riceve 2. Il corpo calcola `12 * 2`; `return` passa 24 al punto in cui la funzione è stata chiamata, quindi `total` diventa 24. La funzione non ha modificato i due input né scritto altrove.
+
+`printTotal` usa invece `console.log`, che produce un effetto osservabile fuori dal valore restituito. Non ha un `return`, quindi il suo risultato è `undefined`: stampare “24 euro” non restituisce la stringa al chiamante. Anche una funzione con un side effect può essere utile; basta sapere quando lo esegue. Un handler React può chiamare una funzione di salvataggio in risposta a un click, mentre il calcolo della UI durante il render dovrebbe limitarsi a produrre JSX.
+
+Con un arrow function, `value => value.trim()` restituisce implicitamente l'espressione. Se apri un blocco, `value => { value.trim(); }`, occorre scrivere `return value.trim()`: senza, il chiamante riceve `undefined`. Una callback è semplicemente una funzione passata a un'altra funzione, che decide quando invocarla.
 
 ## Prova tu
 

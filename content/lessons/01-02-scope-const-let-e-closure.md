@@ -8,7 +8,9 @@ Comprendere dove vive una variabile e perché una funzione ricorda il contesto e
 
 Lo scope stabilisce da quali righe una variabile è visibile. Una closure nasce quando una funzione continua ad accedere alle variabili del luogo in cui è stata creata, anche dopo che quella funzione esterna è terminata.
 
-Lo scope è l'insieme dei punti da cui un nome è accessibile. Le variabili `let` e `const` definite in un blocco restano in quel blocco. Una closure conserva l'accesso all'ambiente in cui la funzione è nata: non copia automaticamente tutti i valori. Chiamate diverse alla funzione esterna creano ambienti distinti.
+Lo scope risponde a una domanda concreta: da quale parte del programma posso leggere o cambiare questo nome? `let` e `const` dichiarati in una funzione appartengono a quella chiamata. Se una funzione interna usa un nome dello scope esterno, JavaScript risolve il nome risalendo gli ambienti lessicali.
+
+Si parte da una variabile condivisa visibile a `increment`. Poi spostiamo `count` dentro `createCounter`: ogni chiamata esterna ottiene una variabile locale diversa. Se la funzione esterna restituisce una funzione che usa quella variabile, la funzione restituita conserva l'accesso al suo ambiente anche dopo che `createCounter` è terminata. Questo accesso mantenuto è la closure.
 
 ## Le parole da riconoscere
 
@@ -17,21 +19,49 @@ Lo scope è l'insieme dei punti da cui un nome è accessibile. Le variabili `let
 ## Un esempio concreto
 
 ```javascript
-function createCounter() {
-  let value = 0;
-  return () => { value += 1; return value; };
+let count = 0;
+
+function increment() {
+  count += 1;
+  return count;
 }
+
+console.log(increment()); // 1: l'ambiente condiviso viene aggiornato
+
+function createCounter() {
+  let count = 0;
+  return function incrementLocal() {
+    count += 1;
+    return count;
+  };
+}
+
 const first = createCounter();
 const second = createCounter();
 console.log(first(), first(), second()); // 1, 2, 1
-function capture(value) { return () => value; }
-let current = 1;
-const oldRead = capture(current);
-current = 9;
-console.log(oldRead()); // 1
+
+const user = { name: "Anna" };
+user.name = "Marco"; // consentito: il binding user non cambia
+// user = {};        // TypeError: riassegnazione di const
 ```
 
-Il primo contatore legge e aggiorna la stessa variabile `value` a ogni chiamata. Il secondo ha un altro `value`. In `capture`, invece, il parametro riceve il numero 1: assegnare 9 a `current` non cambia quel parametro. React richiama il componente per ogni render; una callback creata in un render precedente accede all'ambiente di quel render. Questo spiega i valori precedenti nei timer.
+La prima versione usa il `count` esterno: ogni chiamata a `increment` modifica la stessa variabile. Nel contatore vero, invece, `count` nasce dentro `createCounter`; al ritorno, `incrementLocal` conserva un riferimento a quell'ambiente:
+
+~~~text
+createCounter()
+│
+├─ ambiente della prima chiamata: count = 0
+│    └─ first continua a leggere e aggiornare questo count
+│
+└─ ambiente della seconda chiamata: count = 0
+     └─ second continua a leggere e aggiornare questo count
+~~~
+
+Quando esegui `first()` due volte, il primo ambiente passa da 0 a 1 e poi a 2. `second()` consulta un altro ambiente e parte ancora da 0, quindi restituisce 1. La closure non congela una copia: conserva l'accesso alla variabile, che può cambiare.
+
+`const` protegge il binding: non permette di ricollegare `user` a un altro oggetto. Non rende immutabile l'oggetto raggiungibile da `user`; perciò `user.name = "Marco"` è consentito. Le copie necessarie quando si aggiornano oggetti annidati sono il passo successivo in Oggetti, destructuring e spread.
+
+Questo è un comportamento JavaScript generale. React lo riusa: ogni render crea nuove funzioni e handler che accedono ai valori di quello specifico render. Per capire perché un timer può leggere un valore precedente, prima serve distinguere “la closure conserva l'accesso” da “la variabile viene sostituita in tutti gli ambienti”.
 
 ## Prova tu
 

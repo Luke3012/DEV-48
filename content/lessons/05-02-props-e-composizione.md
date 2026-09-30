@@ -8,7 +8,17 @@ Passare dati e comportamento dal genitore senza accoppiare i componenti.
 
 Le props portano dati dal genitore al figlio. Per comunicare nella direzione opposta, il genitore passa una callback: il figlio segnala l'evento senza dover conoscere come verrà gestito.
 
-Le props sono argomenti del componente. `children` contiene il contenuto racchiuso tra i suoi tag e permette di riusare un contenitore senza sapere quale contenuto ospiterà. Per gli eventi, il genitore passa una funzione; il figlio la chiama quando l'utente agisce. La funzione deve essere passata a onClick, non eseguita durante render.
+Pensa a una prop come all'argomento con cui il genitore configura una funzione componente. Partiamo da `Greeting(name)`, poi la chiamiamo da `App`. Il dato viaggia in una direzione precisa:
+
+~~~text
+App
+ │
+ └─ name="Anna"
+        ↓
+    Greeting
+~~~
+
+La risposta a un'interazione segue il percorso opposto attraverso una funzione. Il genitore passa una callback; il figlio la invoca quando accade l'evento. Il figlio non decide come il genitore aggiornerà i propri dati.
 
 ## Le parole da riconoscere
 
@@ -17,21 +27,34 @@ Le props sono argomenti del componente. `children` contiene il contenuto racchiu
 ## Un esempio concreto
 
 ```jsx
-function Card({ title, children, onClose }) {
-  return <section aria-label={title}>
-    <h2>{title}</h2>
-    <button type="button" onClick={onClose} aria-label={`Chiudi ${title}`}>×</button>
-    {children}
-  </section>;
+function Greeting({ name }) {
+  return <p>Ciao {name}</p>;
 }
-export default function Example() {
-  return <Card title="Dettagli" onClose={() => console.log('chiusura richiesta')}>
-    <p>Anna Bianchi</p>
-  </Card>;
+
+function SaveButton({ onSave }) {
+  return <button type="button" onClick={onSave}>Salva</button>;
+}
+
+function Panel({ children }) {
+  return <section>{children}</section>;
+}
+
+export default function App() {
+  function handleSave() {
+    console.log("Richiesta di salvataggio");
+  }
+
+  return <>
+    <Greeting name="Anna" />
+    <Panel><p>Dettagli del soggetto</p></Panel>
+    <SaveButton onSave={handleSave} />
+  </>;
 }
 ```
 
-Il figlio non modifica onClose né decide quale dato aggiornare. Segnala l'evento al genitore. `onClick={onClose()}` eseguirebbe la callback subito e passerebbe il suo risultato, spesso undefined. La label rende comprensibile il pulsante anche senza interpretare il simbolo ×.
+`App` passa `name` a `Greeting`; il figlio lo riceve come dato di sola lettura. `Panel` mostra un'altra forma di composizione: ciò che metti tra i suoi tag diventa la prop `children`, quindi il contenitore non deve conoscere in anticipo il contenuto che ospiterà.
+
+`App` passa anche `handleSave` a `SaveButton`. L'handler lo conserva in `onClick` e lo chiama solo al click: l'evento risale al genitore attraverso la callback. Scrivere `onClick={handleSave()}` la eseguirebbe subito durante il render e passerebbe a React il risultato della chiamata, spesso `undefined`. Se il figlio deve segnalare quale riga è stata scelta, può chiamare `onSelect(item.id)`; il genitore resta proprietario della decisione e dello state.
 
 ## Prova tu
 
@@ -47,3 +70,5 @@ Sostituisci il contenuto con una lista mantenendo Card invariata. Poi passa una 
 > Come comunica un componente figlio un evento al genitore?
 
 Confronta la tua spiegazione con la flashcard dedicata alla domanda.
+
+Riferimento: [documentazione ufficiale](https://react.dev/learn/passing-props-to-a-component).

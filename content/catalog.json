@@ -2369,9 +2369,9 @@
       "xp": 0,
       "prompt": "Che vantaggio offre una discriminated union?\n\nUsa un esempio e descrivi il comportamento, includendo `union`; `literal type`. Il controllo verifica soltanto questi termini, non la correttezza della spiegazione: confronta la tua risposta con il modello.",
       "starter": "",
-      "solution": "Una discriminated union collega lo status ai campi validi. Dopo aver controllato status === 'error' posso leggere message, mentre nel ramo success posso leggere data. Rappresento stati alternativi senza rendere opzionali tutti i campi e senza asserzioni che nascondono errori.\n\nLessico di ripasso: `union`; `literal type`.",
+      "solution": "Un risultato remoto può essere in caricamento, riuscire con dati, riuscire senza righe oppure fallire. Un oggetto con tutti i campi opzionali non spiega quali combinazioni siano ammesse. Una discriminated union associa invece ogni status alla forma valida per quello stato:\n\n~~~typescript\ntype Subject = { id: number; name: string };\n\ntype ArchiveState =\n  | { status: \"loading\" }\n  | { status: \"success\"; data: Subject[] }\n  | { status: \"empty\" }\n  | { status: \"error\"; message: string };\n~~~\n\nQuando controlli result.status, TypeScript restringe i casi possibili:\n\n~~~typescript\nfunction assertNever(value: never): never {\n  throw new Error(\"Stato non gestito\");\n}\n\nfunction labelForState(state: ArchiveState): string {\n  switch (state.status) {\n    case \"loading\": return \"Caricamento…\";\n    case \"error\": return state.message;\n    case \"empty\": return \"Nessun soggetto\";\n    case \"success\": return state.data.length + \" soggetti\";\n    default: return assertNever(state);\n  }\n}\n~~~\n\nNel ramo `error` esiste `message`; nel ramo `success` esiste `data`. Il controllo su `status` restringe `state` al caso corrente. `assertNever` rende esplicita l'esaustività: se aggiungi un nuovo status e dimentichi il relativo ramo, TypeScript segnala il valore che non è più `never`.\n\nIl tipo rende più difficile scrivere una UI che tenta di mostrare una proprietà assente.\n\nQuesta garanzia vale durante il controllo TypeScript del programma. I tipi vengono rimossi a runtime: una risposta JSON non diventa valida solo perché la variabile è annotata ArchiveState. Prima di usarla bisogna controllare i dati esterni con una guardia runtime, come nella lezione Null, unknown e confini esterni.\n\nLessico di ripasso: `union`; `literal type`.",
       "hints": [
-        "Parti dall'idea più semplice: una union dichiara che un valore può assumere forme alternative.",
+        "Parti dall'idea più semplice: una risposta remota può essere in caricamento, vuota, riuscita o fallita.",
         "Controlla di aver usato entrambi i termini richiesti: `union`; `literal type`.",
         "Descrivi un input e un risultato che permettano di controllare la spiegazione."
       ],
@@ -2592,7 +2592,7 @@
       "xp": 0,
       "prompt": "Perché il render di un componente dovrebbe essere puro?\n\nUsa un esempio e descrivi il comportamento, includendo `component`; `JSX`. Il controllo verifica soltanto questi termini, non la correttezza della spiegazione: confronta la tua risposta con il modello.",
       "starter": "",
-      "solution": "Il render deve essere puro perché React può richiamarlo più volte e deve ottenere la stessa UI con gli stessi input. Una richiesta o una mutazione durante render può duplicarsi o cambiare dati condivisi. Un Badge legge le props e restituisce JSX senza modificarle.\n\nLessico di ripasso: `component`; `JSX`.",
+      "solution": "Il render deve essere puro perché React può richiamarlo più volte e deve ottenere la stessa UI con gli stessi input. Una richiesta o una mutazione durante render può duplicarsi o cambiare dati condivisi. Un componente legge le props e restituisce JSX senza modificarle.\n\nLessico di ripasso: `component`; `JSX`.",
       "hints": [
         "Parti dall'idea più semplice: un componente è una funzione che descrive la ui a partire da props e state.",
         "Controlla di aver usato entrambi i termini richiesti: `component`; `JSX`.",
@@ -4957,13 +4957,13 @@
       "id": "fc-04-02-union-e-narrowing-1",
       "module": "typescript",
       "question": "A che cosa serve **Union e narrowing**?",
-      "answer": "Una union dichiara che un valore può assumere forme alternative. Controllando una proprietà discriminante, TypeScript restringe il tipo e ti permette di accedere soltanto ai campi validi per quel caso."
+      "answer": "Una risposta remota può essere in caricamento, vuota, riuscita o fallita. Una discriminated union collega ogni status ai soli campi validi per quello stato, così il controllo di status restringe il tipo prima che la UI legga data o message."
     },
     {
       "id": "fc-04-02-union-e-narrowing-2",
       "module": "typescript",
       "question": "Che vantaggio offre una discriminated union?",
-      "answer": "Una discriminated union collega lo status ai campi validi. Dopo aver controllato status === 'error' posso leggere message, mentre nel ramo success posso leggere data. Rappresento stati alternativi senza rendere opzionali tutti i campi e senza asserzioni che nascondono errori."
+      "answer": "Un risultato remoto può essere in caricamento, riuscire con dati, riuscire senza righe oppure fallire. Un oggetto con tutti i campi opzionali non spiega quali combinazioni siano ammesse. Una discriminated union associa invece ogni status alla forma valida per quello stato:\n\n~~~typescript\ntype Subject = { id: number; name: string };\n\ntype ArchiveState =\n  | { status: \"loading\" }\n  | { status: \"success\"; data: Subject[] }\n  | { status: \"empty\" }\n  | { status: \"error\"; message: string };\n~~~\n\nQuando controlli result.status, TypeScript restringe i casi possibili:\n\n~~~typescript\nfunction assertNever(value: never): never {\n  throw new Error(\"Stato non gestito\");\n}\n\nfunction labelForState(state: ArchiveState): string {\n  switch (state.status) {\n    case \"loading\": return \"Caricamento…\";\n    case \"error\": return state.message;\n    case \"empty\": return \"Nessun soggetto\";\n    case \"success\": return state.data.length + \" soggetti\";\n    default: return assertNever(state);\n  }\n}\n~~~\n\nNel ramo `error` esiste `message`; nel ramo `success` esiste `data`. Il controllo su `status` restringe `state` al caso corrente. `assertNever` rende esplicita l'esaustività: se aggiungi un nuovo status e dimentichi il relativo ramo, TypeScript segnala il valore che non è più `never`.\n\nIl tipo rende più difficile scrivere una UI che tenta di mostrare una proprietà assente.\n\nQuesta garanzia vale durante il controllo TypeScript del programma. I tipi vengono rimossi a runtime: una risposta JSON non diventa valida solo perché la variabile è annotata ArchiveState. Prima di usarla bisogna controllare i dati esterni con una guardia runtime, come nella lezione Null, unknown e confini esterni."
     },
     {
       "id": "fc-04-02-union-e-narrowing-3",
@@ -5017,7 +5017,7 @@
       "id": "fc-05-01-modello-mentale-componenti-e-jsx-2",
       "module": "react",
       "question": "Perché il render di un componente dovrebbe essere puro?",
-      "answer": "Il render deve essere puro perché React può richiamarlo più volte e deve ottenere la stessa UI con gli stessi input. Una richiesta o una mutazione durante render può duplicarsi o cambiare dati condivisi. Un Badge legge le props e restituisce JSX senza modificarle."
+      "answer": "Il render deve essere puro perché React può richiamarlo più volte e deve ottenere la stessa UI con gli stessi input. Una richiesta o una mutazione durante render può duplicarsi o cambiare dati condivisi. Un componente legge le props e restituisce JSX senza modificarle."
     },
     {
       "id": "fc-05-01-modello-mentale-componenti-e-jsx-3",

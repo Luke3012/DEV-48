@@ -422,7 +422,7 @@ PLAIN_EXPLANATIONS = {
     "Flexbox e Grid": "Flexbox distribuisce elementi lungo un asse ed è ideale per righe e colonne di componenti. Grid controlla contemporaneamente righe e colonne ed è più adatto alla struttura complessiva di una pagina o di una griglia di card.",
     "Responsive design": "Un layout responsive non è una versione desktop rimpicciolita. Parte da misure fluide, lascia che il contenuto occupi lo spazio disponibile e introduce un breakpoint soltanto quando il layout smette di funzionare bene.",
     "Tipi, interface e type": "Un tipo descrive la forma che il codice si aspetta e permette all'editor di segnalare incoerenze prima dell'avvio. Non controlla però automaticamente un JSON ricevuto dalla rete: quel dato richiede validazione a runtime.",
-    "Union e narrowing": "Una union dichiara che un valore può assumere forme alternative. Controllando una proprietà discriminante, TypeScript restringe il tipo e ti permette di accedere soltanto ai campi validi per quel caso.",
+    "Union e narrowing": "Una risposta remota può essere in caricamento, vuota, riuscita o fallita. Una discriminated union collega ogni status ai soli campi validi per quello stato, così il controllo di status restringe il tipo prima che la UI legga data o message.",
     "Generics essenziali": "Un generic conserva una relazione tra il tipo ricevuto e quello restituito. È utile quando la stessa logica funziona con dati diversi, ma vuoi evitare che `any` cancelli le informazioni sui tipi.",
     "Null, unknown e confini esterni": "`unknown` ti obbliga a controllare un valore prima di usarlo, mentre `any` disattiva quella protezione. È la scelta corretta per JSON, input utente e altri dati che entrano dall'esterno.",
     "Modello mentale, componenti e JSX": "Un componente è una funzione che descrive la UI a partire da props e state. A parità di input dovrebbe produrre lo stesso JSX, senza modificare dati o avviare operazioni durante il render.",
@@ -483,7 +483,7 @@ def lesson_markdown(module: str, title: str, summary: str, concepts: str, exampl
     else:
         example_reading = REVIEW_ANSWERS[title]
         active_practice = PRACTICE_SCENARIOS.get(title) or (HTML_TASKS[title][0] if title in HTML_TASKS else TASKS[title][1])
-    language = {"javascript": "javascript", "react": "jsx", "html_css": "html", "typescript": "typescript", "backend": "javascript", "sql": "sql"}.get(module, "text")
+    language = {"javascript": "javascript", "async_http": "javascript", "react": "jsx", "html_css": "html", "typescript": "typescript", "backend": "javascript", "sql": "sql"}.get(module, "text")
     if title in {"HTTP e API REST", "Autenticazione, CORS e segreti", "Routing e architettura frontend"}:
         language = "text"
     source = f"\n\nRiferimento: [documentazione ufficiale]({detail['source']})." if detail and detail["source"] else ""

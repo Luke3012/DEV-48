@@ -8,7 +8,9 @@ Aggiungere, modificare ed eliminare elementi nel modo atteso da React.
 
 Invece di modificare l'array esistente, ne produci uno nuovo: spread per aggiungere, `map` per aggiornare e `filter` per eliminare. React può così riconoscere il cambiamento e aggiornare la UI in modo prevedibile.
 
-CRUD significa creare, leggere, aggiornare ed eliminare. Qui ogni modifica restituisce una nuova collezione e mantiene l'originale disponibile. Questo permette di confrontare prima e dopo e, in React, di consegnare un riferimento nuovo al setter. Anche `sort` muta l'array: usa una copia oppure `toSorted` se disponibile nell'ambiente.
+L'immutabilità qui è un modo per tenere distinguibili lo stato precedente e quello successivo. Non significa vietare ogni mutazione locale: significa che una trasformazione dei dati applicativi produce una nuova collezione e non altera quella che ha ricevuto.
+
+Per creare una riga, aggiungila a un nuovo array; per rimuoverla, filtra gli ID che restano; per cambiare una riga, usa `map` e copia l'oggetto corrispondente. Se non cambi un oggetto, puoi conservarne il riferimento. Questo schema prepara direttamente agli aggiornamenti dello state React.
 
 ## Le parole da riconoscere
 
@@ -17,16 +19,35 @@ CRUD significa creare, leggere, aggiornare ed eliminare. Qui ogni modifica resti
 ## Un esempio concreto
 
 ```javascript
-const items = [{ id: 1, name: 'Anna', active: false }, { id: 2, name: 'Mario', active: true }];
+const items = [
+  { id: 1, name: "Anna", active: false },
+  { id: 2, name: "Mario", active: true }
+];
+
+const added = [...items, { id: 3, name: "Sara", active: true }];
 const changed = items.map(item =>
   item.id === 1 ? { ...item, active: true } : item
 );
-const removed = changed.filter(item => item.id !== 2);
-console.log(items[0].active, removed[0].active); // false, true
-console.log(changed === items, changed[1] === items[1]); // false, true
+const removed = items.filter(item => item.id !== 2);
+
+console.log(added.length, items.length); // 3, 2
+console.log(changed[0].active, items[0].active); // true, false
+console.log(changed !== items); // true: array nuovo
+console.log(changed[1] === items[1]); // true: riga non modificata
 ```
 
-`map` crea l'array; spread crea l'oggetto cambiato. Gli elementi non toccati possono conservare il riferimento, perché nessuno li modifica. Mutare una proprietà e passare lo stesso array a un setter React può lasciare la UI senza aggiornamento: il riferimento è ancora quello precedente. Copiare solo l'array dopo aver mutato l'oggetto non ripristina il vecchio dato.
+L'inserimento produce `added`, senza allungare `items`. Per l'aggiornamento, `map` restituisce l'oggetto copiato per Anna e riusa quello di Mario. Il confronto mostra due livelli distinti: il contenitore è nuovo (`changed !== items`), mentre la riga non toccata conserva la sua identità.
+
+Ora confronta questo con il bug React:
+
+~~~jsx
+items.push(newItem);
+setItems(items);
+~~~
+
+push ha già cambiato l'array esistente e poi setItems riceve lo stesso riferimento. React confronta il valore precedente e quello richiesto; se sono lo stesso array, può saltare il render. Anche copiando l'array dopo aver mutato un oggetto, l'oggetto precedente è già stato alterato: la copia del solo contenitore non annulla quella scrittura.
+
+Una trasformazione immutabile mantiene un “prima” leggibile e consegna un riferimento nuovo a React, per esempio `setItems(current => [...current, newItem])`. Per un elemento annidato copia l'array, la riga modificata e il percorso degli oggetti annidati che cambi. `sort()` invece modifica l'array su cui lavora: ordina una copia o usa `toSorted()` se l'ambiente del progetto lo supporta.
 
 ## Prova tu
 

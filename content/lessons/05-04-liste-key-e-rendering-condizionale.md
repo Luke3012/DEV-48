@@ -8,7 +8,14 @@ Renderizzare collezioni mantenendo correttamente identità e stato degli element
 
 React usa la `key` per riconoscere lo stesso elemento tra due render. Un identificatore stabile evita che stato e focus si spostino sulla riga sbagliata quando la lista viene riordinata o filtrata.
 
-La key identifica un elemento tra fratelli e deve provenire dai dati, restando stabile tra render. Se la riga contiene un input o stato locale, una key basata sulla posizione può associare lo stato alla persona sbagliata dopo un'eliminazione. La key non viene passata come prop: passa l'ID separatamente se Row deve usarlo.
+Quando una lista cambia, React deve capire quali righe sono rimaste, quali sono nuove e quali sono state rimosse. Il posto nell'array non basta a descrivere l'identità di una persona. Per esempio:
+
+~~~text
+prima:  id 10 → Anna     id 20 → Luca     id 30 → Sara
+dopo:   id 10 → Anna     id 15 → Marco    id 20 → Luca    id 30 → Sara
+~~~
+
+L'ID 15 è nuovo; Luca è sempre la persona con ID 20, anche se ora occupa un'altra posizione. La key comunica questa identità tra un render e il successivo e aiuta React a conservare lo stato del componente figlio corretto.
 
 ## Le parole da riconoscere
 
@@ -19,16 +26,20 @@ La key identifica un elemento tra fratelli e deve provenire dai dati, restando s
 ```jsx
 function SubjectList({ items }) {
   if (items.length === 0) return <p>Nessun soggetto</p>;
+
   return <ul>{items.map(item =>
     <li key={item.id}>
       <label>{item.name} <input defaultValue={item.name} /></label>
     </li>
   )}</ul>;
 }
-// Uso: <SubjectList items={[{id: 1, name: 'Anna'}]} />
 ```
 
-Con due righe, modifica il nome della seconda nell'input e poi elimina la prima. Con key={index} React può riusare la prima riga per un'altra persona e conservare un valore non pertinente. Con item.id riconosce quale riga è rimasta. Evita Math.random nel render: cambierebbe identità a ogni render e perderebbe stato e focus.
+Immagina un input in ogni riga. All'inizio ci sono Anna (10), Luca (20) e Sara (30). Scrivi un testo nell'input di Luca, poi inserisci Marco (15) tra Anna e Luca. Con key={index}, la seconda posizione aveva la key 1 per Luca e continua ad avere la key 1 per Marco: React può riusare per Marco il nodo input che conteneva il testo di Luca. La riga ha cambiato persona, ma la key dice il contrario.
+
+Con key={item.id}, Marco ottiene una nuova identità 15; Luca conserva 20 anche quando passa dalla seconda alla terza posizione, e il suo input resta associato a Luca. Lo stesso problema può apparire riordinando, filtrando o rimuovendo righe. Le key devono essere uniche tra fratelli e stabili nel tempo; Math.random() a ogni render crea identità sempre nuove, facendo ricreare i nodi e perdendo stato o focus.
+
+La key è un suggerimento per React, non una prop ricevuta dal componente. Se una riga ha bisogno dell'ID nel proprio codice, passa anche item.id come normale prop. Il caso items vuoto va descritto esplicitamente; per una condizione booleana evita items.length && ..., che può mostrare lo zero numerico.
 
 ## Prova tu
 

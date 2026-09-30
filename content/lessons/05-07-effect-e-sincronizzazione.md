@@ -8,7 +8,9 @@ Usare useEffect solo per sincronizzarsi con sistemi esterni e gestire cleanup.
 
 `useEffect` serve a sincronizzare React con qualcosa di esterno, per esempio una richiesta, un timer o una subscription. Se l'operazione può continuare dopo un nuovo render, la cleanup deve annullarla o scollegarla.
 
-Un effect collega il componente a un sistema esterno dopo il commit. Prima di cambiare quel collegamento React esegue la cleanup precedente; la esegue anche allo smontaggio. L'array delle dipendenze descrive i valori reattivi letti, non una frequenza scelta per tentativi. Qui document.title appartiene al browser e title è la sola prop letta.
+In un archivio dei soggetti chiediti prima che tipo di lavoro devi fare. L'elenco filtrato è un calcolo a partire da `items` e `query`: si esegue durante il render. Eliminare una riga avviene perché l'utente ha premuto un pulsante: si gestisce nell'event handler. Sincronizzare `document.title` con il conteggio mostrato tocca invece una API del browser, esterna al flusso di React: qui serve un Effect.
+
+`useEffect` descrive un processo di sincronizzazione dopo che React ha aggiornato il DOM. Non è una callback generica per “quando il componente parte”; `setup` e `cleanup` seguono i valori reattivi che il processo usa.
 
 ## Le parole da riconoscere
 
@@ -28,7 +30,33 @@ export default function PageTitle({ title }) {
 }
 ```
 
-Al primo collegamento salva il titolo precedente e scrive quello nuovo. Se title cambia, la cleanup ripristina il vecchio titolo prima del nuovo setup. Con [] il titolo resterebbe quello della prima prop: la closure dell'effect non riceverebbe il nuovo valore. Strict Mode in sviluppo esegue un ciclo aggiuntivo setup/cleanup per far emergere sincronizzazioni non reversibili; non disattivarlo per nascondere il problema.
+Per il componente dell'esempio, React segue questo ciclo:
+
+~~~text
+render → commit → setup: document.title = title
+
+title cambia
+render → commit → cleanup con il vecchio title
+                 → nuovo setup con il nuovo title
+
+il componente viene rimosso
+→ cleanup finale
+~~~
+
+La cleanup salva il titolo che c'era prima di questo collegamento e lo ripristina; non annulla lo state React. Questa simmetria descrive anche altri sistemi:
+
+~~~text
+subscribe → unsubscribe
+setInterval → clearInterval
+addEventListener → removeEventListener
+start → stop
+~~~
+
+Le dipendenze non sono un timer scelto a tentativi. Se il setup legge la prop `title`, `title` deve comparire in `[title]`; quando cambia, React pulisce la sincronizzazione vecchia e ne avvia una nuova. Se lasci l'array vuoto, il setup continua a usare la closure del primo render e il titolo del browser resta obsoleto. Le dipendenze sono quindi i valori reattivi letti dal setup.
+
+In sviluppo, `Strict Mode` può provare un ciclo `setup → cleanup → setup` in più. Se questo produce un effetto visibile scorretto, la cleanup non sta davvero annullando il collegamento; disattivare Strict Mode nasconderebbe il difetto invece di correggerlo.
+
+Per un timer, la cleanup cancella l'ID restituito da `setInterval`. Per un listener, rimuove lo stesso handler dallo stesso target. Per una richiesta remota, la cleanup può abortire o ignorare una risposta diventata obsoleta: lo vedrai nella lezione seguente.
 
 ## Prova tu
 

@@ -8,7 +8,9 @@ Descrivere la UI come funzione di props e stato mediante componenti puri.
 
 Un componente è una funzione che descrive la UI a partire da props e state. A parità di input dovrebbe produrre lo stesso JSX, senza modificare dati o avviare operazioni durante il render.
 
-React richiama le funzioni componente per calcolare la UI; poi applica al DOM le modifiche necessarie. JSX è una sintassi trasformata dagli strumenti del progetto, non un file HTML che Node esegue direttamente. Un componente inizia con maiuscola, restituisce un albero e usa le graffe per inserire espressioni JavaScript. Prima di introdurre hook, costruisci una UI usando soltanto props.
+Una schermata React parte da dati, non da modifiche manuali al DOM. Il componente legge props e state e restituisce JSX: una descrizione della UI che React può calcolare di nuovo quando quegli input cambiano.
+
+Pensala in due casi. Se ricevo il nome Anna, la funzione produce una descrizione con “Ciao Anna”; se il nome cambia in Luca, React richiama la funzione e ottiene un nuovo JSX. JSX non è una stringa HTML: le graffe inseriscono un'espressione JavaScript dentro la descrizione.
 
 ## Le parole da riconoscere
 
@@ -17,14 +19,37 @@ React richiama le funzioni componente per calcolare la UI; poi applica al DOM le
 ## Un esempio concreto
 
 ```jsx
-export default function Badge({ active }) {
-  const label = active ? 'Attivo' : 'Inattivo';
-  return <span className={active ? 'active' : 'idle'}>{label}</span>;
+function Greeting({ name }) {
+  return <p>Ciao {name}</p>;
 }
-// Uso in un altro componente: <Badge active={true} />
+
+function App() {
+  const name = "Anna";
+  return <Greeting name={name} />;
+}
 ```
 
-Le graffe non trasformano ogni istruzione in JSX: il ternario è un'espressione, mentre un if può stare prima del return. className corrisponde all'attributo CSS class. Il componente legge active senza cambiarlo. Non avvia richieste, non scrive globali e non modifica il DOM durante il render: React può richiamarlo più volte.
+In `<p>Ciao {name}</p>`, `Ciao` è testo letterale e `name` è un'espressione: React inserisce il valore della variabile. In `<p>name</p>`, invece, vedresti proprio le lettere “name”. Le graffe accettano espressioni che producono un valore, come `name` o `active ? "Attivo" : "Inattivo"`; un `if` è un'istruzione e può stare prima del `return`.
+
+Quando `App` restituisce `<Greeting name={name} />`, passa una prop al componente figlio. `App` e `Greeting` sono normali funzioni JavaScript che descrivono parti dell'albero UI; il nome con iniziale maiuscola distingue un componente da un elemento nativo. JSX viene trasformato dagli strumenti del progetto, quindi il browser non lo interpreta da solo come un file HTML.
+
+Il ciclo essenziale è:
+
+~~~text
+props + state
+     ↓
+React richiama il componente
+     ↓
+il componente restituisce JSX
+     ↓
+render: React calcola che cosa mostrare
+     ↓
+commit: React applica al DOM le differenze necessarie
+     ↓
+il browser dipinge la schermata
+~~~
+
+Render e commit sono passaggi distinti. React può richiamare il componente senza modificare il DOM se il JSX risultante non richiede cambiamenti. Per questo il render deve essere una funzione pura: con gli stessi input produce la stessa descrizione, senza modificare oggetti esterni, avviare richieste o registrare handler nel browser. Gli effetti di un click appartengono a un handler; la sincronizzazione con un sistema esterno verrà trattata più avanti.
 
 ## Prova tu
 
@@ -41,3 +66,5 @@ Scrivi un badge che mostri anche 'Inattivo'. Passagli false e true dal genitore 
 > Perché il render di un componente dovrebbe essere puro?
 
 Confronta la tua spiegazione con la flashcard dedicata alla domanda.
+
+Riferimento: [documentazione ufficiale](https://react.dev/learn/render-and-commit).

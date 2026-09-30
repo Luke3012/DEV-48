@@ -8,7 +8,9 @@ Aggregare valori e scegliere strutture dati adeguate per lookup e unicità.
 
 `reduce` combina molti valori in un solo risultato. `Set` è comodo per eliminare duplicati, mentre `Map` associa chiavi a valori ed è utile quando cerchi spesso un elemento per identificatore.
 
-Questo è un approfondimento: filtro e trasformazione bastano per iniziare React. `reduce` accumula un risultato, `Set` conserva valori unici e `Map` associa chiavi a valori. Usali quando rendono la domanda sui dati più chiara, senza trasformare ogni ciclo in una catena compatta.
+Questo è un approfondimento: per iniziare React bastano le trasformazioni con `map` e `filter`. `reduce` è utile quando molti elementi devono diventare un risultato solo, ma è più facile leggerlo dopo aver visto il ciclo equivalente.
+
+Il ciclo mantiene due informazioni: il totale accumulato finora e il valore corrente. Con `[10, 20, 5]`, partiamo da `total = 0`; leggendo 10 otteniamo 10, poi 30, poi 35. In `reduce`, il primo parametro della callback è quell'accumulatore e il secondo è l'elemento letto.
 
 ## Le parole da riconoscere
 
@@ -17,14 +19,40 @@ Questo è un approfondimento: filtro e trasformazione bastano per iniziare React
 ## Un esempio concreto
 
 ```javascript
-const orders = [{ amount: 4 }, { amount: 2 }];
-console.log(orders.reduce((sum, order) => sum + order.amount, 0)); // 6
-console.log([ ...new Set(['Nord', 'Centro', 'Nord']) ]); // ['Nord', 'Centro']
-const byId = new Map([[1, { name: 'Anna' }]]);
-console.log(byId.get(1).name, byId.has(9)); // 'Anna', false
+const values = [10, 20, 5];
+const total = values.reduce((accumulator, currentValue) => {
+  return accumulator + currentValue;
+}, 0);
+console.log(total); // 35
+
+const regions = [...new Set(["Nord", "Centro", "Nord"])];
+console.log(regions); // ["Nord", "Centro"]
+
+const byId = new Map([[1, { name: "Anna" }]]);
+console.log(byId.get(1).name, byId.has(9)); // "Anna", false
 ```
 
-Lo zero iniziale rende la somma definita anche su `[]`. Set conserva l'ordine di inserimento; Map cerca per chiave, mentre `array.map` è una trasformazione e non una struttura dati. Non costruire una Map a ogni ricerca se usi una sola volta una lista minuscola.
+Il ciclo esplicito fa lo stesso lavoro prima che lo comprimiamo in reduce:
+
+~~~javascript
+let total = 0;
+for (const value of [10, 20, 5]) {
+  total += value;
+}
+~~~
+
+Seguiamo le iterazioni:
+
+~~~text
+inizio: total = 0
+leggo 10: total = 0 + 10 = 10
+leggo 20: total = 10 + 20 = 30
+leggo 5:  total = 30 + 5 = 35
+~~~
+
+In `reduce`, `accumulator` è il `total` conservato dal ciclo e `currentValue` è il valore letto in quel giro. Il valore iniziale `0` definisce anche il risultato per un array vuoto, la cui somma è zero. Usa un ciclo quando rende i passaggi più chiari: `reduce` non è automaticamente una forma migliore.
+
+`Set` risponde a una domanda diversa: quali valori distinti sono presenti? Conserva l'ordine della prima occorrenza. `Map` associa chiavi a valori; `array.map` invece costruisce un array trasformato. Una `Map` è utile se la ricerca per chiave ricorre, ma non serve costruirla per consultare una sola volta una lista minuscola.
 
 ## Prova tu
 
