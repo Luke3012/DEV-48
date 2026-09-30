@@ -2,58 +2,49 @@
 
 ## In parole semplici
 
-L'obiettivo di questa lezione è implementare una richiesta robusta e rappresentarne tutti gli stati nella UI.
+Prima di iniziare, ripassa [Promise e async/await](02-01-promise-e-async-await.md) e [HTTP e API REST](02-02-http-e-api-rest.md).
+
+Implementare una richiesta robusta e rappresentarne tutti gli stati nella UI.
 
 `fetch` risolve la Promise anche quando il server risponde 404 o 500, quindi devi controllare `response.ok`. La UI deve inoltre distinguere attesa, dati disponibili, risultato vuoto ed errore.
 
-### Perché è utile
-
-Quando entra in gioco una richiesta di rete, il risultato non arriva subito e può anche non arrivare affatto. Per questo devi ragionare sia sul dato atteso sia sugli stati di attesa, errore e annullamento.
+Separiamo il trasporto dalla UI. Questa funzione restituisce i soggetti oppure rifiuta con un errore; il componente che la usa decide quando mostrare caricamento, lista vuota o retry. Il controllo HTTP avviene prima di leggere il JSON. JSON valido sintatticamente non significa che abbia la forma prevista dall'applicazione.
 
 ## Le parole da riconoscere
 
-- `fetch`
-- `response.ok`
-- `response.json`
-- `loading`
-- `errore`
-- `finally`
-- `AbortController`
-
-Non serve imparare questo elenco a memoria. Per iniziare, concentrati su **fetch, response.ok, response.json** e cerca di usarli mentre descrivi l'esempio qui sotto.
+`fetch`; `response.ok`; `response.json`; `loading`; `errore`; `finally`; `AbortController`
 
 ## Un esempio concreto
 
 ```text
-const response = await fetch('/api/subjects');
-if (!response.ok) throw new Error(`HTTP ${response.status}`);
-const data = await response.json();
+async function fetchSubjects(url, signal) {
+  const response = await fetch(url, { signal });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const data = await response.json();
+  if (!Array.isArray(data) || !data.every(item =>
+    item !== null && typeof item === 'object' &&
+    Number.isInteger(item.id) && typeof item.name === 'string'
+  )) throw new Error('Risposta non valida');
+  return data;
+}
+// Chiamante: await fetchSubjects('/api/subjects', controller.signal)
 ```
 
-Individua il momento in cui parte l'operazione, quello in cui arriva la risposta e il punto in cui viene gestito un fallimento.
+Fetch non rifiuta per uno status 404: response.ok è falso e dobbiamo lanciare l'errore. Può invece rifiutare per rete o annullamento. Passare signal permette ad AbortController di interrompere la richiesta; non annulla automaticamente il lavoro già eseguito dal server. La gestione degli esiti fuori ordine sarà nella lezione sui dati remoti.
 
-Adesso copri l'esempio e prova a ricostruirne la parte essenziale. Non deve essere identico: deve conservare lo stesso comportamento. Quando ci riesci, prova un caso normale e un caso limite.
+## Prova tu
+
+Prova la funzione con risposte controllate: 200 con [], 404, JSON non valido e un oggetto al posto dell'array. Annota quale caso è successo vuoto e quali sono errori. Nel lab la rete sarà sostituita da un trasporto riproducibile.
 
 ## Dove ci si confonde spesso
 
 - Credere che fetch rifiuti automaticamente su 404
 - Non gestire richieste obsolete
 
-Se qualcosa non funziona, evita di cambiare più righe a caso. Riproduci il problema con l'input più piccolo possibile, formula un'ipotesi e verifica una sola modifica per volta.
-
-## Controllo rapido
-
-- Riesco a spiegarlo senza leggere la pagina?
-- So indicare input, risultato e almeno un caso limite?
-- Riesco a riscrivere l'esempio partendo da un file vuoto?
-- So dire come verificherei che funziona?
-
 ## Domanda di verifica
 
 > Perché bisogna controllare response.ok?
 
-Prova a rispondere senza rileggere: prima la regola, poi un esempio. Se ti manca un termine, descrivi il comportamento con parole semplici invece di fermarti.
+Confronta la tua spiegazione con la flashcard dedicata alla domanda.
 
-## Prima di andare avanti
-
-Chiudi la pagina per un minuto e ripeti tre cose: che problema risolve questo argomento, quale errore vuoi evitare e quale esempio useresti per spiegarlo. Se una delle tre non viene, riapri soltanto la sezione che ti serve.
+Riferimento: [documentazione ufficiale](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch).

@@ -2,37 +2,33 @@
 
 ## In parole semplici
 
-L'obiettivo di questa lezione è descrivere la UI come funzione di props e stato mediante componenti puri.
+Prima di iniziare, ripassa [Funzioni e responsabilità](01-03-funzioni-e-responsabilita.md), [Moduli ed organizzazione del codice](01-08-moduli-ed-organizzazione-del-codice.md) e [HTML semantico e struttura](03-01-html-semantico-e-struttura.md).
+
+Descrivere la UI come funzione di props e stato mediante componenti puri.
 
 Un componente è una funzione che descrive la UI a partire da props e state. A parità di input dovrebbe produrre lo stesso JSX, senza modificare dati o avviare operazioni durante il render.
 
-### Perché è utile
-
-In React la domanda principale è sempre la stessa: da quali dati dipende questa parte dell'interfaccia? Individua chi possiede quei dati e lascia che il rendering descriva ciò che l'utente deve vedere in quel momento.
+React richiama le funzioni componente per calcolare la UI; poi applica al DOM le modifiche necessarie. JSX è una sintassi trasformata dagli strumenti del progetto, non un file HTML che Node esegue direttamente. Un componente inizia con maiuscola, restituisce un albero e usa le graffe per inserire espressioni JavaScript. Prima di introdurre hook, costruisci una UI usando soltanto props.
 
 ## Le parole da riconoscere
 
-- `component`
-- `JSX`
-- `render`
-- `purezza`
-- `composizione`
-- `albero UI`
-- `espressione`
-
-Non serve imparare questo elenco a memoria. Per iniziare, concentrati su **component, JSX, render** e cerca di usarli mentre descrivi l'esempio qui sotto.
+`component`; `JSX`; `render`; `purezza`; `composizione`; `albero UI`; `espressione`
 
 ## Un esempio concreto
 
-```text
-function Badge({ active }) {
-  return <span className={active ? 'active' : 'idle'}>{active ? 'Attivo' : 'Inattivo'}</span>;
+```jsx
+export default function Badge({ active }) {
+  const label = active ? 'Attivo' : 'Inattivo';
+  return <span className={active ? 'active' : 'idle'}>{label}</span>;
 }
+// Uso in un altro componente: <Badge active={true} />
 ```
 
-Distingui props, stato e valori calcolati. Poi segui l'evento: quale setter viene chiamato e quale parte della UI cambia al rendering successivo?
+Le graffe non trasformano ogni istruzione in JSX: il ternario è un'espressione, mentre un if può stare prima del return. className corrisponde all'attributo CSS class. Il componente legge active senza cambiarlo. Non avvia richieste, non scrive globali e non modifica il DOM durante il render: React può richiamarlo più volte.
 
-Adesso copri l'esempio e prova a ricostruirne la parte essenziale. Non deve essere identico: deve conservare lo stesso comportamento. Quando ci riesci, prova un caso normale e un caso limite.
+## Prova tu
+
+Scrivi un badge che mostri anche 'Inattivo'. Passagli false e true dal genitore senza creare stato. Nel laboratorio verifica il testo nel DOM; il controllo breve verifica soltanto la struttura del codice.
 
 ## Dove ci si confonde spesso
 
@@ -40,21 +36,8 @@ Adesso copri l'esempio e prova a ricostruirne la parte essenziale. Non deve esse
 - Componenti monolitici
 - Confondere JSX con HTML
 
-Se qualcosa non funziona, evita di cambiare più righe a caso. Riproduci il problema con l'input più piccolo possibile, formula un'ipotesi e verifica una sola modifica per volta.
-
-## Controllo rapido
-
-- Riesco a spiegarlo senza leggere la pagina?
-- So indicare input, risultato e almeno un caso limite?
-- Riesco a riscrivere l'esempio partendo da un file vuoto?
-- So dire come verificherei che funziona?
-
 ## Domanda di verifica
 
 > Perché il render di un componente dovrebbe essere puro?
 
-Prova a rispondere senza rileggere: prima la regola, poi un esempio. Se ti manca un termine, descrivi il comportamento con parole semplici invece di fermarti.
-
-## Prima di andare avanti
-
-Chiudi la pagina per un minuto e ripeti tre cose: che problema risolve questo argomento, quale errore vuoi evitare e quale esempio useresti per spiegarlo. Se una delle tre non viene, riapri soltanto la sezione che ti serve.
+Confronta la tua spiegazione con la flashcard dedicata alla domanda.

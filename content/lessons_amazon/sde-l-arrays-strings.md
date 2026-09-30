@@ -4,4 +4,4 @@ Una scansione ha tre domande concrete: da dove parto, quando mi fermo, cosa sign
 
 Se devi invertire un array senza spazio extra, scambia gli estremi e avvicinali. Se devi soltanto restituire una versione ordinata, una copia chiarisce il contratto. `sort` in-place è un'altra scelta: utile quando il prompt permette di modificare l'input, rischiosa quando un test successivo riusa i dati.
 
-Per stringhe, distinguere una sequenza di byte da un carattere Unicode completo può essere importante fuori dalle interview standard. Nei problemi qui useremo caratteri ASCII dichiarati nel prompt, così l'attenzione resta sull'algoritmo. Gli indici restano comunque facili da sbagliare: prova sempre primo, ultimo e lunghezza zero.
+Per le stringhe, distinguere una sequenza di byte da un carattere Unicode completo può essere importante fuori dai problemi standard di interview. Gli esercizi considerano caratteri ASCII dichiarati nel prompt, così l'attenzione resta sull'algoritmo. Gli indici restano comunque facili da sbagliare: vanno verificati il primo, l'ultimo e la lunghezza zero.

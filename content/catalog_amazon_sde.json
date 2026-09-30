@@ -293,7 +293,7 @@
     {
       "id": "sde-l-oa-format",
       "module": "orientamento",
-      "title": "Che cosa allena questo bootcamp",
+      "title": "Struttura e obiettivi dell'assessment",
       "minutes": 15,
       "difficulty": "base",
       "mandatory": true,
@@ -838,7 +838,7 @@
     {
       "id": "sde-l-repo-orientation",
       "module": "repository",
-      "title": "Orientarsi in una repository che non hai mai visto",
+      "title": "Orientarsi in una repository sconosciuta",
       "minutes": 20,
       "difficulty": "base",
       "mandatory": true,
@@ -940,7 +940,7 @@
     {
       "id": "sde-l-ai-assistant",
       "module": "repository",
-      "title": "Usare l'AI Assistant per capire, poi decidere tu",
+      "title": "Usare l'AI Assistant come supporto al debugging",
       "minutes": 20,
       "difficulty": "intermedio",
       "mandatory": true,
@@ -3080,7 +3080,7 @@
       ],
       "hints": [
         "I corsi con indegree zero possono partire subito.",
-        "Se alla fine ne hai rimossi meno di n, nel grafo resta un ciclo."
+        "Se al termine sono stati rimossi meno di n nodi, nel grafo resta un ciclo."
       ],
       "explanation": "Kahn visita nodi e archi una volta: O(V+E) tempo e spazio.",
       "no_ai": true,

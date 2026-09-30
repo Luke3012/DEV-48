@@ -2,39 +2,37 @@
 
 ## In parole semplici
 
-L'obiettivo di questa lezione è usare useEffect solo per sincronizzarsi con sistemi esterni e gestire cleanup.
+Prima di iniziare, ripassa [State ed eventi](05-03-state-ed-eventi.md), [Scope, const, let e closure](01-02-scope-const-let-e-closure.md) e [Progettare e sollevare lo stato](05-06-progettare-e-sollevare-lo-stato.md).
+
+Usare useEffect solo per sincronizzarsi con sistemi esterni e gestire cleanup.
 
 `useEffect` serve a sincronizzare React con qualcosa di esterno, per esempio una richiesta, un timer o una subscription. Se l'operazione può continuare dopo un nuovo render, la cleanup deve annullarla o scollegarla.
 
-### Perché è utile
-
-In React la domanda principale è sempre la stessa: da quali dati dipende questa parte dell'interfaccia? Individua chi possiede quei dati e lascia che il rendering descriva ciò che l'utente deve vedere in quel momento.
+Un effect collega il componente a un sistema esterno dopo il commit. Prima di cambiare quel collegamento React esegue la cleanup precedente; la esegue anche allo smontaggio. L'array delle dipendenze descrive i valori reattivi letti, non una frequenza scelta per tentativi. Qui document.title appartiene al browser e title è la sola prop letta.
 
 ## Le parole da riconoscere
 
-- `useEffect`
-- `dependency array`
-- `cleanup`
-- `subscription`
-- `fetch`
-- `race condition`
-- `Strict Mode`
-
-Non serve imparare questo elenco a memoria. Per iniziare, concentrati su **useEffect, dependency array, cleanup** e cerca di usarli mentre descrivi l'esempio qui sotto.
+`useEffect`; `dependency array`; `cleanup`; `subscription`; `fetch`; `race condition`; `Strict Mode`
 
 ## Un esempio concreto
 
-```text
-useEffect(() => {
- const controller=new AbortController();
- load(controller.signal);
- return () => controller.abort();
-}, [subjectId]);
+```jsx
+import { useEffect } from 'react';
+export default function PageTitle({ title }) {
+  useEffect(() => {
+    const previous = document.title;
+    document.title = title;
+    return () => { document.title = previous; };
+  }, [title]);
+  return <h1>{title}</h1>;
+}
 ```
 
-Segui il ciclo dell'effect: parte quando cambia `subjectId`, crea un controller e avvia il caricamento. Prima del nuovo effect o dello smontaggio, la cleanup chiama `abort()` e impedisce alla richiesta precedente di continuare inutilmente.
+Al primo collegamento salva il titolo precedente e scrive quello nuovo. Se title cambia, la cleanup ripristina il vecchio titolo prima del nuovo setup. Con [] il titolo resterebbe quello della prima prop: la closure dell'effect non riceverebbe il nuovo valore. Strict Mode in sviluppo esegue un ciclo aggiuntivo setup/cleanup per far emergere sincronizzazioni non reversibili; non disattivarlo per nascondere il problema.
 
-Adesso copri l'esempio e prova a ricostruirne la parte essenziale. Non deve essere identico: deve conservare lo stesso comportamento. Quando ci riesci, prova un caso normale e un caso limite.
+## Prova tu
+
+Aggiorna title dal genitore e poi smonta PageTitle. Verifica document.title nei due momenti. Confronta tre operazioni: filtrare items nel render, salvare nel submit, collegare il titolo con un effect. Motiva la collocazione prima di usare l'hook.
 
 ## Dove ci si confonde spesso
 
@@ -42,21 +40,10 @@ Adesso copri l'esempio e prova a ricostruirne la parte essenziale. Non deve esse
 - Dipendenze mancanti
 - Cleanup assente
 
-Se qualcosa non funziona, evita di cambiare più righe a caso. Riproduci il problema con l'input più piccolo possibile, formula un'ipotesi e verifica una sola modifica per volta.
-
-## Controllo rapido
-
-- Riesco a spiegarlo senza leggere la pagina?
-- So indicare input, risultato e almeno un caso limite?
-- Riesco a riscrivere l'esempio partendo da un file vuoto?
-- So dire come verificherei che funziona?
-
 ## Domanda di verifica
 
 > Quali operazioni non richiedono useEffect?
 
-Prova a rispondere senza rileggere: prima la regola, poi un esempio. Se ti manca un termine, descrivi il comportamento con parole semplici invece di fermarti.
+Confronta la tua spiegazione con la flashcard dedicata alla domanda.
 
-## Prima di andare avanti
-
-Chiudi la pagina per un minuto e ripeti tre cose: che problema risolve questo argomento, quale errore vuoi evitare e quale esempio useresti per spiegarlo. Se una delle tre non viene, riapri soltanto la sezione che ti serve.
+Riferimento: [documentazione ufficiale](https://react.dev/reference/react/useEffect).

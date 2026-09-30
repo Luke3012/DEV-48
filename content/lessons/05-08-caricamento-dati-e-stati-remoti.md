@@ -2,58 +2,66 @@
 
 ## In parole semplici
 
-L'obiettivo di questa lezione è rappresentare esplicitamente idle, loading, success, empty ed error.
+Prima di iniziare, ripassa [Fetch: loading, error e successo](02-03-fetch-loading-error-e-successo.md) e [Effect e sincronizzazione](05-07-effect-e-sincronizzazione.md).
+
+Rappresentare esplicitamente idle, loading, success, empty ed error.
 
 I dati remoti hanno più stati di una semplice lista: non ancora richiesti, in caricamento, riusciti, vuoti o falliti. Rappresentarli esplicitamente evita spinner eterni e schermate bianche.
 
-### Perché è utile
-
-In React la domanda principale è sempre la stessa: da quali dati dipende questa parte dell'interfaccia? Individua chi possiede quei dati e lascia che il rendering descriva ciò che l'utente deve vedere in quel momento.
+Una nuova ricerca può partire prima che la precedente finisca. Se A parte prima di B ma termina dopo, A non deve sovrascrivere B. La cleanup usa sia abort per ridurre il lavoro sia un flag locale per ignorare risultati ormai obsoleti, anche quando il trasporto non rispetta l'annullamento. La UI distingue loading, error, empty e success; retry avvia una nuova richiesta.
 
 ## Le parole da riconoscere
 
-- `remote state`
-- `loading`
-- `error`
-- `retry`
-- `empty state`
-- `optimistic update`
-- `cache`
-
-Non serve imparare questo elenco a memoria. Per iniziare, concentrati su **remote state, loading, error** e cerca di usarli mentre descrivi l'esempio qui sotto.
+`remote state`; `loading`; `error`; `retry`; `empty state`; `optimistic update`; `cache`
 
 ## Un esempio concreto
 
-```text
-if (status === 'loading') return <Spinner />;
-if (status === 'error') return <ErrorPanel onRetry={load} />;
-return data.length ? <List data={data}/> : <EmptyState/>;
+```jsx
+import { useEffect, useState } from 'react';
+export default function RemoteList({ url }) {
+  const [result, setResult] = useState({ status: 'loading', data: [], error: '' });
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    let ignore = false;
+    setResult({ status: 'loading', data: [], error: '' });
+    async function load() {
+      try {
+        const response = await fetch(url, { signal: controller.signal });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (!Array.isArray(data)) throw new Error('Risposta non valida');
+        if (!ignore) setResult({ status: data.length ? 'success' : 'empty', data, error: '' });
+      } catch (error) {
+        if (!ignore) setResult({ status: 'error', data: [], error: error.message });
+      }
+    }
+    load();
+    return () => { ignore = true; controller.abort(); };
+  }, [url, attempt]);
+  if (result.status === 'loading') return <p role="status">Caricamento…</p>;
+  if (result.status === 'error') return <div><p role="alert">{result.error}</p>
+    <button onClick={() => setAttempt(value => value + 1)}>Riprova</button></div>;
+  if (result.status === 'empty') return <p>Nessun soggetto</p>;
+  return <ul>{result.data.map(item => <li key={item.id}>{item.name}</li>)}</ul>;
+}
 ```
 
-Distingui props, stato e valori calcolati. Poi segui l'evento: quale setter viene chiamato e quale parte della UI cambia al rendering successivo?
+Ogni esecuzione dell'effect ha il proprio ignore. La cleanup di A lo imposta a true; B crea una nuova variabile ancora false. Se A termina tardi, non chiama il setter. Il catch distingue un fallimento corrente dall'annullamento obsoleto perché la vecchia esecuzione è già ignorata. L'esempio controlla soltanto l'array: riusa la validazione dei singoli soggetti vista in Fetch prima di applicarlo a dati non affidabili. Per una vista caricata subito, idle non è necessario; serve quando il caricamento attende un'azione.
 
-Adesso copri l'esempio e prova a ricostruirne la parte essenziale. Non deve essere identico: deve conservare lo stesso comportamento. Quando ci riesci, prova un caso normale e un caso limite.
+## Prova tu
+
+Nel laboratorio risolvi prima B e poi A, simulando un trasporto che ignora signal. Devono restare i risultati B. Prova poi errore, retry riuscito e successo con []. Cache e aggiornamenti ottimistici sono estensioni: introducili soltanto dopo aver verificato il flusso base e il recupero dal fallimento.
 
 ## Dove ci si confonde spesso
 
 - Mostrare schermata vuota durante il caricamento
 - Ignorare retry e richieste concorrenti
 
-Se qualcosa non funziona, evita di cambiare più righe a caso. Riproduci il problema con l'input più piccolo possibile, formula un'ipotesi e verifica una sola modifica per volta.
-
-## Controllo rapido
-
-- Riesco a spiegarlo senza leggere la pagina?
-- So indicare input, risultato e almeno un caso limite?
-- Riesco a riscrivere l'esempio partendo da un file vuoto?
-- So dire come verificherei che funziona?
-
 ## Domanda di verifica
 
 > Quali stati UI devi considerare quando interroghi una API?
 
-Prova a rispondere senza rileggere: prima la regola, poi un esempio. Se ti manca un termine, descrivi il comportamento con parole semplici invece di fermarti.
+Confronta la tua spiegazione con la flashcard dedicata alla domanda.
 
-## Prima di andare avanti
-
-Chiudi la pagina per un minuto e ripeti tre cose: che problema risolve questo argomento, quale errore vuoi evitare e quale esempio useresti per spiegarlo. Se una delle tre non viene, riapri soltanto la sezione che ti serve.
+Riferimento: [documentazione ufficiale](https://react.dev/reference/react/useEffect).

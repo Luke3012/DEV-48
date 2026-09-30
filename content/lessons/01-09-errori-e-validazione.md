@@ -2,59 +2,47 @@
 
 ## In parole semplici
 
-L'obiettivo di questa lezione è rifiutare input invalidi e distinguere errore previsto da bug di programmazione.
+Prima di iniziare, ripassa [Valori, tipi e confronti](01-01-valori-tipi-e-confronti.md) e [Funzioni e responsabilità](01-03-funzioni-e-responsabilita.md).
+
+Rifiutare input invalidi e distinguere errore previsto da bug di programmazione.
 
 Validare significa rifiutare presto un dato che non rispetta il contratto. Un errore utile dice che cosa non va e lascia al livello corretto la scelta tra mostrare un messaggio, riprovare o interrompere l'operazione.
 
-### Perché è utile
-
-In JavaScript è utile seguire i valori uno alla volta: che tipo hanno, dove vengono creati e che cosa restituisce ogni espressione. Se sai prevedere questi passaggi, scrivere il codice diventa molto meno meccanico.
+La conversione non basta a rendere valido un input: `Number('')` è zero e `Number('abc')` è NaN. Decidi prima il contratto. L'esempio accetta numeri e stringhe numeriche non vuote, rifiuta booleani e assenze, poi controlla che il risultato sia finito e non negativo. La UI potrà trasformare un errore previsto in un messaggio utile.
 
 ## Le parole da riconoscere
 
-- `throw`
-- `Error`
-- `try/catch`
-- `validazione`
-- `guard clause`
-- `messaggio utile`
-
-Non serve imparare questo elenco a memoria. Per iniziare, concentrati su **throw, Error, try/catch** e cerca di usarli mentre descrivi l'esempio qui sotto.
+`throw`; `Error`; `try/catch`; `validazione`; `guard clause`; `messaggio utile`
 
 ## Un esempio concreto
 
-```text
+```javascript
 function parseAge(value) {
+  if ((typeof value !== 'number' && typeof value !== 'string') ||
+      (typeof value === 'string' && value.trim() === '')) {
+    throw new Error('Età mancante o non numerica');
+  }
   const age = Number(value);
-  if (!Number.isFinite(age) || age < 0) throw new Error('Invalid age');
+  if (!Number.isFinite(age) || age < 0) throw new Error('Età non valida');
   return age;
 }
+try { console.log(parseAge('abc')); }
+catch (error) { console.log(error.message); }
 ```
 
-Segui il valore dall'ingresso fino al `return`. Chiediti che cosa cambierebbe con un valore vuoto, mancante o di tipo inatteso.
+`throw` interrompe il percorso normale e risale fino a un catch. Il catch non deve fingere un successo: un errore di parsing non è l'età zero. Quando il contratto permette un risultato assente può essere adatto `null`; quando l'input viola il contratto, un errore distingue il fallimento da un risultato valido.
 
-Adesso copri l'esempio e prova a ricostruirne la parte essenziale. Non deve essere identico: deve conservare lo stesso comportamento. Quando ci riesci, prova un caso normale e un caso limite.
+## Prova tu
+
+Implementa la validazione per non negativi e prova zero, stringa numerica, negativo, Infinity, testo e stringa vuota. Scrivi quale caso distingue una funzione corretta da una che restituisce sempre zero.
 
 ## Dove ci si confonde spesso
 
 - Catturare tutto e ignorare l'errore
 - Mostrare dettagli sensibili all'utente
 
-Se qualcosa non funziona, evita di cambiare più righe a caso. Riproduci il problema con l'input più piccolo possibile, formula un'ipotesi e verifica una sola modifica per volta.
-
-## Controllo rapido
-
-- Riesco a spiegarlo senza leggere la pagina?
-- So indicare input, risultato e almeno un caso limite?
-- Riesco a riscrivere l'esempio partendo da un file vuoto?
-- So dire come verificherei che funziona?
-
 ## Domanda di verifica
 
 > Quando è corretto lanciare un errore invece di restituire null?
 
-Prova a rispondere senza rileggere: prima la regola, poi un esempio. Se ti manca un termine, descrivi il comportamento con parole semplici invece di fermarti.
-
-## Prima di andare avanti
-
-Chiudi la pagina per un minuto e ripeti tre cose: che problema risolve questo argomento, quale errore vuoi evitare e quale esempio useresti per spiegarlo. Se una delle tre non viene, riapri soltanto la sezione che ti serve.
+Confronta la tua spiegazione con la flashcard dedicata alla domanda.

@@ -1,6 +1,6 @@
 # Topological Sort e cicli: dipendenze prima dei dipendenti
 
-Un ordinamento topologico esiste soltanto in un grafo diretto aciclico. Con l'algoritmo di Kahn, metti in coda i nodi con indegree zero; quando ne rimuovi uno, diminuisci l'indegree dei vicini. Se alla fine hai estratto meno di `V` nodi, una parte è rimasta bloccata da un ciclo.
+Un ordinamento topologico esiste soltanto in un grafo diretto aciclico. Con l'algoritmo di Kahn si inseriscono in coda i nodi con indegree zero; dopo l'estrazione di un nodo, l'indegree dei vicini diminuisce. Se al termine sono stati estratti meno di `V` nodi, una parte del grafo è bloccata da un ciclo.
 
 Con gli archi `A → C`, `B → C`, `C → D`, la coda iniziale contiene `A` e `B`. Dopo averli rimossi, `C` scende a indegree zero; soltanto dopo `C` può entrare `D`. Aggiungere anche `D → A` crea un ciclo: Kahn lascia nodi nella coda d'attesa e l'estrazione finale è incompleta.
 

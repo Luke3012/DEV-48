@@ -2,56 +2,41 @@
 
 ## In parole semplici
 
-L'obiettivo di questa lezione è aggregare valori e scegliere strutture dati adeguate per lookup e unicità.
+Prima di iniziare, ripassa [Array: map, filter, find e some](01-04-array-map-filter-find-e-some.md).
+
+Aggregare valori e scegliere strutture dati adeguate per lookup e unicità.
 
 `reduce` combina molti valori in un solo risultato. `Set` è comodo per eliminare duplicati, mentre `Map` associa chiavi a valori ed è utile quando cerchi spesso un elemento per identificatore.
 
-### Perché è utile
-
-In JavaScript è utile seguire i valori uno alla volta: che tipo hanno, dove vengono creati e che cosa restituisce ogni espressione. Se sai prevedere questi passaggi, scrivere il codice diventa molto meno meccanico.
+Questo è un approfondimento: filtro e trasformazione bastano per iniziare React. `reduce` accumula un risultato, `Set` conserva valori unici e `Map` associa chiavi a valori. Usali quando rendono la domanda sui dati più chiara, senza trasformare ogni ciclo in una catena compatta.
 
 ## Le parole da riconoscere
 
-- `reduce`
-- `accumulatore`
-- `Set`
-- `Map`
-- `unicità`
-- `lookup`
-
-Non serve imparare questo elenco a memoria. Per iniziare, concentrati su **reduce, accumulatore, Set** e cerca di usarli mentre descrivi l'esempio qui sotto.
+`reduce`; `accumulatore`; `Set`; `Map`; `unicità`; `lookup`
 
 ## Un esempio concreto
 
-```text
-const total = orders.reduce((sum, order) => sum + order.amount, 0);
-const zones = [...new Set(users.map(u => u.zone))];
+```javascript
+const orders = [{ amount: 4 }, { amount: 2 }];
+console.log(orders.reduce((sum, order) => sum + order.amount, 0)); // 6
+console.log([ ...new Set(['Nord', 'Centro', 'Nord']) ]); // ['Nord', 'Centro']
+const byId = new Map([[1, { name: 'Anna' }]]);
+console.log(byId.get(1).name, byId.has(9)); // 'Anna', false
 ```
 
-Segui il valore dall'ingresso fino al `return`. Chiediti che cosa cambierebbe con un valore vuoto, mancante o di tipo inatteso.
+Lo zero iniziale rende la somma definita anche su `[]`. Set conserva l'ordine di inserimento; Map cerca per chiave, mentre `array.map` è una trasformazione e non una struttura dati. Non costruire una Map a ogni ricerca se usi una sola volta una lista minuscola.
 
-Adesso copri l'esempio e prova a ricostruirne la parte essenziale. Non deve essere identico: deve conservare lo stesso comportamento. Quando ci riesci, prova un caso normale e un caso limite.
+## Prova tu
+
+Calcola la somma dei controlli degli attivi, poi riscrivila con un ciclo. Scegli la versione che riesci a spiegare meglio; entrambe devono restituire zero sull'array vuoto.
 
 ## Dove ci si confonde spesso
 
 - Usare reduce per rendere il codice inutilmente compatto
 - Confondere Map con map
 
-Se qualcosa non funziona, evita di cambiare più righe a caso. Riproduci il problema con l'input più piccolo possibile, formula un'ipotesi e verifica una sola modifica per volta.
-
-## Controllo rapido
-
-- Riesco a spiegarlo senza leggere la pagina?
-- So indicare input, risultato e almeno un caso limite?
-- Riesco a riscrivere l'esempio partendo da un file vuoto?
-- So dire come verificherei che funziona?
-
 ## Domanda di verifica
 
 > Quando preferiresti un oggetto Map rispetto a un array?
 
-Prova a rispondere senza rileggere: prima la regola, poi un esempio. Se ti manca un termine, descrivi il comportamento con parole semplici invece di fermarti.
-
-## Prima di andare avanti
-
-Chiudi la pagina per un minuto e ripeti tre cose: che problema risolve questo argomento, quale errore vuoi evitare e quale esempio useresti per spiegarlo. Se una delle tre non viene, riapri soltanto la sezione che ti serve.
+Confronta la tua spiegazione con la flashcard dedicata alla domanda.

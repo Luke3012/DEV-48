@@ -2,36 +2,35 @@
 
 ## In parole semplici
 
-L'obiettivo di questa lezione è aggiungere, modificare ed eliminare elementi nel modo atteso da React.
+Prima di iniziare, ripassa [Oggetti, destructuring e spread](01-05-oggetti-destructuring-e-spread.md).
+
+Aggiungere, modificare ed eliminare elementi nel modo atteso da React.
 
 Invece di modificare l'array esistente, ne produci uno nuovo: spread per aggiungere, `map` per aggiornare e `filter` per eliminare. React può così riconoscere il cambiamento e aggiornare la UI in modo prevedibile.
 
-### Perché è utile
-
-In JavaScript è utile seguire i valori uno alla volta: che tipo hanno, dove vengono creati e che cosa restituisce ogni espressione. Se sai prevedere questi passaggi, scrivere il codice diventa molto meno meccanico.
+CRUD significa creare, leggere, aggiornare ed eliminare. Qui ogni modifica restituisce una nuova collezione e mantiene l'originale disponibile. Questo permette di confrontare prima e dopo e, in React, di consegnare un riferimento nuovo al setter. Anche `sort` muta l'array: usa una copia oppure `toSorted` se disponibile nell'ambiente.
 
 ## Le parole da riconoscere
 
-- `spread`
-- `map`
-- `filter`
-- `identità`
-- `aggiornamento immutabile`
-- `CRUD`
-
-Non serve imparare questo elenco a memoria. Per iniziare, concentrati su **spread, map, filter** e cerca di usarli mentre descrivi l'esempio qui sotto.
+`spread`; `map`; `filter`; `identità`; `aggiornamento immutabile`; `CRUD`
 
 ## Un esempio concreto
 
-```text
-const added = [...items, newItem];
-const changed = items.map(x => x.id === id ? {...x, active: true} : x);
-const removed = items.filter(x => x.id !== id);
+```javascript
+const items = [{ id: 1, name: 'Anna', active: false }, { id: 2, name: 'Mario', active: true }];
+const changed = items.map(item =>
+  item.id === 1 ? { ...item, active: true } : item
+);
+const removed = changed.filter(item => item.id !== 2);
+console.log(items[0].active, removed[0].active); // false, true
+console.log(changed === items, changed[1] === items[1]); // false, true
 ```
 
-Segui il valore dall'ingresso fino al `return`. Chiediti che cosa cambierebbe con un valore vuoto, mancante o di tipo inatteso.
+`map` crea l'array; spread crea l'oggetto cambiato. Gli elementi non toccati possono conservare il riferimento, perché nessuno li modifica. Mutare una proprietà e passare lo stesso array a un setter React può lasciare la UI senza aggiornamento: il riferimento è ancora quello precedente. Copiare solo l'array dopo aver mutato l'oggetto non ripristina il vecchio dato.
 
-Adesso copri l'esempio e prova a ricostruirne la parte essenziale. Non deve essere identico: deve conservare lo stesso comportamento. Quando ci riesci, prova un caso normale e un caso limite.
+## Prova tu
+
+Scrivi un aggiornamento per ID assente: il contenuto deve rimanere equivalente e nessun oggetto deve essere mutato. Riprendi poi la stessa regola nel laboratorio React: il nuovo contesto allena il collegamento tra trasformazione dei dati e rendering.
 
 ## Dove ci si confonde spesso
 
@@ -39,21 +38,8 @@ Adesso copri l'esempio e prova a ricostruirne la parte essenziale. Non deve esse
 - Cambiare direttamente una proprietà
 - Perdere campi durante una copia
 
-Se qualcosa non funziona, evita di cambiare più righe a caso. Riproduci il problema con l'input più piccolo possibile, formula un'ipotesi e verifica una sola modifica per volta.
-
-## Controllo rapido
-
-- Riesco a spiegarlo senza leggere la pagina?
-- So indicare input, risultato e almeno un caso limite?
-- Riesco a riscrivere l'esempio partendo da un file vuoto?
-- So dire come verificherei che funziona?
-
 ## Domanda di verifica
 
 > Come aggiorni un elemento di un array senza modificarlo direttamente?
 
-Prova a rispondere senza rileggere: prima la regola, poi un esempio. Se ti manca un termine, descrivi il comportamento con parole semplici invece di fermarti.
-
-## Prima di andare avanti
-
-Chiudi la pagina per un minuto e ripeti tre cose: che problema risolve questo argomento, quale errore vuoi evitare e quale esempio useresti per spiegarlo. Se una delle tre non viene, riapri soltanto la sezione che ti serve.
+Confronta la tua spiegazione con la flashcard dedicata alla domanda.

@@ -2,56 +2,34 @@
 
 ## In parole semplici
 
-L'obiettivo di questa lezione è scegliere il sistema di layout in base alla relazione tra gli elementi.
+Scegliere il sistema di layout in base alla relazione tra gli elementi.
 
 Flexbox distribuisce elementi lungo un asse ed è ideale per righe e colonne di componenti. Grid controlla contemporaneamente righe e colonne ed è più adatto alla struttura complessiva di una pagina o di una griglia di card.
 
-### Perché è utile
-
-Una pagina ben costruita non è soltanto bella: comunica una struttura, funziona da tastiera e si adatta allo spazio disponibile. Parti dal significato degli elementi, poi occupati del loro aspetto.
-
 ## Le parole da riconoscere
 
-- `asse principale`
-- `asse trasversale`
-- `gap`
-- `flex-grow`
-- `grid-template-columns`
-- `minmax`
-
-Non serve imparare questo elenco a memoria. Per iniziare, concentrati su **asse principale, asse trasversale, gap** e cerca di usarli mentre descrivi l'esempio qui sotto.
+`asse principale`; `asse trasversale`; `gap`; `flex-grow`; `grid-template-columns`; `minmax`
 
 ## Un esempio concreto
 
-```text
+```html
 .toolbar { display:flex; align-items:center; gap:.75rem; }
 .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(16rem,1fr)); gap:1rem; }
 ```
 
-Prima leggi la struttura HTML e prova a descriverla senza parlare di colori. Poi osserva come il CSS distribuisce lo spazio e che cosa succede restringendo la finestra.
+Uso Grid quando devo controllare righe e colonne insieme, come una griglia di card. Flexbox è adatto a una toolbar su un asse, con allineamento e distribuzione. Scelgo il layout in base alle relazioni tra gli elementi, non al numero di proprietà da ricordare.
 
-Adesso copri l'esempio e prova a ricostruirne la parte essenziale. Non deve essere identico: deve conservare lo stesso comportamento. Quando ci riesci, prova un caso normale e un caso limite.
+## Prova tu
+
+Crea una toolbar flex con due pulsanti e una griglia di card responsive con gap. Usa grid-template-columns con repeat e minmax. Il runner cerca le regole; nel browser controlla allineamento e passaggio da una a più colonne.
 
 ## Dove ci si confonde spesso
 
 - Usare position absolute per layout ordinari
 - Non capire quale sia l'asse attivo
 
-Se qualcosa non funziona, evita di cambiare più righe a caso. Riproduci il problema con l'input più piccolo possibile, formula un'ipotesi e verifica una sola modifica per volta.
-
-## Controllo rapido
-
-- Riesco a spiegarlo senza leggere la pagina?
-- So indicare input, risultato e almeno un caso limite?
-- Riesco a riscrivere l'esempio partendo da un file vuoto?
-- So dire come verificherei che funziona?
-
 ## Domanda di verifica
 
 > Quando preferiresti Grid a Flexbox?
 
-Prova a rispondere senza rileggere: prima la regola, poi un esempio. Se ti manca un termine, descrivi il comportamento con parole semplici invece di fermarti.
-
-## Prima di andare avanti
-
-Chiudi la pagina per un minuto e ripeti tre cose: che problema risolve questo argomento, quale errore vuoi evitare e quale esempio useresti per spiegarlo. Se una delle tre non viene, riapri soltanto la sezione che ti serve.
+Confronta la tua spiegazione con la flashcard dedicata alla domanda.

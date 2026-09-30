@@ -5,7 +5,7 @@ DEV//48 è una piattaforma di studio in italiano per lo sviluppo web e software.
 La piattaforma contiene tre percorsi, selezionabili all'avvio o con `Ctrl+T` da qualsiasi schermata non bloccata dal Full Mock:
 
 1. **Angular & .NET Enterprise Academy:** basi di C#, TypeScript, HTML e CSS, poi ASP.NET Core Minimal API, Entity Framework Core, Angular 22 Standalone, Signals e Control Flow, fino ai laboratori full-stack (`client/` + `server/`).
-2. **JavaScript & React Academy:** JavaScript da zero, React 19, Node.js, Express, SQLite e test con Vitest.
+2. **JavaScript & React Academy:** JavaScript da zero, React 19, Node.js, cenni a Express, SQLite e test con Vitest. TypeScript, routing, WordPress e le architetture Electron/AI sono approfondimenti; funzioni, closure, moduli, copie e asincronia preparano il passaggio a React.
 3. **Amazon SDE-I OA Bootcamp:** piano essenziale di sei giorni, 44 lezioni distinte e navigabili, 67 esercizi DSA con varianti Python e C++ (22 Easy, 35 Medium, 10 Hard), sei repository lab, 160 flashcard, quattro simulazioni, 36 scenari Work Simulation e otto prompt Work Style.
 
 Ogni percorso mantiene catalogo e progresso separati. Alla prima schermata scegli `1`, `2` o `3`; anche le frecce e Invio funzionano. `Ctrl+T` riapre la selezione. Il piano essenziale Amazon distribuisce tutte le lezioni e attività scelte in circa 34 ore e mezza; il catalogo completo dichiara circa 54,7 ore includendo anche esercizi, laboratori e simulazioni facoltativi. Gli scenari singoli non hanno una durata predefinita.
@@ -102,6 +102,10 @@ Dalla scheda di un laboratorio:
 
 DEV//48 crea solo i file mancanti. Il vecchio starter simulato viene conservato in cartelle `*-legacy` quando viene sostituito con un progetto Angular CLI o .NET reale. I laboratori Angular usano Angular CLI 22, Vitest e TestBed; quelli .NET usano .NET 10 e xUnit. I repository del bootcamp usano Node.js integrato o compilazione C++20 senza dipendenze scaricate. Le versioni dei pacchetti sono definite nei file `package.json` e `.csproj` del laboratorio.
 
+I nuovi laboratori JavaScript/React richiedono **Node.js 24 LTS**. I laboratori JavaScript, fetch, TypeScript, SQL e debugging usano test Node senza pacchetti aggiuntivi; SQLite è eseguito realmente tramite `node:sqlite`. I richiami sono autoverifiche senza nuovi XP: il controllo cerca i termini dichiarati e non valuta il significato. Gli XP già salvati restano conservati.
+
+Gli starter rivisti vengono creati soltanto in cartelle nuove. Un workspace precedente con `package.json` viene conservato integralmente; i nuovi starter contengono `dev48-scaffold.json`. Per riprovare un laboratorio aggiornato puoi conservare la vecchia cartella con un nome diverso e riaprire il laboratorio dall'app. La revisione non migra né riscrive il lavoro personale.
+
 ## Salvataggio, backup e privacy
 
 - Il progresso è salvato subito in `data/progress.sqlite3`.
@@ -143,15 +147,18 @@ Il runner impone timeout e limite di output, ma non è una sandbox del sistema o
 | `dev48/workspace.py` | Creazione starter project, npm e apertura VS Code | Solo per sviluppo |
 | `content/catalog.json` | Manifest del percorso JavaScript & React | Non modificare a mano |
 | `content/catalog_dotnet_angular.json`, `content/catalog_amazon_sde.json` | Manifest dei relativi percorsi | Non modificare a mano |
-| `content/lessons/*.md`, `content/lessons_dotnet/*.md`, `content/lessons_amazon/*.md` | Testi delle lezioni | Sì, con cautela |
+| `content/lessons/*.md`, `content/lessons_dotnet/*.md`, `content/lessons_amazon/*.md` | Testi generati delle lezioni | Modificare il relativo generatore |
 | `tools/generate_content.py`, `tools/generate_dotnet_angular.py`, `tools/generate_amazon_sde.py` | Sorgenti editoriali che rigenerano i cataloghi | Solo per manutenzione |
+| `tools/js_react_notes.py`, `tools/js_react_practice.py`, `tools/js_react_lab_briefs.py` | Testi, pratica e contratti dei laboratori JavaScript/React, usati dal generatore | Solo per manutenzione |
+| `dev48/js_react_scaffolds.py` | Starter, test e soluzioni dei laboratori JavaScript/React | Solo per manutenzione |
+| `dev48/js_react_ui_scaffolds.py` | Laboratori React, test delle interazioni e API locale didattica | Solo per manutenzione |
 | `tools/doctor.py` | Diagnostica richiamata dal file `.bat` | Solo per sviluppo |
 | `tests/` | Test automatici del catalogo, DB, runner e TUI | Sì, per sviluppo |
 | `data/` | Stato personale e backup, creati a runtime | Non mentre l'app è aperta |
 | `workspace/` | Codice modificabile dei laboratori e repository di pratica | **Sì: è il tuo lavoro** |
 | `.venv/` | Ambiente Python isolato, ricreabile | Non modificare |
 
-Attenzione: i due generatori riscrivono il relativo catalogo e i Markdown generati. Falli soltanto se stai mantenendo il contenuto editoriale.
+Attenzione: ciascun generatore riscrive il relativo catalogo e i Markdown generati. Eseguilo soltanto se stai mantenendo il contenuto editoriale.
 
 ## Diagnostica e test
 
@@ -165,6 +172,8 @@ cd "C:\percorso\DEV48"
 ```
 
 La suite esegue le 65 soluzioni di riferimento Python del bootcamp contro i rispettivi casi; quelle C++ vengono compilate e verificate quando GCC o Clang è installato. Include anche test per sintassi e runtime errati, risposte sbagliate, timeout, output e compilazione C++ facoltativa.
+
+Per JavaScript/React verifica tutte le 100 soluzioni brevi e gli otto laboratori Node. Per eseguire anche i quattro laboratori React, installa le dipendenze di un laboratorio nuovo con `npm install` e imposta `DEV48_REACT_NODE_MODULES` al percorso assoluto della sua cartella `node_modules` prima di pytest. Senza questa variabile, i quattro test UI vengono segnalati come saltati; i test negli stessi progetti si eseguono comunque con `npm test`. I test JSX brevi controllano struttura e testo: le interazioni reali vengono provate nei laboratori.
 
 ## Risoluzione dei problemi
 

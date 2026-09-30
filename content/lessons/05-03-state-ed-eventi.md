@@ -2,56 +2,49 @@
 
 ## In parole semplici
 
-L'obiettivo di questa lezione è aggiornare l'interfaccia in risposta alle interazioni usando useState.
+Prima di iniziare, ripassa [Props e composizione](05-02-props-e-composizione.md) e [Scope, const, let e closure](01-02-scope-const-let-e-closure.md).
+
+Aggiornare l'interfaccia in risposta alle interazioni usando useState.
 
 Lo state è la memoria locale del componente. Il setter pianifica un nuovo render; quando il nuovo valore dipende dal precedente, la forma funzionale evita di usare una fotografia ormai vecchia dello state.
 
-### Perché è utile
-
-In React la domanda principale è sempre la stessa: da quali dati dipende questa parte dell'interfaccia? Individua chi possiede quei dati e lascia che il rendering descriva ciò che l'utente deve vedere in quel momento.
+Ogni render riceve uno snapshot dello stato. Il setter richiede un aggiornamento, ma non cambia la variabile letta nell'handler che sta già girando. Gli aggiornamenti nello stesso evento sono accodati: tre sostituzioni con count + 1 usano lo stesso count e producono un solo incremento. Tre updater funzionali ricevono invece, in sequenza, il risultato dell'aggiornamento precedente.
 
 ## Le parole da riconoscere
 
-- `useState`
-- `setter`
-- `event handler`
-- `re-render`
-- `functional update`
-- `snapshot`
-
-Non serve imparare questo elenco a memoria. Per iniziare, concentrati su **useState, setter, event handler** e cerca di usarli mentre descrivi l'esempio qui sotto.
+`useState`; `setter`; `event handler`; `re-render`; `functional update`; `snapshot`
 
 ## Un esempio concreto
 
-```text
-const [count, setCount] = useState(0);
-<button onClick={() => setCount(current => current + 1)}>{count}</button>
+```jsx
+import { useState } from 'react';
+export default function Counter() {
+  const [count, setCount] = useState(0);
+  function addThree() {
+    setCount(current => current + 1);
+    setCount(current => current + 1);
+    setCount(current => current + 1);
+    console.log(count); // snapshot prima del click
+  }
+  return <button onClick={addThree}>Conteggio: {count}</button>;
+}
 ```
 
-Distingui props, stato e valori calcolati. Poi segui l'evento: quale setter viene chiamato e quale parte della UI cambia al rendering successivo?
+Il primo click mostra 3 nella UI e stampa 0. Sostituendo gli updater con tre setCount(count + 1), la UI mostra 1. Una callback di setTimeout creata nell'handler continua a leggere lo snapshot di quel render anche dopo che il DOM si aggiorna. L'updater risolve gli aggiornamenti basati sul valore precedente, non riscrive tutte le closure già create.
 
-Adesso copri l'esempio e prova a ricostruirne la parte essenziale. Non deve essere identico: deve conservare lo stesso comportamento. Quando ci riesci, prova un caso normale e un caso limite.
+## Prova tu
+
+Prevedi testo e console per due click consecutivi, poi verifica nel progetto React. Aggiungi un decremento che non scenda sotto zero. Chiama gli hook al livello superiore del componente, nello stesso ordine, senza inserirli in if o handler.
 
 ## Dove ci si confonde spesso
 
 - Chiamare il setter durante il render
 - Leggere state come variabile immediatamente mutabile
 
-Se qualcosa non funziona, evita di cambiare più righe a caso. Riproduci il problema con l'input più piccolo possibile, formula un'ipotesi e verifica una sola modifica per volta.
-
-## Controllo rapido
-
-- Riesco a spiegarlo senza leggere la pagina?
-- So indicare input, risultato e almeno un caso limite?
-- Riesco a riscrivere l'esempio partendo da un file vuoto?
-- So dire come verificherei che funziona?
-
 ## Domanda di verifica
 
 > Quando serve la forma funzionale di setState?
 
-Prova a rispondere senza rileggere: prima la regola, poi un esempio. Se ti manca un termine, descrivi il comportamento con parole semplici invece di fermarti.
+Confronta la tua spiegazione con la flashcard dedicata alla domanda.
 
-## Prima di andare avanti
-
-Chiudi la pagina per un minuto e ripeti tre cose: che problema risolve questo argomento, quale errore vuoi evitare e quale esempio useresti per spiegarlo. Se una delle tre non viene, riapri soltanto la sezione che ti serve.
+Riferimento: [documentazione ufficiale](https://react.dev/learn/state-as-a-snapshot).

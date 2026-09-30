@@ -4,4 +4,4 @@ Prima leggi prompt e constraints fino in fondo. Scrivi un caso normale, un limit
 
 Quando l'algoritmo è chiaro, implementa la parte centrale senza perfezionare nomi o formattazione. Compila presto. Poi verifica l'input più piccolo, duplicati, indice ai confini e il test grande. Ogni fix dovrebbe corrispondere a una causa che puoi descrivere.
 
-Se dopo dieci minuti non hai una strada, conserva una soluzione parziale corretta e scrivi la brute force. A volte un risultato funzionante vale più di un'ottimizzazione incompleta. Usa gli ultimi minuti per leggere il codice dall'inizio, non per aggiungere una feature non richiesta.
+Se dopo dieci minuti manca ancora una strategia, conviene conservare una soluzione parziale corretta e scrivere la brute force. Un risultato funzionante può valere più di un'ottimizzazione incompleta. Gli ultimi minuti servono a rileggere il codice dall'inizio e a verificare il contratto, senza aggiungere funzionalità non richieste.

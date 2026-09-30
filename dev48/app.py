@@ -7,11 +7,13 @@ import json
 import hashlib
 import re
 
-from textual import events
+from textual import events, on
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical, ScrollableContainer
 from textual.screen import Screen
+from rich.cells import cell_len
+from rich.text import Text as RichText
 from textual.widgets import (
     Button, Collapsible, DataTable, Footer, Header, Input, Label, Markdown,
     ProgressBar, Static, TextArea,
@@ -28,6 +30,195 @@ CONTENT_ROOT = PROJECT_ROOT / "content"
 DATA_ROOT = PROJECT_ROOT / "data"
 WORKSPACE_ROOT = PROJECT_ROOT / "workspace"
 
+CODE_EDITOR_KINDS = frozenset({
+    "angular", "cpp", "csharp", "css", "html", "javascript", "python", "react", "sql", "typescript",
+})
+BRACE_INDENT_LANGUAGES = frozenset({
+    "angular", "cpp", "csharp", "css", "javascript", "react", "typescript",
+})
+
+
+def _code_context_at(source: str, offset: int, language: str) -> str:
+    """Return whether an offset is in code, a string, or a comment."""
+    state = "code"
+    quote = ""
+    raw_end = ""
+    verbatim = False
+    multiline = False
+    index = 0
+    end = min(max(offset, 0), len(source))
+
+    while index < end:
+        if state == "line_comment":
+            if source[index] == "\n":
+                state = "code"
+            index += 1
+            continue
+        if state == "block_comment":
+            if source.startswith("*/", index):
+                state = "code"
+                index += 2
+            else:
+                index += 1
+            continue
+        if state == "raw_string":
+            if source.startswith(raw_end, index):
+                state = "code"
+                index += len(raw_end)
+            else:
+                index += 1
+            continue
+        if state == "string":
+            character = source[index]
+            if verbatim and quote == '"' and source.startswith('""', index):
+                index += 2
+                continue
+            if not verbatim and character == "\\":
+                index += 2
+                continue
+            if character == quote:
+                state = "code"
+                quote = ""
+                verbatim = False
+            elif character == "\n" and not multiline:
+                # Recover from an unfinished ordinary string at the next line.
+                state = "code"
+                quote = ""
+            index += 1
+            continue
+
+        if source.startswith("//", index):
+            state = "line_comment"
+            index += 2
+            continue
+        if source.startswith("/*", index):
+            state = "block_comment"
+            index += 2
+            continue
+        if language == "cpp" and source.startswith('R"', index):
+            opening_paren = source.find("(", index + 2)
+            if opening_paren >= 0:
+                delimiter = source[index + 2:opening_paren]
+                if len(delimiter) <= 16 and not any(char.isspace() or char in "()\\" for char in delimiter):
+                    raw_end = ")" + delimiter + '"'
+                    state = "raw_string"
+                    index = opening_paren + 1
+                    continue
+        if language == "csharp" and source[index] == '"':
+            quote_count = 1
+            while index + quote_count < len(source) and source[index + quote_count] == '"':
+                quote_count += 1
+            if quote_count >= 3:
+                raw_end = '"' * quote_count
+                state = "raw_string"
+                index += quote_count
+                continue
+        character = source[index]
+        if language in {"javascript", "react", "typescript", "angular"} and character == "`":
+            state = "string"
+            quote = character
+            multiline = True
+        elif character in "\"'":
+            state = "string"
+            quote = character
+            verbatim = language == "csharp" and character == '"' and index > 0 and source[index - 1] == "@"
+            multiline = verbatim
+        index += 1
+
+    if state in {"line_comment", "block_comment"}:
+        return "comment"
+    if state != "code":
+        return "string"
+    return "code"
+
+
+def _code_prefix_end(source: str, start: int, end: int, language: str) -> int:
+    """Ignore a trailing C-style comment when checking a line's final token."""
+    index = start
+    while index < end:
+        if source.startswith("//", index) and _code_context_at(source, index, language) == "code":
+            return index
+        if source.startswith("/*", index) and _code_context_at(source, index, language) == "code":
+            close = source.find("*/", index + 2, end)
+            if close < 0 or not source[close + 2:end].strip(" \t"):
+                return index
+            index = close + 2
+            continue
+        index += 1
+    return end
+
+
+def _dedent_one_level(indentation: str, width: int) -> str:
+    """Remove one indentation level from leading spaces and tabs."""
+    target = max(1, width)
+    columns = 0
+    index = 0
+    while index < len(indentation) and columns < target:
+        character = indentation[index]
+        if character == "\t":
+            columns += target - (columns % target)
+        elif character == " ":
+            columns += 1
+        else:
+            break
+        index += 1
+    return indentation[index:] if columns >= target else indentation
+
+
+class CodeTextArea(TextArea):
+    """TextArea with automatic indentation for programming code."""
+
+    def __init__(self, *args, brace_indentation: bool = False, brace_language: str = "", **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.brace_indentation = brace_indentation
+        self.brace_language = brace_language
+
+    @on(events.Key)
+    def _handle_code_indentation(self, event: events.Key) -> None:
+        if self.read_only:
+            return
+
+        selection = self.selection
+        start, end = selection
+        insertion_location = min(start, end)
+        row, column = insertion_location
+        lines = self.text.split("\n")
+        line = lines[row]
+
+        if event.key == "enter":
+            indentation = line[:len(line) - len(line.lstrip(" \t"))]
+            continuation = indentation
+            if self.brace_indentation:
+                source = self.text
+                line_start = sum(len(item) + 1 for item in lines[:row])
+                cursor_offset = line_start + column
+                prefix_end = _code_prefix_end(source, line_start, cursor_offset, self.brace_language)
+                prefix = source[line_start:prefix_end].rstrip(" \t")
+                if prefix.endswith("{"):
+                    brace_offset = line_start + len(prefix) - 1
+                    if _code_context_at(source, brace_offset, self.brace_language) == "code":
+                        continuation += " " * max(1, self.indent_width)
+            event.stop()
+            event.prevent_default()
+            self.replace("\n" + continuation, start, end, maintain_selection_offset=False)
+            return
+
+        if event.character != "}" or not self.brace_indentation or not selection.is_empty:
+            return
+        if line.strip(" \t"):
+            return
+
+        source = self.text
+        line_start = sum(len(item) + 1 for item in lines[:row])
+        cursor_offset = line_start + column
+        if _code_context_at(source, cursor_offset, self.brace_language) != "code":
+            return
+        indentation = line
+        outdented = _dedent_one_level(indentation, self.indent_width)
+        event.stop()
+        event.prevent_default()
+        self.replace(outdented + "}", (row, 0), (row, len(line)), maintain_selection_offset=False)
+
 
 def exercise_progress_id(exercise: Exercise, language: str = "python") -> str:
     return f"{exercise.id}@{language}" if exercise.variants else exercise.id
@@ -38,6 +229,149 @@ def split_exercise_progress_id(item_id: str) -> tuple[str, str | None]:
         return item_id, None
     exercise_id, language = item_id.rsplit("@", 1)
     return exercise_id, language
+
+
+def exercise_started_setting_key(progress_id: str) -> str:
+    return f"exercise_started:{progress_id}"
+
+
+class FooterHint(Static):
+    """A compact, clickable key hint used by the adaptive footer."""
+
+    DEFAULT_CSS = """
+    FooterHint {
+        width: auto;
+        height: 1;
+        min-width: 0;
+        padding: 0 1;
+        margin-right: 1;
+        color: #91a4c7;
+        background: #182238;
+        text-wrap: nowrap;
+    }
+    FooterHint.-disabled {
+        text-style: dim;
+    }
+    FooterHint.-wrapped {
+        width: 100%;
+        height: auto;
+        text-wrap: wrap;
+    }
+    """
+
+    def __init__(self, key: str, key_display: str, description: str, action: str, *, disabled: bool = False, tooltip: str = "", wrapped: bool = False) -> None:
+        self.key = key
+        self.key_display = key_display
+        self.description = description
+        self.action = action
+        self._disabled = disabled
+        super().__init__(classes=("-disabled" if disabled else "") + (" -wrapped" if wrapped else ""))
+        if tooltip:
+            self.tooltip = tooltip
+
+    def render(self) -> RichText:
+        parts = [(self.key_display, "bold #67e8f9")]
+        if self.description:
+            parts.append((" " + self.description, "#91a4c7"))
+        return RichText.assemble(*parts)
+
+    def on_mouse_down(self, event: events.MouseDown) -> None:
+        event.stop()
+        if self._disabled:
+            self.app.bell()
+        else:
+            self.app.simulate_key(self.key)
+
+
+class AdaptiveFooter(Footer):
+    """Display every active shortcut, wrapping hints to fit the terminal."""
+
+    DEFAULT_CSS = """
+    AdaptiveFooter {
+        layout: vertical;
+        dock: bottom;
+        width: 100%;
+        height: auto;
+        min-height: 1;
+        overflow: hidden hidden;
+        scrollbar-size: 0 0;
+        background: $footer-background;
+    }
+    AdaptiveFooter .footer-row {
+        width: 100%;
+        height: auto;
+        min-height: 1;
+        layout: horizontal;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        if not self._bindings_ready:
+            return
+
+        active_bindings = self.screen.active_bindings
+        visible: list[tuple[Binding, bool, str]] = []
+        actions: set[str] = set()
+        for _node, binding, enabled, tooltip in active_bindings.values():
+            if not binding.show or binding.action in actions:
+                continue
+            if binding.key == self.app.COMMAND_PALETTE_BINDING:
+                continue
+            actions.add(binding.action)
+            visible.append((binding, enabled, tooltip))
+
+        if self.show_command_palette and self.app.ENABLE_COMMAND_PALETTE:
+            palette = active_bindings.get(self.app.COMMAND_PALETTE_BINDING)
+            if palette:
+                _node, binding, enabled, tooltip = palette
+                if binding.action not in actions:
+                    visible.append((binding, enabled, tooltip or binding.tooltip or binding.description))
+
+        width = self.size.width or self.app.size.width
+        width = max(1, width)
+        entries: list[tuple[Binding, str, str, bool, str, int]] = []
+        for binding, enabled, tooltip in visible:
+            key_display = self.app.get_key_display(binding)
+            description = binding.description
+            rendered_width = cell_len(key_display) + (cell_len(description) + 1 if description else 0) + 3
+            entries.append((binding, key_display, description, enabled, tooltip, rendered_width))
+
+        rows: list[list[tuple[Binding, str, str, bool, str, int]]] = []
+        current: list[tuple[Binding, str, str, bool, str, int]] = []
+        current_width = 0
+        for entry in entries:
+            entry_width = entry[5]
+            if current and current_width + entry_width > width:
+                rows.append(current)
+                current = []
+                current_width = 0
+            if entry_width > width:
+                if current:
+                    rows.append(current)
+                    current = []
+                    current_width = 0
+                rows.append([entry])
+            else:
+                current.append(entry)
+                current_width += entry_width
+        if current:
+            rows.append(current)
+
+        for row in rows:
+            with Horizontal(classes="footer-row"):
+                for binding, key_display, description, enabled, tooltip, entry_width in row:
+                    yield FooterHint(
+                        binding.key,
+                        key_display,
+                        description,
+                        binding.action,
+                        disabled=not enabled,
+                        tooltip=tooltip or binding.tooltip or binding.description,
+                        wrapped=entry_width > width,
+                    )
+
+    def on_resize(self, event: events.Resize) -> None:
+        self.refresh(recompose=True)
 
 
 GLOSSARY = {
@@ -147,7 +481,7 @@ class TrackSelectionScreen(Screen):
                 f"[#91a4c7]Usa [bold #67e8f9]{available_keys}[/], le frecce e Invio, oppure seleziona una card.[/]",
                 id="track-instruction",
             )
-        yield Footer()
+        yield AdaptiveFooter()
 
     def on_mount(self) -> None:
         self._track_buttons = [self.query_one(f"#btn-track-{item.id}", Button) for item in TRACK_DEFINITIONS]
@@ -237,7 +571,7 @@ class DashboardScreen(Screen):
                 yield Button("⚒ LAB", id="labs")
                 yield Button("◈ FLASHCARD", id="flashcards")
                 yield Button("◎ SFIDE", id="challenges")
-        yield Footer()
+        yield AdaptiveFooter()
 
     def on_mount(self) -> None:
         self.refresh_dashboard()
@@ -306,7 +640,7 @@ class CurriculumScreen(Screen):
             yield Static("[bold #67e8f9]CURRICULUM[/]  Cerca e apri con Enter", classes="hero")
             yield Input(placeholder="Cerca titolo, modulo o obiettivo…", id="search")
             yield DataTable(cursor_type="row", zebra_stripes=True, id="table")
-        yield Footer()
+        yield AdaptiveFooter()
 
     def on_mount(self) -> None:
         table = self.query_one("#table", DataTable)
@@ -353,7 +687,7 @@ class ReviewScreen(Screen):
                 classes="hero",
             )
             yield DataTable(cursor_type="row", zebra_stripes=True, id="table")
-        yield Footer()
+        yield AdaptiveFooter()
 
     def on_mount(self) -> None:
         table = self.query_one("#table", DataTable)
@@ -423,7 +757,7 @@ class LessonScreen(TimedScreen):
             with Horizontal(classes="actions"):
                 yield Button(advance_label, id="advance", classes="primary")
                 yield Button("← CURRICULUM", id="back")
-        yield Footer()
+        yield AdaptiveFooter()
 
     def on_mount(self) -> None:
         super().on_mount()
@@ -563,7 +897,17 @@ class ExerciseScreen(TimedScreen):
                         yield Static("[bold #a78bfa]TEORIA DELLA LEZIONE[/]\nF1 apre o richiude la teoria senza perdere risposta, cursore o punto di lettura. ESC torna prima all'esercizio; da lì puoi rientrare nella lezione al punto in cui l'avevi lasciata.", classes="panel")
                         yield Markdown(self.app.catalog.lesson_body(self.app.catalog.lesson_by_id[ex.lesson_id]), id="theory-markdown")
                 with Vertical(id="exercise-right"):
-                    yield TextArea(initial, language=language, show_line_numbers=True, id="editor")
+                    if self.active_kind in CODE_EDITOR_KINDS:
+                        yield CodeTextArea(
+                            initial,
+                            language=language,
+                            show_line_numbers=True,
+                            id="editor",
+                            brace_indentation=self.active_kind in BRACE_INDENT_LANGUAGES,
+                            brace_language=self.active_kind,
+                        )
+                    else:
+                        yield TextArea(initial, language=language, show_line_numbers=True, id="editor")
                     with ScrollableContainer(id="result-scroll", can_focus=True):
                         yield Static("", id="result")
             with Horizontal(id="exercise-actions", classes="actions"):
@@ -577,7 +921,7 @@ class ExerciseScreen(TimedScreen):
                 yield Button("→ PROSSIMO", id="next")
                 yield Button("📖 TEORIA [F1]", id="theory")
                 yield Button("← LEZIONE", id="back")
-        yield Footer()
+        yield AdaptiveFooter()
 
     def on_mount(self) -> None:
         self.tracked_id = self.progress_id
@@ -590,6 +934,17 @@ class ExerciseScreen(TimedScreen):
             self.timer_running = True
             self.set_interval(1, self.tick_timer)
             self.render_timer()
+
+    def on_text_area_changed(self, event: TextArea.Changed) -> None:
+        if event.text_area.id != "editor":
+            return
+        self.mark_exercise_started(event.text_area.text)
+
+    def mark_exercise_started(self, answer: str | None = None, *, attempted: bool = False) -> None:
+        if attempted or (answer is not None and answer != self.content_for_language("starter")):
+            key = exercise_started_setting_key(self.progress_id)
+            if self.app.store.get_setting(key) != "1":
+                self.app.store.set_setting(key, "1")
 
     def tick_timer(self) -> None:
         if not self.timer_running or self.remaining <= 0:
@@ -617,7 +972,9 @@ class ExerciseScreen(TimedScreen):
             index = available.index(self.coding_language)
         except ValueError:
             index = 0
-        self.app.store.save_answer(self.progress_id, "exercise", self.editor_value())
+        answer = self.editor_value()
+        self.mark_exercise_started(answer)
+        self.app.store.save_answer(self.progress_id, "exercise", answer)
         self.coding_language = available[(index + 1) % len(available)]
         self.app.coding_language = self.coding_language
         self.app.store.set_setting("amazon_coding_language", self.coding_language)
@@ -638,11 +995,15 @@ class ExerciseScreen(TimedScreen):
         result_scroll.scroll_home(animate=False, force=True)
 
     def action_save(self) -> None:
-        self.app.store.save_answer(self.progress_id, "exercise", self.editor_value())
+        answer = self.editor_value()
+        self.mark_exercise_started(answer)
+        self.app.store.save_answer(self.progress_id, "exercise", answer)
         self.app.notify("Risposta salvata")
 
     def action_toggle_theory(self) -> None:
-        self.app.store.save_answer(self.progress_id, "exercise", self.editor_value())
+        answer = self.editor_value()
+        self.mark_exercise_started(answer)
+        self.app.store.save_answer(self.progress_id, "exercise", answer)
         self.theory_open = not self.theory_open
         prompt = self.query_one("#exercise-prompt", ScrollableContainer)
         theory = self.query_one("#theory-scroll", ScrollableContainer)
@@ -661,6 +1022,7 @@ class ExerciseScreen(TimedScreen):
 
     def run_current(self) -> None:
         answer = self.editor_value()
+        self.mark_exercise_started(answer, attempted=True)
         result = run_exercise(self.exercise, answer, PROJECT_ROOT, language=self.coding_language)
         earned_xp = 0 if self.exercise.kind == "reflection" else int(self.exercise.xp * result.score / 100)
         attempts = self.app.store.record_attempt(self.progress_id, "exercise", answer, result.passed, earned_xp)
@@ -735,7 +1097,7 @@ class LabsScreen(Screen):
         with Vertical(classes="page"):
             yield Static("[bold #67e8f9]LABORATORI[/]\nProgetti più lunghi, workspace persistente e test reali.", classes="hero")
             yield DataTable(cursor_type="row", zebra_stripes=True, id="table")
-        yield Footer()
+        yield AdaptiveFooter()
 
     def on_mount(self) -> None:
         table = self.query_one("#table", DataTable)
@@ -801,7 +1163,7 @@ class LabScreen(TimedScreen):
                 elif lab.workspace_template in {"amazon_cpp", "amazon_node"}:
                     yield Button("USA QUESTO STACK", id="choose-stack")
                 yield Button("← LAB", id="back")
-        yield Footer()
+        yield AdaptiveFooter()
 
     def on_mount(self) -> None:
         super().on_mount()
@@ -891,7 +1253,7 @@ class FlashcardsScreen(Screen):
                 yield Button("← PRECEDENTE", id="previous")
                 yield Button("MOSTRA RISPOSTA", id="flip", classes="primary")
                 yield Button("SUCCESSIVA →", id="next")
-        yield Footer()
+        yield AdaptiveFooter()
 
     def on_mount(self) -> None:
         self.render_card()
@@ -933,7 +1295,7 @@ class GlossaryScreen(Screen):
             yield Input(placeholder="Cerca un termine…", id="search")
             with ScrollableContainer(id="glossary-scroll", can_focus=True):
                 yield Markdown("", id="glossary")
-        yield Footer()
+        yield AdaptiveFooter()
 
     def on_mount(self) -> None:
         self.refresh_terms("")
@@ -966,7 +1328,7 @@ class ChallengesScreen(Screen):
                 classes="hero",
             )
             yield DataTable(cursor_type="row", zebra_stripes=True, id="table")
-        yield Footer()
+        yield AdaptiveFooter()
 
     def on_mount(self) -> None:
         table = self.query_one("#table", DataTable)
@@ -1023,7 +1385,7 @@ class WorkScenarioScreen(Screen):
             with Horizontal(classes="actions"):
                 yield Button("▣ CONFRONTA RAGIONAMENTO [CTRL+S]", id="submit", classes="primary")
                 yield Button("← SCENARI", id="back")
-        yield Footer()
+        yield AdaptiveFooter()
 
     def on_mount(self) -> None:
         state = self.app.store.get(self.scenario.id)
@@ -1107,7 +1469,7 @@ class WorkStyleScreen(Screen):
                 yield Button("SALVA [CTRL+S]", id="save", classes="primary")
                 yield Button("SUCCESSIVO →", id="next")
                 yield Button("← SFIDE", id="back")
-        yield Footer()
+        yield AdaptiveFooter()
 
     def on_mount(self) -> None:
         self.render_prompt()
@@ -1175,7 +1537,7 @@ class SimulationScreen(TimedScreen):
                     yield Button("▶ ESEGUI TEST", id="run-repo")
                     yield Button(f"STACK: {self.app.store.get_setting('amazon_repository_language', 'node').upper()}", id="repository-language")
                 yield Button("← SIMULAZIONI", id="back")
-        yield Footer()
+        yield AdaptiveFooter()
 
     def on_mount(self) -> None:
         super().on_mount()
@@ -1304,7 +1666,14 @@ class CodingSimulationScreen(TimedScreen):
             with ScrollableContainer(id="coding-sim-prompt", can_focus=True):
                 yield Markdown(assessment_prompt(self.exercise))
                 yield Static("Durante il timer non ci sono hint o soluzione. Usa il runner soltanto per controllare il codice.", classes="panel")
-            yield TextArea(variant.get("starter", self.exercise.starter), language=self.language, show_line_numbers=True, id="coding-sim-editor")
+            yield CodeTextArea(
+                variant.get("starter", self.exercise.starter),
+                language=self.language,
+                show_line_numbers=True,
+                id="coding-sim-editor",
+                brace_indentation=self.language in BRACE_INDENT_LANGUAGES,
+                brace_language=self.language,
+            )
             with ScrollableContainer(id="coding-sim-result", can_focus=True):
                 yield Static("", id="coding-sim-output", classes="panel")
             with Horizontal(classes="actions"):
@@ -1313,7 +1682,7 @@ class CodingSimulationScreen(TimedScreen):
                 yield Button(f"⌘ LINGUA: {self.language.upper()} [L]", id="language")
                 yield Button("↺ RESET TIMER", id="reset")
                 yield Button("← SIMULAZIONI", id="back")
-        yield Footer()
+        yield AdaptiveFooter()
 
     def on_mount(self) -> None:
         super().on_mount()
@@ -1448,7 +1817,14 @@ class FullMockScreen(TimedScreen):
                 yield Markdown(assessment_prompt(self.exercise))
             with ScrollableContainer(id="mock-repository-prompt", can_focus=True):
                 yield Markdown(self.repository_prompt_text())
-            yield TextArea(self.variant_value("starter"), language=self.coding_language, show_line_numbers=True, id="mock-editor")
+            yield CodeTextArea(
+                self.variant_value("starter"),
+                language=self.coding_language,
+                show_line_numbers=True,
+                id="mock-editor",
+                brace_indentation=self.coding_language in BRACE_INDENT_LANGUAGES,
+                brace_language=self.coding_language,
+            )
             yield Static("", id="mock-result", classes="panel")
             with Horizontal(classes="actions", id="mock-actions"):
                 yield Button("▶ AVVIA CODING · 40:00", id="start", classes="primary")
@@ -1458,7 +1834,7 @@ class FullMockScreen(TimedScreen):
                 yield Button("▣ APRI VS CODE", id="open-repository", disabled=True)
                 yield Button("▶ TEST REPOSITORY", id="run-repository", disabled=True)
                 yield Button("CONCLUDI MOCK", id="finish-mock", disabled=True, classes="success")
-        yield Footer()
+        yield AdaptiveFooter()
 
     def on_mount(self) -> None:
         super().on_mount()
@@ -1724,13 +2100,36 @@ class Dev48App(App):
         simulation = next((item for item in self.catalog.simulations if item.id == last), None)
         return simulation.title if simulation else ""
 
+    def exercise_has_started(self, exercise: Exercise, language: str) -> bool:
+        progress_id = exercise_progress_id(exercise, language)
+        if self.store.get_setting(exercise_started_setting_key(progress_id)) == "1":
+            return True
+
+        state = self.store.get(progress_id)
+        if int(state.get("attempts", 0)) > 0:
+            return True
+        answer = state.get("answer")
+        if answer is None:
+            return False
+        variant = exercise.variants.get(language, {})
+        starter = str(variant.get("starter", exercise.starter))
+        return str(answer) != starter
+
     def next_step(self) -> tuple[str, Lesson | Exercise] | None:
         completed = self.store.completed_ids()
         for lesson in (item for item in self.catalog.lessons if item.mandatory):
             if lesson.id not in completed:
                 return "lesson", lesson
-            for exercise in self.catalog.exercises_for(lesson.id):
+            exercises = self.catalog.exercises_for(lesson.id)
+            for index, exercise in enumerate(exercises):
                 if exercise_progress_id(exercise, self.coding_language) not in completed:
+                    last_item = self.store.get_setting("last_item")
+                    if (
+                        index == 0
+                        and last_item == exercise_progress_id(exercise, self.coding_language)
+                        and not self.exercise_has_started(exercise, self.coding_language)
+                    ):
+                        return "lesson", lesson
                     return "exercise", exercise
         return None
 
@@ -1749,8 +2148,10 @@ class Dev48App(App):
             return
         exercise_id, language = split_exercise_progress_id(last)
         if exercise_id in self.catalog.exercise_by_id:
-            if language in {"python", "cpp"}:
+            exercise = self.catalog.exercise_by_id[exercise_id]
+            if language in exercise.variants:
                 self.coding_language = language
+                self.store.set_setting("amazon_coding_language", language)
             self.push_screen(ExerciseScreen(exercise_id))
             return
         if last in self.catalog.lab_by_id:

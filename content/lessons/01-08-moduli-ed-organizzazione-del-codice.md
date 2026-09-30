@@ -2,37 +2,37 @@
 
 ## In parole semplici
 
-L'obiettivo di questa lezione è separare responsabilità usando export e import comprensibili.
+Prima di iniziare, ripassa [Funzioni e responsabilità](01-03-funzioni-e-responsabilita.md).
+
+Separare responsabilità usando export e import comprensibili.
 
 Un modulo espone soltanto ciò che gli altri file devono usare. Import ed export ben scelti mostrano le dipendenze reali e impediscono che un singolo file diventi il contenitore di tutta l'applicazione.
 
-### Perché è utile
-
-In JavaScript è utile seguire i valori uno alla volta: che tipo hanno, dove vengono creati e che cosa restituisce ogni espressione. Se sai prevedere questi passaggi, scrivere il codice diventa molto meno meccanico.
+Import ed export sono prerequisiti dei file React del laboratorio. Un export nominato espone un nome preciso; un export default espone un valore principale che il chiamante può rinominare. I percorsi relativi partono dal file che importa. Nei moduli browser serve uno script di tipo module; Vite configura il caricamento per il progetto React.
 
 ## Le parole da riconoscere
 
-- `export nominato`
-- `export default`
-- `import`
-- `modulo`
-- `dipendenza`
-- `API pubblica`
-
-Non serve imparare questo elenco a memoria. Per iniziare, concentrati su **export nominato, export default, import** e cerca di usarli mentre descrivi l'esempio qui sotto.
+`export nominato`; `export default`; `import`; `modulo`; `dipendenza`; `API pubblica`
 
 ## Un esempio concreto
 
-```text
-// format.js
-export function formatDate(value) { return new Date(value).toLocaleDateString('it-IT'); }
-// app.js
-import { formatDate } from './format.js';
+```javascript
+// subjects.mjs
+export function activeNames(items) {
+  return items.filter(item => item.active).map(item => item.name);
+}
+export default function count(items) { return items.length; }
+
+// app.mjs (file separato nella stessa cartella)
+import count, { activeNames } from './subjects.mjs';
+console.log(count([]), activeNames([])); // 0, []
 ```
 
-Segui il valore dall'ingresso fino al `return`. Chiediti che cosa cambierebbe con un valore vuoto, mancante o di tipo inatteso.
+Il nome tra graffe deve corrispondere all'export nominato, salvo un alias con `as`. `count` è il nome locale scelto per il default. Crea davvero due file: concatenare entrambi i frammenti nello stesso editor non verifica la risoluzione del modulo. Con Node esegui `node app.mjs`; nel browser usa un server locale e `<script type="module">`.
 
-Adesso copri l'esempio e prova a ricostruirne la parte essenziale. Non deve essere identico: deve conservare lo stesso comportamento. Quando ci riesci, prova un caso normale e un caso limite.
+## Prova tu
+
+Sposta `activeNames` in un modulo, importalo e prova un input vuoto. Rinomina poi solo l'import default. Se compare 'export not found', confronta il nome importato e quello esportato prima di modificare la funzione.
 
 ## Dove ci si confonde spesso
 
@@ -40,21 +40,10 @@ Adesso copri l'esempio e prova a ricostruirne la parte essenziale. Non deve esse
 - Esportare dettagli interni
 - File contenitore gigantesco
 
-Se qualcosa non funziona, evita di cambiare più righe a caso. Riproduci il problema con l'input più piccolo possibile, formula un'ipotesi e verifica una sola modifica per volta.
-
-## Controllo rapido
-
-- Riesco a spiegarlo senza leggere la pagina?
-- So indicare input, risultato e almeno un caso limite?
-- Riesco a riscrivere l'esempio partendo da un file vuoto?
-- So dire come verificherei che funziona?
-
 ## Domanda di verifica
 
 > Differenza tra export nominato ed export default?
 
-Prova a rispondere senza rileggere: prima la regola, poi un esempio. Se ti manca un termine, descrivi il comportamento con parole semplici invece di fermarti.
+Confronta la tua spiegazione con la flashcard dedicata alla domanda.
 
-## Prima di andare avanti
-
-Chiudi la pagina per un minuto e ripeti tre cose: che problema risolve questo argomento, quale errore vuoi evitare e quale esempio useresti per spiegarlo. Se una delle tre non viene, riapri soltanto la sezione che ti serve.
+Riferimento: [documentazione ufficiale](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).

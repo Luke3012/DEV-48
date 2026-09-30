@@ -1,14 +1,14 @@
-# Che cosa allena questo bootcamp
+# Struttura e obiettivi dell'assessment
 
-La demo che hai descritto separa la Coding Question da 40 minuti dalla Code Repository Question da 60. Qui useremo quel formato come bersaglio pratico: un problema single-file, poi un progetto multi-file, con due orologi che non si sommano.
+La Coding Question e la Code Repository Question sono due sezioni distinte: la prima presenta un problema circoscritto, in genere su un singolo file; la seconda richiede di comprendere e modificare un progetto articolato in più file. Nel formato di riferimento, le sezioni durano rispettivamente 40 e 60 minuti, con timer indipendenti.
 
-Non confondere il bersaglio con una promessa universale. La pagina ufficiale Amazon per studenti e neolaureati dice che struttura e componenti cambiano in base al paese e invita a controllare l'email dell'assessment. La pagina pubblica attuale riporta, per i ruoli full-time, tempi medi e componenti diversi. Prima della prova reale fa fede l'invito ricevuto e quello che mostra la piattaforma.
+Questi tempi descrivono un formato specifico, non una struttura universale. La pagina ufficiale Amazon per studenti e neolaureati precisa che struttura e componenti variano in base al paese e rimanda alle istruzioni dell'assessment. Anche la pagina pubblica per i ruoli full-time riporta tempi medi e componenti diversi. Per una prova concreta fanno fede l'invito ricevuto e le indicazioni mostrate dalla piattaforma.
 
-Il corso riproduce anche il vincolo più utile per prepararsi: nei 40 minuti devi saper chiarire il contratto, scegliere una struttura dati, scrivere codice senza dipendere da un assistente e verificare gli edge case. Nei 60 minuti devi invece capire un progetto che non hai scritto. Sapere già dove cercare un controller o una funzione `main` è meno utile che ricostruire il flusso dai README e dai test.
+La sezione di coding richiede di chiarire il contratto, scegliere una struttura dati, implementare una soluzione e verificarne i casi limite entro il tempo disponibile. La sezione repository richiede invece di orientarsi in un progetto esistente, ricostruendo il flusso dai README e dai test prima di intervenire su controller, funzioni `main` o componenti equivalenti.
 
-Per le esercitazioni marcate **NO AI · NO INTERNET · TIMED**, chiudi l'assistente e lavora soltanto con ciò che hai memorizzato. È una scelta di allenamento coerente con il formato che vuoi simulare; le regole dell'assessment reale possono essere diverse. Non usare mai materiali riservati o domande trapelate.
+Le esercitazioni marcate **NO AI · NO INTERNET · TIMED** si svolgono senza assistente e senza accesso a Internet. Questa modalità serve a esercitare il lavoro autonomo, ma non definisce le regole di un assessment reale, che dipendono dalle istruzioni ricevute. I materiali riservati e le domande trapelate non vanno utilizzati.
 
-### Mappa dei quattro strumenti
+### Risorse e attività
 
 - Il curriculum contiene lezioni brevi con un argomento riconoscibile; ogni lezione è riapribile da sola.
 - Gli esercizi DSA hanno test eseguibili in Python 3 e C++20, con soluzioni e complessità.
@@ -43,5 +43,5 @@ lo sprint repository standalone prima di ripetere il full mock, e gli altri scen
 LRU, Dijkstra, Word Ladder, istogramma e DP bidimensionale sono challenge utili dopo
 il Core; non devono sottrarre la prima implementazione autonoma dei pattern principali.
 Dopo ogni tentativo descrivi brute force, costo, collo di bottiglia, miglioramento e
-un caso che ha smentito il tuo codice. Il giorno 6 riserva il full mock come prova
+un caso che smentisce l'implementazione. Il giorno 6 riserva il full mock come prova
 chiusa: non studiare prima la soluzione di Three Sum o la repository Parcel.

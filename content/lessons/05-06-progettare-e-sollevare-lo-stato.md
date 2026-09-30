@@ -2,55 +2,51 @@
 
 ## In parole semplici
 
-L'obiettivo di questa lezione è collocare ogni informazione nel proprietario comune più vicino evitando duplicazioni.
+Prima di iniziare, ripassa [Props e composizione](05-02-props-e-composizione.md), [Immutabilità e operazioni CRUD](01-06-immutabilita-e-operazioni-crud.md) e [Form controllati](05-05-form-controllati.md).
+
+Collocare ogni informazione nel proprietario comune più vicino evitando duplicazioni.
 
 Lo state dovrebbe vivere nel componente comune più vicino a tutti quelli che lo usano. Un valore calcolabile da props e state esistenti non va duplicato: puoi ricalcolarlo durante il render.
 
-### Perché è utile
-
-In React la domanda principale è sempre la stessa: da quali dati dipende questa parte dell'interfaccia? Individua chi possiede quei dati e lascia che il rendering descriva ciò che l'utente deve vedere in quel momento.
+Se filtro e conteggio devono descrivere la stessa lista, il genitore comune conserva items e query; i figli ricevono dati e callback. La lista visibile è un calcolo, non un secondo archivio da sincronizzare. Uno stato duplicato richiederebbe aggiornare contemporaneamente items e visible dopo ogni creazione, eliminazione o cambio di ricerca: basta dimenticare un percorso per mostrare dati incoerenti.
 
 ## Le parole da riconoscere
 
-- `single source of truth`
-- `lifting state`
-- `derived state`
-- `normalizzazione`
-- `prop drilling`
-
-Non serve imparare questo elenco a memoria. Per iniziare, concentrati su **single source of truth, lifting state, derived state** e cerca di usarli mentre descrivi l'esempio qui sotto.
+`single source of truth`; `lifting state`; `derived state`; `normalizzazione`; `prop drilling`
 
 ## Un esempio concreto
 
-```text
-const visible = items.filter(item => item.name.toLowerCase().includes(query.toLowerCase()));
-// visible è derivato: non richiede un secondo useState.
+```jsx
+import { useState } from 'react';
+function Search({ query, onChange }) {
+  return <label>Cerca <input value={query} onChange={event => onChange(event.target.value)} /></label>;
+}
+export default function Archive({ items }) {
+  const [query, setQuery] = useState('');
+  const visible = items.filter(item => item.name.toLowerCase().includes(query.toLowerCase()));
+  return <main>
+    <Search query={query} onChange={setQuery} />
+    <p>{visible.length} risultati</p>
+    <ul>{visible.map(item => <li key={item.id}>{item.name}</li>)}</ul>
+  </main>;
+}
 ```
 
-Distingui props, stato e valori calcolati. Poi segui l'evento: quale setter viene chiamato e quale parte della UI cambia al rendering successivo?
+Search non ha una copia di query. Il genitore ricalcola visible a ogni render con i dati correnti. Qui un filtro piccolo non richiede useMemo: introduci una cache soltanto dopo aver misurato un costo rilevante, senza usarla per correggere la logica. Il reset della ricerca avviene in un evento, non in un effect dedicato a sincronizzare due copie.
 
-Adesso copri l'esempio e prova a ricostruirne la parte essenziale. Non deve essere identico: deve conservare lo stesso comportamento. Quando ci riesci, prova un caso normale e un caso limite.
+## Prova tu
+
+Aggiungi un pulsante che azzera query e mostra di nuovo tutti i risultati. Poi sostituisci items dal genitore: conteggio e lista devono aggiornarsi senza setter dedicati a visible. Nel lab integra eliminazione e ricerca insieme.
 
 ## Dove ci si confonde spesso
 
 - Duplicare stato derivabile
 - Sincronizzare copie della stessa informazione con effect
 
-Se qualcosa non funziona, evita di cambiare più righe a caso. Riproduci il problema con l'input più piccolo possibile, formula un'ipotesi e verifica una sola modifica per volta.
-
-## Controllo rapido
-
-- Riesco a spiegarlo senza leggere la pagina?
-- So indicare input, risultato e almeno un caso limite?
-- Riesco a riscrivere l'esempio partendo da un file vuoto?
-- So dire come verificherei che funziona?
-
 ## Domanda di verifica
 
 > Come riconosci uno state che dovrebbe essere derivato?
 
-Prova a rispondere senza rileggere: prima la regola, poi un esempio. Se ti manca un termine, descrivi il comportamento con parole semplici invece di fermarti.
+Confronta la tua spiegazione con la flashcard dedicata alla domanda.
 
-## Prima di andare avanti
-
-Chiudi la pagina per un minuto e ripeti tre cose: che problema risolve questo argomento, quale errore vuoi evitare e quale esempio useresti per spiegarlo. Se una delle tre non viene, riapri soltanto la sezione che ti serve.
+Riferimento: [documentazione ufficiale](https://react.dev/learn/you-might-not-need-an-effect).

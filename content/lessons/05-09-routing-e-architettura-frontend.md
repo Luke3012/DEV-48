@@ -2,60 +2,48 @@
 
 ## In parole semplici
 
-L'obiettivo di questa lezione è dividere pagine, feature, componenti e accesso dati mantenendo dipendenze leggibili.
+Prima di iniziare, ripassa [Moduli ed organizzazione del codice](01-08-moduli-ed-organizzazione-del-codice.md) e [Caricamento dati e stati remoti](05-08-caricamento-dati-e-stati-remoti.md).
+
+Dividere pagine, feature, componenti e accesso dati mantenendo dipendenze leggibili.
 
 Le route organizzano le pagine; le feature raccolgono componenti e logica legati allo stesso problema. L'accesso alle API va separato dalla presentazione, così puoi cambiarlo e provarlo senza riscrivere la UI.
 
-### Perché è utile
-
-In React la domanda principale è sempre la stessa: da quali dati dipende questa parte dell'interfaccia? Individua chi possiede quei dati e lascia che il rendering descriva ciò che l'utente deve vedere in quel momento.
+Questo approfondimento chiarisce i confini, senza imporre una libreria di routing. Una route associa un URL a una pagina; un router completo gestisce anche navigazione, parametri, cronologia e URL sconosciuti. Una struttura di cartelle da sola non dimostra quel comportamento. Prima estrai il trasporto e la logica condivisa, poi scegli uno strumento quando l'applicazione richiede davvero più pagine.
 
 ## Le parole da riconoscere
 
-- `route`
-- `layout`
-- `feature folder`
-- `service`
-- `hook`
-- `separation of concerns`
-- `lazy loading`
-
-Non serve imparare questo elenco a memoria. Per iniziare, concentrati su **route, layout, feature folder** e cerca di usarli mentre descrivi l'esempio qui sotto.
+`route`; `layout`; `feature folder`; `service`; `hook`; `separation of concerns`; `lazy loading`
 
 ## Un esempio concreto
 
 ```text
-src/
-  app/
-  features/subjects/
-  components/ui/
-  services/api.ts
+// routes.mjs: sola selezione della pagina, non un router completo
+export function pageFor(pathname) {
+  if (pathname === '/subjects') return 'archive';
+  if (pathname === '/subjects/new') return 'create';
+  return 'not-found';
+}
+// Possibile struttura:
+// features/subjects/Archive.jsx
+// features/subjects/useSubjects.js
+// services/subjectsApi.js
 ```
 
-Distingui props, stato e valori calcolati. Poi segui l'evento: quale setter viene chiamato e quale parte della UI cambia al rendering successivo?
+Un hook personalizzato può raccogliere il flusso di caricamento già studiato se più componenti ne hanno bisogno. Condivide logica, non automaticamente lo stesso stato: ogni chiamata ha il suo. Context può evitare il passaggio di un dato realmente trasversale; reducer può rendere esplicite transizioni numerose. Non servono per una lista con due stati locali e non sostituiscono la scelta del proprietario dei dati.
 
-Adesso copri l'esempio e prova a ricostruirne la parte essenziale. Non deve essere identico: deve conservare lo stesso comportamento. Quando ci riesci, prova un caso normale e un caso limite.
+## Prova tu
+
+Implementa pageFor e prova una route sconosciuta. Per una navigazione reale, annota anche refresh su URL diretto e pulsante Indietro: il controllo breve non li esegue. Estrai poi un hook soltanto se riesci a indicare due utilizzatori con la stessa logica.
 
 ## Dove ci si confonde spesso
 
 - Cartelle per tipo con centinaia di file
 - Logica API dispersa nelle view
 
-Se qualcosa non funziona, evita di cambiare più righe a caso. Riproduci il problema con l'input più piccolo possibile, formula un'ipotesi e verifica una sola modifica per volta.
-
-## Controllo rapido
-
-- Riesco a spiegarlo senza leggere la pagina?
-- So indicare input, risultato e almeno un caso limite?
-- Riesco a riscrivere l'esempio partendo da un file vuoto?
-- So dire come verificherei che funziona?
-
 ## Domanda di verifica
 
 > Dove collocheresti la logica per caricare e aggiornare i soggetti?
 
-Prova a rispondere senza rileggere: prima la regola, poi un esempio. Se ti manca un termine, descrivi il comportamento con parole semplici invece di fermarti.
+Confronta la tua spiegazione con la flashcard dedicata alla domanda.
 
-## Prima di andare avanti
-
-Chiudi la pagina per un minuto e ripeti tre cose: che problema risolve questo argomento, quale errore vuoi evitare e quale esempio useresti per spiegarlo. Se una delle tre non viene, riapri soltanto la sezione che ti serve.
+Riferimento: [documentazione ufficiale](https://react.dev/learn/reusing-logic-with-custom-hooks).

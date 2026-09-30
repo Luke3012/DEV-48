@@ -2,35 +2,26 @@
 
 ## In parole semplici
 
-L'obiettivo di questa lezione è progettare layout fluidi che restano leggibili su viewport differenti.
+Progettare layout fluidi che restano leggibili su viewport differenti.
 
 Un layout responsive non è una versione desktop rimpicciolita. Parte da misure fluide, lascia che il contenuto occupi lo spazio disponibile e introduce un breakpoint soltanto quando il layout smette di funzionare bene.
 
-### Perché è utile
-
-Una pagina ben costruita non è soltanto bella: comunica una struttura, funziona da tastiera e si adatta allo spazio disponibile. Parti dal significato degli elementi, poi occupati del loro aspetto.
-
 ## Le parole da riconoscere
 
-- `mobile first`
-- `media query`
-- `unità relative`
-- `max-width`
-- `overflow`
-- `viewport`
-
-Non serve imparare questo elenco a memoria. Per iniziare, concentrati su **mobile first, media query, unità relative** e cerca di usarli mentre descrivi l'esempio qui sotto.
+`mobile first`; `media query`; `unità relative`; `max-width`; `overflow`; `viewport`
 
 ## Un esempio concreto
 
-```text
+```html
 .page { width:min(100% - 2rem, 72rem); margin-inline:auto; }
 @media (min-width: 48rem) { .sidebar { display:block; } }
 ```
 
-Prima leggi la struttura HTML e prova a descriverla senza parlare di colori. Poi osserva come il CSS distribuisce lo spazio e che cosa succede restringendo la finestra.
+Mobile first significa partire dal layout per lo spazio ridotto e aggiungere regole quando più spazio permette una struttura diversa. Il breakpoint risponde al contenuto: provo larghezze intermedie, testo lungo e zoom, evitando di legarlo soltanto a un modello di telefono.
 
-Adesso copri l'esempio e prova a ricostruirne la parte essenziale. Non deve essere identico: deve conservare lo stesso comportamento. Quando ci riesci, prova un caso normale e un caso limite.
+## Prova tu
+
+Crea una pagina con viewport configurato, larghezza fluida e max-width, con un breakpoint min-width che passa da una a due colonne. Verifica a 320px, 768px e con zoom 200%. Il runner controlla la presenza delle regole, non overflow e leggibilità.
 
 ## Dove ci si confonde spesso
 
@@ -38,21 +29,8 @@ Adesso copri l'esempio e prova a ricostruirne la parte essenziale. Non deve esse
 - Larghezze fisse
 - Overflow nascosto indiscriminato
 
-Se qualcosa non funziona, evita di cambiare più righe a caso. Riproduci il problema con l'input più piccolo possibile, formula un'ipotesi e verifica una sola modifica per volta.
-
-## Controllo rapido
-
-- Riesco a spiegarlo senza leggere la pagina?
-- So indicare input, risultato e almeno un caso limite?
-- Riesco a riscrivere l'esempio partendo da un file vuoto?
-- So dire come verificherei che funziona?
-
 ## Domanda di verifica
 
 > Cosa significa progettare mobile first?
 
-Prova a rispondere senza rileggere: prima la regola, poi un esempio. Se ti manca un termine, descrivi il comportamento con parole semplici invece di fermarti.
-
-## Prima di andare avanti
-
-Chiudi la pagina per un minuto e ripeti tre cose: che problema risolve questo argomento, quale errore vuoi evitare e quale esempio useresti per spiegarlo. Se una delle tre non viene, riapri soltanto la sezione che ti serve.
+Confronta la tua spiegazione con la flashcard dedicata alla domanda.

@@ -38,18 +38,18 @@ def lesson(lesson_id, module, title, day, minutes, difficulty, objectives, summa
 
 
 LESSONS = [
-    lesson("oa-format", "orientamento", "Che cosa allena questo bootcamp", 1, 15, "base",
+    lesson("oa-format", "orientamento", "Struttura e obiettivi dell'assessment", 1, 15, "base",
            ["sezioni indipendenti", "coding question", "code repository", "variazioni per ruolo e paese"],
            "Separare la pratica richiesta per la Coding Question da quella richiesta per il repository debugging.", r'''
-La demo che hai descritto separa la Coding Question da 40 minuti dalla Code Repository Question da 60. Qui useremo quel formato come bersaglio pratico: un problema single-file, poi un progetto multi-file, con due orologi che non si sommano.
+La Coding Question e la Code Repository Question sono due sezioni distinte: la prima presenta un problema circoscritto, in genere su un singolo file; la seconda richiede di comprendere e modificare un progetto articolato in più file. Nel formato di riferimento, le sezioni durano rispettivamente 40 e 60 minuti, con timer indipendenti.
 
-Non confondere il bersaglio con una promessa universale. La pagina ufficiale Amazon per studenti e neolaureati dice che struttura e componenti cambiano in base al paese e invita a controllare l'email dell'assessment. La pagina pubblica attuale riporta, per i ruoli full-time, tempi medi e componenti diversi. Prima della prova reale fa fede l'invito ricevuto e quello che mostra la piattaforma.
+Questi tempi descrivono un formato specifico, non una struttura universale. La pagina ufficiale Amazon per studenti e neolaureati precisa che struttura e componenti variano in base al paese e rimanda alle istruzioni dell'assessment. Anche la pagina pubblica per i ruoli full-time riporta tempi medi e componenti diversi. Per una prova concreta fanno fede l'invito ricevuto e le indicazioni mostrate dalla piattaforma.
 
-Il corso riproduce anche il vincolo più utile per prepararsi: nei 40 minuti devi saper chiarire il contratto, scegliere una struttura dati, scrivere codice senza dipendere da un assistente e verificare gli edge case. Nei 60 minuti devi invece capire un progetto che non hai scritto. Sapere già dove cercare un controller o una funzione `main` è meno utile che ricostruire il flusso dai README e dai test.
+La sezione di coding richiede di chiarire il contratto, scegliere una struttura dati, implementare una soluzione e verificarne i casi limite entro il tempo disponibile. La sezione repository richiede invece di orientarsi in un progetto esistente, ricostruendo il flusso dai README e dai test prima di intervenire su controller, funzioni `main` o componenti equivalenti.
 
-Per le esercitazioni marcate **NO AI · NO INTERNET · TIMED**, chiudi l'assistente e lavora soltanto con ciò che hai memorizzato. È una scelta di allenamento coerente con il formato che vuoi simulare; le regole dell'assessment reale possono essere diverse. Non usare mai materiali riservati o domande trapelate.
+Le esercitazioni marcate **NO AI · NO INTERNET · TIMED** si svolgono senza assistente e senza accesso a Internet. Questa modalità serve a esercitare il lavoro autonomo, ma non definisce le regole di un assessment reale, che dipendono dalle istruzioni ricevute. I materiali riservati e le domande trapelate non vanno utilizzati.
 
-### Mappa dei quattro strumenti
+### Risorse e attività
 
 - Il curriculum contiene lezioni brevi con un argomento riconoscibile; ogni lezione è riapribile da sola.
 - Gli esercizi DSA hanno test eseguibili in Python 3 e C++20, con soluzioni e complessità.
@@ -70,13 +70,13 @@ Un ritmo realistico per 40 minuti è: chiarimento e casi, 4–6 minuti; scelta e
     lesson("language-choice", "linguaggi", "Scegliere il linguaggio per i 40 minuti", 1, 20, "base",
            ["mini-prova equivalente", "velocità di scrittura", "debugging", "strutture standard"],
            "Confrontare Python 3 e C++ su una prova breve prima di impegnare tutta la preparazione.", r'''
-Hai studiato C/C++ all'università e oggi leggi JavaScript e TypeScript più spesso. Nessuno dei due fatti decide da solo quale linguaggio ti convenga. Metti alla prova le mani, non l'impressione che hai del linguaggio.
+La scelta tra Python e C++ dipende dalla familiarità operativa, dalla velocità di scrittura e dalla capacità di individuare gli errori. Una prova breve sugli stessi casi offre un confronto più utile della sola impressione o della conoscenza teorica del linguaggio.
 
-Prendi una lista di timestamp e una dimensione `k`. In entrambi i linguaggi scrivi una funzione che restituisce la somma massima di `k` elementi consecutivi. Dopo aver sommato la prima finestra, aggiorna il totale togliendo l'elemento che esce e aggiungendo quello che entra: è una finestra fissa e non richiede di ricalcolare ogni somma. Fai partire il timer per 8 minuti in C++ e per 8 in Python: stessi input, stessi casi, editor vuoto.
+L'esercizio propone una lista di interi e una dimensione `k`; la funzione deve restituire la somma massima di `k` elementi consecutivi. Dopo la somma della prima finestra, il totale si aggiorna sottraendo l'elemento in uscita e aggiungendo quello in entrata, senza ricalcolare ogni somma. La prova dura 8 minuti per linguaggio, con gli stessi input e casi e un editor vuoto.
 
-Alla fine annota quanto hai impiegato per scrivere la funzione, quante ricerche di sintassi hai fatto a memoria, quanti errori hai introdotto e quanto rapidamente hai verificato lista vuota, un elemento e una finestra che si restringe più volte. Il vincitore è quello che ti lascia più tempo per ragionare, non quello che sembra più elegante sulla carta.
+Per ciascun linguaggio si possono confrontare il tempo di scrittura, le consultazioni di sintassi, gli errori introdotti e la rapidità nel verificare lista vuota, un solo elemento e finestre che avanzano. È preferibile la soluzione che lascia più tempo al ragionamento, non quella che appare più elegante sulla carta.
 
-Puoi cambiare lingua negli esercizi con `L`. DEV//48 salva risposte e tentativi separatamente per Python e C++; la tua scelta può quindi evolvere dopo una prova reale. In C++ il runner usa C++20 con GCC/Clang; se il compilatore non è installato, gli esercizi restano leggibili ma non eseguibili da questa app.
+La lingua degli esercizi si seleziona con `L`; DEV//48 conserva risposte e tentativi separatamente per Python e C++. La preferenza può essere aggiornata dopo una prova pratica. Il runner C++ usa C++20 con GCC o Clang; senza un compilatore installato gli esercizi restano leggibili, ma non eseguibili nell'app.
 '''),
     lesson("python-toolkit", "linguaggi", "Python 3 essenziale per l'interview", 1, 25, "base",
            ["list, tuple, dict e set", "enumerate e range", "Counter e defaultdict", "deque e heapq"],
@@ -118,7 +118,7 @@ Una scansione ha tre domande concrete: da dove parto, quando mi fermo, cosa sign
 
 Se devi invertire un array senza spazio extra, scambia gli estremi e avvicinali. Se devi soltanto restituire una versione ordinata, una copia chiarisce il contratto. `sort` in-place è un'altra scelta: utile quando il prompt permette di modificare l'input, rischiosa quando un test successivo riusa i dati.
 
-Per stringhe, distinguere una sequenza di byte da un carattere Unicode completo può essere importante fuori dalle interview standard. Nei problemi qui useremo caratteri ASCII dichiarati nel prompt, così l'attenzione resta sull'algoritmo. Gli indici restano comunque facili da sbagliare: prova sempre primo, ultimo e lunghezza zero.
+Per le stringhe, distinguere una sequenza di byte da un carattere Unicode completo può essere importante fuori dai problemi standard di interview. Gli esercizi considerano caratteri ASCII dichiarati nel prompt, così l'attenzione resta sull'algoritmo. Gli indici restano comunque facili da sbagliare: vanno verificati il primo, l'ultimo e la lunghezza zero.
 '''),
     lesson("hashmap-set", "fondamenti", "HashMap e Set: memoria utile, non magia", 1, 30, "base",
            ["lookup e complementi", "frequenze", "duplicati e raggruppamento", "chiavi e spazio"],
@@ -199,7 +199,7 @@ Prima di partire, decidi se vuoi il successivo strettamente maggiore o maggiore/
            "Mantenere la garanzia che la risposta, se esiste, resti nell'intervallo di ricerca.", r'''
 La ricerca binaria è corta solo dopo avere stabilito l'invariante. Con l'intervallo chiuso `[left, right]`, calcola il medio e conserva la metà che può ancora contenere il valore. Quando `left > right`, non è rimasto alcun candidato.
 
-Su `[1, 3, 5, 8, 12]`, cercando `8`, il primo medio è `5`: puoi scartare i tre valori a sinistra e tenere `[8, 12]`. Il nuovo medio è `8`, quindi hai trovato l'indice. A ogni confronto elimini metà dei candidati; l'array ordinato è ciò che rende valido quel taglio.
+Su `[1, 3, 5, 8, 12]`, la ricerca di `8` inizia dal valore medio `5`: i tre valori a sinistra vengono esclusi e resta `[8, 12]`. Il nuovo valore medio è `8`, che individua l'indice cercato. A ogni confronto si elimina metà dei candidati; l'ordinamento dell'array rende valido questo taglio.
 
 In C++ scrivere `left + (right - left) / 2` evita l'overflow della somma quando i bordi sono grandi. Con `vector::size()` fai attenzione ai tipi unsigned e al caso vuoto. In Python gli interi non traboccano, ma l'off-by-one resta.
 
@@ -208,7 +208,7 @@ L'array ordinato non è un dettaglio decorativo: la decisione «vai a sinistra»
     lesson("binary-boundaries", "ricerca", "Lower Bound e Upper Bound: trovare un confine, non un elemento", 3, 25, "intermedio",
            ["primo valore non minore", "ultimo valore ammesso", "duplicati", "intervallo semiaperto"],
            "Trasformare la ricerca binaria in una ricerca del primo punto che soddisfa una condizione.", r'''
-Con duplicati, `binary_search` ti dice che un valore c'è, ma non quale copia hai trovato. `lower_bound` restituisce il primo elemento non minore del target; `upper_bound` il primo strettamente maggiore. La differenza tra gli iteratori è il numero di occorrenze.
+Con duplicati, `binary_search` conferma che un valore è presente, ma non individua quale copia. `lower_bound` restituisce il primo elemento non minore del target; `upper_bound` il primo strettamente maggiore. La differenza tra gli iteratori è il numero di occorrenze.
 
 Una formulazione pulita è cercare un punto di taglio in `[0, n)`. Se `nums[mid] < target`, il confine è a destra; altrimenti può essere `mid` o prima. Il ciclo termina quando i due bordi coincidono. Questo schema evita di restituire un indice fuori range quando il target è minore del minimo o maggiore del massimo.
 
@@ -293,7 +293,7 @@ La stessa mappa che in Two Sum ricordava gli elementi precedenti ora associa un 
     lesson("topological-sort", "strutture", "Topological Sort e cicli: dipendenze prima dei dipendenti", 4, 25, "intermedio",
            ["DAG", "indegree", "Kahn", "ciclo"],
            "Verificare se un insieme di prerequisiti ammette un ordine completo.", r'''
-Un ordinamento topologico esiste soltanto in un grafo diretto aciclico. Con l'algoritmo di Kahn, metti in coda i nodi con indegree zero; quando ne rimuovi uno, diminuisci l'indegree dei vicini. Se alla fine hai estratto meno di `V` nodi, una parte è rimasta bloccata da un ciclo.
+Un ordinamento topologico esiste soltanto in un grafo diretto aciclico. Con l'algoritmo di Kahn si inseriscono in coda i nodi con indegree zero; dopo l'estrazione di un nodo, l'indegree dei vicini diminuisce. Se al termine sono stati estratti meno di `V` nodi, una parte del grafo è bloccata da un ciclo.
 
 Con gli archi `A → C`, `B → C`, `C → D`, la coda iniziale contiene `A` e `B`. Dopo averli rimossi, `C` scende a indegree zero; soltanto dopo `C` può entrare `D`. Aggiungere anche `D → A` crea un ciclo: Kahn lascia nodi nella coda d'attesa e l'estrazione finale è incompleta.
 
@@ -369,16 +369,16 @@ Prima leggi prompt e constraints fino in fondo. Scrivi un caso normale, un limit
 
 Quando l'algoritmo è chiaro, implementa la parte centrale senza perfezionare nomi o formattazione. Compila presto. Poi verifica l'input più piccolo, duplicati, indice ai confini e il test grande. Ogni fix dovrebbe corrispondere a una causa che puoi descrivere.
 
-Se dopo dieci minuti non hai una strada, conserva una soluzione parziale corretta e scrivi la brute force. A volte un risultato funzionante vale più di un'ottimizzazione incompleta. Usa gli ultimi minuti per leggere il codice dall'inizio, non per aggiungere una feature non richiesta.
+Se dopo dieci minuti manca ancora una strategia, conviene conservare una soluzione parziale corretta e scrivere la brute force. Un risultato funzionante può valere più di un'ottimizzazione incompleta. Gli ultimi minuti servono a rileggere il codice dall'inizio e a verificare il contratto, senza aggiungere funzionalità non richieste.
 '''),
-    lesson("repo-orientation", "repository", "Orientarsi in una repository che non hai mai visto", 1, 20, "base",
+    lesson("repo-orientation", "repository", "Orientarsi in una repository sconosciuta", 1, 20, "base",
            ["struttura", "README", "entry point", "percorso dati"],
            "Trovare il punto di partenza e il flusso coinvolto senza leggere ogni file.", r'''
-Non aprire tutti i file in ordine alfabetico. Parti dalla struttura: manifest e script, README, cartelle principali, test. Cerca il simbolo o la route menzionata nel requisito, poi segui una chiamata alla volta. Il tuo obiettivo è disegnare un percorso breve, per esempio `route → controller → service → repository`.
+L'apertura dei file in ordine alfabetico non è una strategia efficace. La struttura iniziale si ricostruisce da manifest, script, README, cartelle principali e test. Dal simbolo o dalla route citata nel requisito si può seguire una chiamata alla volta e disegnare il percorso dei dati, per esempio `route → controller → service → repository`.
 
 Il README descrive come si avvia il progetto, ma il comportamento reale può essere nei test. Prima di cambiare codice, esegui il comando dichiarato e conserva il primo errore completo. Un log lungo contiene spesso una causa utile nelle prime righe o un test con expected e actual molto specifici.
 
-La Code Repository Question è una prova di manutenzione locale: non devi sapere già quale file è rotto. Devi ridurre lo spazio di ricerca usando indizi verificabili. Tre minuti per orientarsi bene possono risparmiarne venti di modifiche al file sbagliato.
+La Code Repository Question verifica la manutenzione di un progetto locale: il file difettoso non è noto in anticipo e lo spazio di ricerca va ridotto con indizi verificabili. Un orientamento iniziale accurato può evitare modifiche premature al file sbagliato.
 '''),
     lesson("tests-stack-traces", "repository", "Leggere un failing test e uno stack trace", 6, 25, "intermedio",
            ["expected vs actual", "stack trace", "failure riproducibile", "test minimo"],
@@ -394,7 +394,7 @@ Fai una sola ipotesi per volta: «il controller restituisce una Promise non atte
            "Seguire una funzione C++ tra dichiarazione, implementazione e test.", r'''
 Un header dichiara quali nomi e tipi sono disponibili; un file `.cpp` contiene spesso l'implementazione. Se il compilatore dice “undefined reference”, la dichiarazione può esistere ma la definizione non entra nel link. Se segnala un tipo sconosciuto, controlla gli include prima di riscrivere la funzione.
 
-Con CMake individua il target compilato e i file che lo compongono. Parti dall'errore più vicino al tuo codice e leggi il numero di riga del progetto. Una modifica a una firma in header deve restare coerente con source e chiamanti.
+Con CMake si individua il target compilato e i file che lo compongono. La diagnosi parte dall'errore più vicino al codice applicativo e dal numero di riga del progetto. Una modifica a una firma in header deve restare coerente con source e chiamanti.
 
 Un'asserzione `EXPECT_EQ(expected, actual)` confronta valori; per una classe, chiediti se il contratto è osservabile tramite metodo pubblico. Un test che passa non giustifica una modifica ampia all'API. Mantieni lo stato privato e correggi la regola che produce il valore errato.
 '''),
@@ -403,7 +403,7 @@ Un'asserzione `EXPECT_EQ(expected, actual)` confronta valori; per una classe, ch
            "Capire gli script del progetto e seguire una chiamata JavaScript tra moduli.", r'''
 `package.json` dice quale comando avvia la suite e se il progetto usa moduli ES (`type: module`) o CommonJS. Non cambiare formato di import per risolvere un errore di business: prima verifica la convenzione già usata dai file vicini.
 
-Nei laboratori di questo percorso `npm test` usa il runner integrato in Node, senza dipendenze di rete. In un repository reale il comando può essere diverso: copia quello del README o degli script. Se un test si blocca, controlla Promise non attese, server lasciati aperti e timer.
+Nei laboratori Node forniti con il materiale, `npm test` usa il runner integrato in Node, senza dipendenze di rete. In un repository reale il comando può essere diverso: il README o gli script del progetto ne indicano uno specifico. In caso di test bloccato, le cause frequenti includono Promise non attese, server lasciati aperti e timer.
 
 Un servizio dovrebbe poter essere testato senza avviare tutta l'applicazione. Se la route restituisce status e body, un test mirato può verificare il contratto senza browser. Leggi anche il test del caso mancante: spesso rivela se si deve restituire `null`, un 404 o un errore propagato.
 '''),
@@ -425,23 +425,23 @@ Modifica il componente responsabile più vicino alla causa. Un fallback aggiunto
 
 Per gli edge case pensa a `null`, lista vuota, ultimo indice, ID assente, Promise rifiutata e input riutilizzato dopo la chiamata. Se la funzione deve essere pura, confronta l'input con una copia prima e dopo.
 '''),
-    lesson("ai-assistant", "repository", "Usare l'AI Assistant per capire, poi decidere tu", 6, 20, "intermedio",
+    lesson("ai-assistant", "repository", "Usare l'AI Assistant come supporto al debugging", 6, 20, "intermedio",
            ["domande circoscritte", "contesto con @README", "piano senza codice", "verifica indipendente"],
            "Usare l'assistente come strumento di navigazione senza delegargli il giudizio sul fix.", r'''
 Le funzioni dell'assistente HackerRank dipendono dal tipo di domanda e dalla configurazione dell'assessment. La documentazione Candidate Support descrive modalità Guarded e Unguarded; alcune viste consentono domande sui file, altre anche agenti che modificano il progetto. Prima di usarlo, leggi l'interfaccia e le istruzioni dell'invito.
 
 Una domanda buona restringe il problema senza chiedere la soluzione intera: «Spiegami il flusso da questa route al service senza modificare il codice». Puoi aggiungere `@README.md` per dare contesto: «Quale requisito qui descrive il comportamento atteso?». Se il test mostra expected X e actual Y, chiedi quali componenti collegano input e output.
 
-L'ordine resta tuo: leggi requisito, osserva file, esegui test, formula un'ipotesi, chiedi chiarimenti su un punto circoscritto, valuta la risposta, modifica il minimo e riesegui i test. Una spiegazione convincente non è una prova; i test e il contratto del repository lo sono.
+Il giudizio sul fix resta indipendente dall'assistente: il processo comprende lettura del requisito, esame dei file, esecuzione dei test, formulazione di un'ipotesi, richiesta di chiarimenti circoscritti, valutazione della risposta e verifica del cambiamento minimo. Una spiegazione convincente non costituisce una prova; lo sono i test e il contratto del repository.
 '''),
     lesson("stack-choice", "repository", "Scegliere lo stack repository: C++ o Node.js", 1, 20, "base",
            ["rapidità di lettura", "toolchain", "contratto multi-file", "mini lab equivalenti"],
            "Confrontare due repository demo che riparano lo stesso comportamento prima di scegliere lo stack.", r'''
-Hai una base universitaria di C/C++ e una lettura recente di progetti JavaScript/TypeScript. La repository in C++ può sembrarti più familiare nella logica; quella Node.js può risultare più immediata nella navigazione tra route, service e test. Provale entrambe prima di decidere.
+Le repository C++ e Node.js mettono in evidenza difficoltà diverse: la prima richiede di seguire header, source e target di compilazione; la seconda di orientarsi tra package, route, service e test. Una prova sulle due opzioni consente di confrontarne la leggibilità e il debugging.
 
-I primi due laboratori sono equivalenti: entrambi espongono `visibleActive` e `findSubject`, entrambi hanno due difetti e gli stessi casi osservabili. Nel C++ segui header, source e test; nel Node apri `package.json`, poi service e test. Cronometra l'orientamento e conta quante volte hai dovuto ricostruire il flusso.
+I primi due laboratori sono equivalenti: entrambi espongono `visibleActive` e `findSubject`, entrambi hanno due difetti e gli stessi casi osservabili. Nel C++ si esaminano header, source e test; nel Node `package.json`, service e test. Il tempo di orientamento e il numero di passaggi necessari a ricostruire il flusso forniscono misure confrontabili.
 
-Per la scelta finale valuta lettura e correzione, non solo sintassi. Il repository reale può essere diverso dalla demo: l'obiettivo è saper riconoscere package/test, seguire un contratto e leggere l'errore nel linguaggio selezionato.
+La scelta finale considera leggibilità e correzione, oltre alla sintassi. Un repository reale può differire dagli esempi; restano centrali la capacità di riconoscere package e test, seguire un contratto e interpretare gli errori nel linguaggio selezionato.
 '''),
     lesson("leadership-principles", "comportamento", "Leadership Principles attraverso decisioni concrete", 6, 30, "intermedio",
            ["customer impact", "ownership", "evidenza", "principi collegati"],
@@ -481,7 +481,7 @@ Avvia la Coding Question soltanto quando sei pronto. Il timer parte da 40:00; pu
 
 Il passaggio alla repository è un cambio di contesto, non una pausa da aggiungere al primo timer. Apri la cartella del mock in VS Code, leggi README e test e annota il comportamento atteso. Durante la sezione non è possibile tornare alla schermata coding tramite i controlli normali.
 
-Allo scadere dei 60 minuti il mock termina. Valuta poi due cose separate: cosa hai completato e quale ipotesi hai verificato. Solo dopo passa a Work Simulation o Work Style. La simulazione riproduce il 40 + 60 richiesto qui; prima dell'assessment reale controlla sempre struttura e regole del tuo invito.
+Allo scadere dei 60 minuti il mock termina. La revisione distingue le attività completate dalle ipotesi effettivamente verificate. Work Simulation e Work Style sono attività successive e separate. Il mock adotta il formato di pratica 40 + 60; struttura e regole di un assessment reale dipendono dalle istruzioni ricevute.
 '''),
 ]
 
@@ -604,7 +604,7 @@ lo sprint repository standalone prima di ripetere il full mock, e gli altri scen
 LRU, Dijkstra, Word Ladder, istogramma e DP bidimensionale sono challenge utili dopo
 il Core; non devono sottrarre la prima implementazione autonoma dei pattern principali.
 Dopo ogni tentativo descrivi brute force, costo, collo di bottiglia, miglioramento e
-un caso che ha smentito il tuo codice. Il giorno 6 riserva il full mock come prova
+un caso che smentisce l'implementazione. Il giorno 6 riserva il full mock come prova
 chiusa: non studiare prima la soluzione di Three Sum o la repository Parcel.
 """
 
@@ -940,7 +940,7 @@ add_task("course-schedule", "topological-sort", "Verificare che tutti i corsi si
  "#include <queue>\n#include <vector>\nusing namespace std;\nbool can_finish(int n,const vector<vector<int>>& e){vector<vector<int>> g(n);vector<int>d(n);for(auto x:e)g[x[1]].push_back(x[0]),++d[x[0]];queue<int>q;for(int i=0;i<n;i++)if(!d[i])q.push(i);int done=0;while(!q.empty()){int x=q.front();q.pop();++done;for(int y:g[x])if(--d[y]==0)q.push(y);}return done==n;}\n",
  [{"name":"catena aciclica","expression":"can_finish(3,[[1,0],[2,1]])","expected":True},{"name":"ciclo","expression":"can_finish(2,[[1,0],[0,1]])","expected":False}],
  [{"name":"catena aciclica","assertion":"can_finish(3,{{1,0},{2,1}})"},{"name":"ciclo","assertion":"!can_finish(2,{{1,0},{0,1}})"}],
- ["I corsi con indegree zero possono partire subito.","Se alla fine ne hai rimossi meno di n, nel grafo resta un ciclo."], "Kahn visita nodi e archi una volta: O(V+E) tempo e spazio.")
+ ["I corsi con indegree zero possono partire subito.","Se al termine sono stati rimossi meno di n nodi, nel grafo resta un ciclo."], "Kahn visita nodi e archi una volta: O(V+E) tempo e spazio.")
 
 add_task("subsets", "backtracking", "Generare tutti i sottoinsiemi", "medium", 30, "backtracking include/skip",
  "Restituisci tutti i sottoinsiemi di valori distinti, in ordine lessicografico per test riproducibili. Vincoli: 0 <= n <= 12.",

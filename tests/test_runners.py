@@ -124,6 +124,30 @@ def test_wrong_javascript_is_rejected():
     assert result.score == 0
 
 
+def test_javascript_runner_awaits_results_and_rejections():
+    checks = ({"name": "risultato risolto", "expression": "load()", "expected": ["Anna"]},)
+    assert run_javascript("async function load(){ return ['Anna']; }", checks).passed
+    assert not run_javascript("async function load(){ return []; }", checks).passed
+    rejected = run_javascript("async function load(){ throw new Error('offline'); }", checks)
+    assert not rejected.passed and "offline" in " ".join(rejected.details)
+
+
+@pytest.mark.parametrize("title,source", [
+    ("Scope, const, let e closure", "let value=0; function createCounter(){ return () => ++value; }"),
+    ("Oggetti, destructuring e spread", "function moveUser(user,city){ const result={...user}; result.profile ??= {}; result.profile.city=city; return result; }"),
+    ("Immutabilità e operazioni CRUD", "function updateSubject(items,id,patch){ return items.map(item => { if(item.id===id) Object.assign(item,patch); return item; }); }"),
+    ("Errori e validazione", "function parsePositive(value){ const n=Number(value); if(!Number.isFinite(n)||n<0)throw Error('invalid'); return n; }"),
+    ("Promise e async/await", "async function loadNames(load){ try { return (await load()).map(x=>x.name); } catch { return []; } }"),
+    ("Fetch: loading, error e successo", "async function fetchSubjects(url,request){ const r=await request(url); return await r.json(); }"),
+    ("Null, unknown e confini esterni", "function isSubject(value: unknown): value is {id:number;name:string} { return typeof value==='object' && value!==null && 'id' in value && 'name' in value; }"),
+])
+def test_course_common_misconceptions_are_rejected(title, source):
+    catalog = Catalog(ROOT / "content")
+    lesson = next(item for item in catalog.lessons if item.title == title)
+    exercise = next(item for item in catalog.exercises_for(lesson.id) if item.id.endswith("-practice"))
+    assert not run_exercise(exercise, source, ROOT).passed
+
+
 def test_javascript_timeout_is_stopped():
     result = run_javascript("while(true) {}", ({"name": "non deve terminare", "expression": "true", "expected": True},))
     assert not result.passed

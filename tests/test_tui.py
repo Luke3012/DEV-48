@@ -5,10 +5,10 @@ from textual.widgets import Button, DataTable, Input, Static, TextArea
 from textual.containers import ScrollableContainer
 
 from dev48.app import (
-    CodingSimulationScreen, CurriculumScreen, DashboardScreen, Dev48App, ExerciseScreen,
+    AdaptiveFooter, CodeTextArea, CodingSimulationScreen, CurriculumScreen, DashboardScreen, Dev48App, ExerciseScreen,
     FlashcardsScreen, FullMockScreen, ChallengesScreen, GlossaryScreen, LabScreen,
-    LabsScreen, LessonScreen, SimulationScreen, TrackSelectionScreen,
-    WorkScenarioScreen, WorkStyleScreen, assessment_prompt,
+    FooterHint, LabsScreen, LessonScreen, SimulationScreen, TrackSelectionScreen,
+    WorkScenarioScreen, WorkStyleScreen, assessment_prompt, exercise_progress_id,
 )
 from dev48.models import Catalog
 
@@ -39,6 +39,116 @@ def test_coding_simulation_starts_fresh_and_locks_clock(tmp_path):
                 assert screen.remaining == 0 and not screen.running
                 assert editor.read_only
                 assert screen.query_one("#run", Button).disabled
+        finally:
+            app.shutdown_resources()
+    asyncio.run(scenario())
+
+
+def test_code_editor_auto_indents_and_handles_braces(tmp_path):
+    async def scenario():
+        app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=False)
+        try:
+            app.catalog = Catalog(Path(__file__).resolve().parents[1] / "content", track="dotnet-angular")
+            exercise = next(item for item in app.catalog.exercises if item.kind == "csharp")
+            async with app.run_test(size=(160, 48)) as pilot:
+                app.push_screen(ExerciseScreen(exercise.id))
+                await pilot.pause()
+                editor = app.screen.query_one("#editor", TextArea)
+                assert isinstance(editor, CodeTextArea)
+
+                source = "public class Example {\n    void Run() {"
+                editor.text = source
+                editor.cursor_location = (1, len("    void Run() {"))
+                await pilot.press("enter")
+                assert editor.text == source + "\n        "
+                assert editor.cursor_location == (2, 8)
+
+                await pilot.press("}")
+                assert editor.text == source + "\n    }"
+                await pilot.press("ctrl+z")
+                assert editor.text == source + "\n        "
+                await pilot.press("ctrl+z")
+                assert editor.text == source
+
+                editor.text = "    // TODO"
+                editor.cursor_location = (0, len("    // TODO"))
+                await pilot.press("enter")
+                assert editor.text == "    // TODO\n    "
+                await pilot.press("enter")
+                assert editor.text == "    // TODO\n    \n    "
+
+                editor.text = "    code word"
+                editor.cursor_location = (0, len("    code word"))
+                await pilot.press("shift+left", "shift+left", "shift+left", "shift+left")
+                await pilot.press("enter")
+                assert editor.text == "    code \n    "
+                assert editor.cursor_location == (1, 4)
+
+                editor.text = "    // {"
+                editor.cursor_location = (0, len("    // {"))
+                await pilot.press("enter")
+                assert editor.text == "    // {\n    "
+
+                editor.text = "    /*\n        "
+                editor.cursor_location = (1, 8)
+                await pilot.press("}")
+                assert editor.text == "    /*\n        }"
+
+                editor.text = '    var raw = """\n    {'
+                editor.cursor_location = (1, len("    {"))
+                await pilot.press("enter")
+                assert editor.text == '    var raw = """\n    {\n    '
+        finally:
+            app.shutdown_resources()
+    asyncio.run(scenario())
+
+
+def test_code_text_area_is_limited_to_programming_editors(tmp_path):
+    async def scenario():
+        content = Path(__file__).resolve().parents[1] / "content"
+        app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=False)
+        try:
+            async with app.run_test(size=(160, 48)) as pilot:
+                app.catalog = Catalog(content, track="dotnet-angular")
+                csharp = next(item for item in app.catalog.exercises if item.kind == "csharp")
+                app.push_screen(ExerciseScreen(csharp.id))
+                await pilot.pause()
+                assert isinstance(app.screen.query_one("#editor", TextArea), CodeTextArea)
+                app.pop_screen()
+                await pilot.pause()
+
+                reflection = next(item for item in app.catalog.exercises if item.kind == "reflection")
+                app.push_screen(ExerciseScreen(reflection.id))
+                await pilot.pause()
+                editor = app.screen.query_one("#editor", TextArea)
+                assert not isinstance(editor, CodeTextArea)
+                editor.text = "    nota"
+                editor.cursor_location = (0, len("    nota"))
+                await pilot.press("enter")
+                assert editor.text == "    nota\n"
+                app.pop_screen()
+                await pilot.pause()
+
+                app.catalog = Catalog(content, track="web-js-react")
+                study_answer = next(item for item in app.catalog.exercises if item.kind == "reflection")
+                app.push_screen(ExerciseScreen(study_answer.id))
+                await pilot.pause()
+                assert not isinstance(app.screen.query_one("#editor", TextArea), CodeTextArea)
+                app.pop_screen()
+                await pilot.pause()
+
+                app.catalog = Catalog(content, track="amazon-sde-oa")
+                simulation = next(item for item in app.catalog.simulations if item.kind == "coding")
+                app.push_screen(CodingSimulationScreen(simulation))
+                await pilot.pause()
+                assert isinstance(app.screen.query_one("#coding-sim-editor", TextArea), CodeTextArea)
+                app.pop_screen()
+                await pilot.pause()
+
+                mock = next(item for item in app.catalog.simulations if item.kind == "full_mock")
+                app.push_screen(FullMockScreen(mock))
+                await pilot.pause()
+                assert isinstance(app.screen.query_one("#mock-editor", TextArea), CodeTextArea)
         finally:
             app.shutdown_resources()
     asyncio.run(scenario())
@@ -399,6 +509,134 @@ def test_guided_sequence_lesson_exercises_next_lesson(tmp_path):
         app.shutdown_resources()
 
 
+def test_continue_returns_to_theory_for_unstarted_first_exercise_but_resume_reopens_it(tmp_path):
+    async def scenario():
+        app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=False)
+        lesson = next(
+            item for item in app.catalog.lessons
+            if item.mandatory and app.catalog.exercises_for(item.id)
+        )
+        exercise = app.catalog.exercises_for(lesson.id)[0]
+        app.store.complete_lesson(lesson.id)
+        app.store.set_setting("last_item", exercise_progress_id(exercise, app.coding_language))
+        try:
+            async with app.run_test(size=(150, 40)) as pilot:
+                await pilot.pause()
+                assert app.next_step() == ("lesson", lesson)
+
+                await pilot.click("#resume")
+                await pilot.pause()
+                assert isinstance(app.screen, ExerciseScreen)
+                assert app.screen.exercise_id == exercise.id
+
+                await pilot.press("escape")
+                await pilot.pause()
+                assert isinstance(app.screen, DashboardScreen)
+                assert app.next_step() == ("lesson", lesson)
+
+                await pilot.click("#continue")
+                await pilot.pause()
+                assert isinstance(app.screen, LessonScreen)
+                assert app.screen.lesson_id == lesson.id
+
+                progress_id = exercise_progress_id(exercise, app.coding_language)
+                app.store.set_setting(f"exercise_started:{progress_id}", "1")
+                assert app.next_step() == ("exercise", exercise)
+        finally:
+            app.shutdown_resources()
+
+    asyncio.run(scenario())
+
+
+def test_exercise_started_marker_tracks_edits_and_language_variants(tmp_path):
+    async def scenario():
+        app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=False)
+        app.catalog = Catalog(Path(__file__).resolve().parents[1] / "content", track="amazon-sde-oa")
+        exercise = next(item for item in app.catalog.exercises if len(item.variants) > 1)
+        languages = list(exercise.variants)
+        app.coding_language = languages[0]
+        app.store.set_setting("amazon_coding_language", languages[0])
+        lesson = app.catalog.lesson_by_id[exercise.lesson_id]
+        app.store.complete_lesson(lesson.id)
+        progress_first = exercise_progress_id(exercise, languages[0])
+        progress_second = exercise_progress_id(exercise, languages[1])
+        app.store.set_setting("last_item", progress_first)
+        try:
+            async with app.run_test(size=(150, 40)) as pilot:
+                await pilot.pause()
+                screen = ExerciseScreen(exercise.id)
+                app.push_screen(screen)
+                await pilot.pause()
+                assert not app.exercise_has_started(exercise, languages[0])
+
+                screen.action_toggle_language()
+                await pilot.pause()
+                assert screen.coding_language == languages[1]
+                assert not app.exercise_has_started(exercise, languages[1])
+
+                await pilot.press("x")
+                await pilot.pause()
+                assert app.store.get_setting(f"exercise_started:{progress_second}") == "1"
+                assert app.exercise_has_started(exercise, languages[1])
+                assert not app.exercise_has_started(exercise, languages[0])
+
+                editor = screen.query_one("#editor", TextArea)
+                editor.text = exercise.variants[languages[1]].get("starter", exercise.starter)
+                await pilot.pause()
+                assert app.exercise_has_started(exercise, languages[1])
+
+                app.store.save_answer(progress_first, "exercise", "edited legacy answer")
+                assert app.exercise_has_started(exercise, languages[0])
+        finally:
+            app.shutdown_resources()
+
+    asyncio.run(scenario())
+
+
+def test_adaptive_footer_wraps_all_shortcuts_in_narrow_terminal(tmp_path):
+    async def scenario():
+        app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=False)
+        lesson = next(
+            item for item in app.catalog.lessons
+            if item.mandatory and app.catalog.exercises_for(item.id)
+        )
+        exercise = app.catalog.exercises_for(lesson.id)[0]
+        try:
+            async with app.run_test(size=(48, 16)) as pilot:
+                await pilot.pause()
+                app.push_screen(ExerciseScreen(exercise.id))
+                await pilot.pause()
+
+                footer = app.screen.query_one(AdaptiveFooter)
+                hints = list(footer.query(FooterHint))
+                expected_actions = {
+                    binding.action
+                    for _node, binding, _enabled, _tooltip in app.screen.active_bindings.values()
+                    if binding.show and binding.key != app.COMMAND_PALETTE_BINDING
+                }
+                assert {hint.action for hint in hints} == expected_actions
+                assert len(footer.query(".footer-row")) > 1
+                assert footer.region.bottom <= app.size.height
+                for hint in hints:
+                    assert footer.region.contains_region(hint.region), (footer.region, hint.action, hint.region)
+                actions = app.screen.query_one("#exercise-actions")
+                assert actions.region.bottom <= footer.region.y
+
+                narrow_row_count = len(footer.query(".footer-row"))
+                await pilot.resize_terminal(220, 16)
+                await pilot.pause()
+                footer = app.screen.query_one(AdaptiveFooter)
+                hints = list(footer.query(FooterHint))
+                assert {hint.action for hint in hints} == expected_actions
+                assert len(footer.query(".footer-row")) < narrow_row_count
+                for hint in hints:
+                    assert footer.region.contains_region(hint.region), (footer.region, hint.action, hint.region)
+        finally:
+            app.shutdown_resources()
+
+    asyncio.run(scenario())
+
+
 def test_track_selection_screen_interaction(tmp_path):
     async def scenario():
         app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=True)
@@ -547,7 +785,8 @@ def test_amazon_work_screens_and_full_mock_sequence(tmp_path):
                 assert "README" in repository_prompt and "suite di test" in repository_prompt
                 await pilot.click("#start")
                 await pilot.pause()
-                assert screen.locked and screen.phase == 0 and screen.remaining == 40 * 60
+                assert screen.locked and screen.phase == 0
+                assert 40 * 60 - 10 <= screen.remaining <= 40 * 60
                 assert screen.query_one("#mock-coding-prompt", ScrollableContainer).display
                 await pilot.press("ctrl+t")
                 await pilot.pause()

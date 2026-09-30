@@ -2,55 +2,47 @@
 
 ## In parole semplici
 
-L'obiettivo di questa lezione è renderizzare collezioni mantenendo correttamente identità e stato degli elementi.
+Prima di iniziare, ripassa [State ed eventi](05-03-state-ed-eventi.md) e [Array: map, filter, find e some](01-04-array-map-filter-find-e-some.md).
+
+Renderizzare collezioni mantenendo correttamente identità e stato degli elementi.
 
 React usa la `key` per riconoscere lo stesso elemento tra due render. Un identificatore stabile evita che stato e focus si spostino sulla riga sbagliata quando la lista viene riordinata o filtrata.
 
-### Perché è utile
-
-In React la domanda principale è sempre la stessa: da quali dati dipende questa parte dell'interfaccia? Individua chi possiede quei dati e lascia che il rendering descriva ciò che l'utente deve vedere in quel momento.
+La key identifica un elemento tra fratelli e deve provenire dai dati, restando stabile tra render. Se la riga contiene un input o stato locale, una key basata sulla posizione può associare lo stato alla persona sbagliata dopo un'eliminazione. La key non viene passata come prop: passa l'ID separatamente se Row deve usarlo.
 
 ## Le parole da riconoscere
 
-- `map`
-- `key`
-- `identità`
-- `conditional rendering`
-- `empty state`
-- `fragment`
-
-Non serve imparare questo elenco a memoria. Per iniziare, concentrati su **map, key, identità** e cerca di usarli mentre descrivi l'esempio qui sotto.
+`map`; `key`; `identità`; `conditional rendering`; `empty state`; `fragment`
 
 ## Un esempio concreto
 
-```text
-{items.length === 0 ? <EmptyState /> : items.map(item => <Row key={item.id} item={item} />)}
+```jsx
+function SubjectList({ items }) {
+  if (items.length === 0) return <p>Nessun soggetto</p>;
+  return <ul>{items.map(item =>
+    <li key={item.id}>
+      <label>{item.name} <input defaultValue={item.name} /></label>
+    </li>
+  )}</ul>;
+}
+// Uso: <SubjectList items={[{id: 1, name: 'Anna'}]} />
 ```
 
-Distingui props, stato e valori calcolati. Poi segui l'evento: quale setter viene chiamato e quale parte della UI cambia al rendering successivo?
+Con due righe, modifica il nome della seconda nell'input e poi elimina la prima. Con key={index} React può riusare la prima riga per un'altra persona e conservare un valore non pertinente. Con item.id riconosce quale riga è rimasta. Evita Math.random nel render: cambierebbe identità a ogni render e perderebbe stato e focus.
 
-Adesso copri l'esempio e prova a ricostruirne la parte essenziale. Non deve essere identico: deve conservare lo stesso comportamento. Quando ci riesci, prova un caso normale e un caso limite.
+## Prova tu
+
+Riproduci il caso con due ID e un input modificato, poi passa dalle key posizionali agli ID. Prova anche [] e un riordinamento. Per una quantità numerica usa `items.length > 0 && ...`: con `items.length && ...` potresti renderizzare 0.
 
 ## Dove ci si confonde spesso
 
 - Usare l'indice come key in liste modificabili
 - Dimenticare lo stato vuoto
 
-Se qualcosa non funziona, evita di cambiare più righe a caso. Riproduci il problema con l'input più piccolo possibile, formula un'ipotesi e verifica una sola modifica per volta.
-
-## Controllo rapido
-
-- Riesco a spiegarlo senza leggere la pagina?
-- So indicare input, risultato e almeno un caso limite?
-- Riesco a riscrivere l'esempio partendo da un file vuoto?
-- So dire come verificherei che funziona?
-
 ## Domanda di verifica
 
 > Perché la key deve essere stabile e unica tra fratelli?
 
-Prova a rispondere senza rileggere: prima la regola, poi un esempio. Se ti manca un termine, descrivi il comportamento con parole semplici invece di fermarti.
+Confronta la tua spiegazione con la flashcard dedicata alla domanda.
 
-## Prima di andare avanti
-
-Chiudi la pagina per un minuto e ripeti tre cose: che problema risolve questo argomento, quale errore vuoi evitare e quale esempio useresti per spiegarlo. Se una delle tre non viene, riapri soltanto la sezione che ti serve.
+Riferimento: [documentazione ufficiale](https://react.dev/learn/preserving-and-resetting-state).

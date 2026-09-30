@@ -2,37 +2,31 @@
 
 ## In parole semplici
 
-L'obiettivo di questa lezione è trattare dati esterni come non affidabili prima di usarli nel dominio.
+Trattare dati esterni come non affidabili prima di usarli nel dominio.
 
 `unknown` ti obbliga a controllare un valore prima di usarlo, mentre `any` disattiva quella protezione. È la scelta corretta per JSON, input utente e altri dati che entrano dall'esterno.
 
-### Perché è utile
-
-TypeScript ti aiuta a rendere esplicite le promesse del codice. Un tipo utile racconta quali dati accetti, quali casi sono possibili e quali controlli restano comunque necessari durante l'esecuzione.
-
 ## Le parole da riconoscere
 
-- `unknown`
-- `null`
-- `undefined`
-- `type guard`
-- `validation`
-- `optional chaining`
-- `boundary`
-
-Non serve imparare questo elenco a memoria. Per iniziare, concentrati su **unknown, null, undefined** e cerca di usarli mentre descrivi l'esempio qui sotto.
+`unknown`; `null`; `undefined`; `type guard`; `validation`; `optional chaining`; `boundary`
 
 ## Un esempio concreto
 
-```text
+```typescript
 function isSubject(value: unknown): value is {id:number; name:string} {
-  return typeof value === 'object' && value !== null && 'id' in value && 'name' in value;
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
+  return 'id' in value && typeof value.id === 'number' && Number.isFinite(value.id) &&
+    'name' in value && typeof value.name === 'string';
 }
+console.log(isSubject({id:1,name:'Anna'})); // true
+console.log(isSubject({id:'1',name:9})); // false
 ```
 
-Guarda quali errori il tipo può impedire prima dell'avvio e quali dati, soprattutto quelli esterni, richiedono ancora una verifica a runtime.
+unknown obbliga a restringere il tipo prima di accedere a proprietà o chiamare metodi; any disattiva quei controlli. Un JSON esterno può avere qualsiasi forma, quindi unknown rende visibile il confine da validare invece di nasconderlo con un cast.
 
-Adesso copri l'esempio e prova a ricostruirne la parte essenziale. Non deve essere identico: deve conservare lo stesso comportamento. Quando ci riesci, prova un caso normale e un caso limite.
+## Prova tu
+
+Correggi `isSubject(value: unknown)`: deve riconoscere un oggetto con id numero finito e name stringa, rifiutando null, array e campi con tipi sbagliati. La sola presenza di 'id' e 'name' non prova il contratto. I test eseguono il guard a runtime; il type checking completo resta distinto.
 
 ## Dove ci si confonde spesso
 
@@ -40,21 +34,8 @@ Adesso copri l'esempio e prova a ricostruirne la parte essenziale. Non deve esse
 - Fidarsi del JSON
 - Usare ! senza prova
 
-Se qualcosa non funziona, evita di cambiare più righe a caso. Riproduci il problema con l'input più piccolo possibile, formula un'ipotesi e verifica una sola modifica per volta.
-
-## Controllo rapido
-
-- Riesco a spiegarlo senza leggere la pagina?
-- So indicare input, risultato e almeno un caso limite?
-- Riesco a riscrivere l'esempio partendo da un file vuoto?
-- So dire come verificherei che funziona?
-
 ## Domanda di verifica
 
 > Perché unknown è preferibile ad any per un input esterno?
 
-Prova a rispondere senza rileggere: prima la regola, poi un esempio. Se ti manca un termine, descrivi il comportamento con parole semplici invece di fermarti.
-
-## Prima di andare avanti
-
-Chiudi la pagina per un minuto e ripeti tre cose: che problema risolve questo argomento, quale errore vuoi evitare e quale esempio useresti per spiegarlo. Se una delle tre non viene, riapri soltanto la sezione che ti serve.
+Confronta la tua spiegazione con la flashcard dedicata alla domanda.

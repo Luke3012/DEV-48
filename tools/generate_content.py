@@ -4,6 +4,14 @@ from pathlib import Path
 import json
 import re
 
+if __package__:
+    from .js_react_notes import GUIDES, REVIEW_ANSWERS
+    from .js_react_practice import TASKS, HTML_TASKS
+    from .js_react_lab_briefs import LAB_BRIEFS, PRACTICE_SCENARIOS
+else:
+    from js_react_notes import GUIDES, REVIEW_ANSWERS
+    from js_react_practice import TASKS, HTML_TASKS
+    from js_react_lab_briefs import LAB_BRIEFS, PRACTICE_SCENARIOS
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTENT = ROOT / "content"
@@ -108,7 +116,7 @@ TOPICS = [
     ("html_css", "HTML semantico e struttura", 1, 40, True,
      "Scegliere elementi che descrivono il significato, non soltanto l'aspetto.",
      "header;nav;main;section;article;button;heading;semantica",
-     "<main>\n  <h1>Archivio soggetti</h1>\n  <section aria-labelledby=\"active-title\">...</section>\n</main>",
+     "<main>\n  <h1>Archivio soggetti</h1>\n  <section aria-labelledby=\"active-title\">\n    <h2 id=\"active-title\">Attivi</h2>\n    <p>Anna Bianchi</p>\n  </section>\n</main>",
      "Div per ogni cosa; gerarchia heading incoerente; elementi cliccabili non accessibili.",
      "Perché un button è preferibile a un div con onClick?"),
     ("html_css", "Form e accessibilità", 1, 45, True,
@@ -157,7 +165,7 @@ TOPICS = [
     ("typescript", "Null, unknown e confini esterni", 2, 40, True,
      "Trattare dati esterni come non affidabili prima di usarli nel dominio.",
      "unknown;null;undefined;type guard;validation;optional chaining;boundary",
-     "function isSubject(value: unknown): value is {id:number; name:string} {\n  return typeof value === 'object' && value !== null && 'id' in value && 'name' in value;\n}",
+     "function isSubject(value: unknown): value is {id:number; name:string} {\n  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;\n  return 'id' in value && typeof value.id === 'number' && Number.isFinite(value.id) &&\n    'name' in value && typeof value.name === 'string';\n}\nconsole.log(isSubject({id:1,name:'Anna'})); // true\nconsole.log(isSubject({id:'1',name:9})); // false",
      "Convertire unknown in un tipo con as; fidarsi del JSON; usare ! senza prova.",
      "Perché unknown è preferibile ad any per un input esterno?"),
 
@@ -343,31 +351,31 @@ MODULES = [
 JS_TASKS = [
     ("classifyValue", "Scrivi `classifyValue(value)` che restituisce `'missing'` per null/undefined, `'empty'` per stringa vuota e il risultato di `typeof` negli altri casi.",
      "function classifyValue(value) {\n  if (value === null || value === undefined) return 'missing';\n  if (value === '') return 'empty';\n  return typeof value;\n}",
-     [("null", "classifyValue(null)", "missing"), ("empty", "classifyValue('')", "empty"), ("number", "classifyValue(3)", "number")]),
+     [("null", "classifyValue(null)", "missing"), ("undefined", "classifyValue(undefined)", "missing"), ("empty", "classifyValue('')", "empty"), ("number", "classifyValue(3)", "number"), ("zero", "classifyValue(0)", "number"), ("false", "classifyValue(false)", "boolean"), ("zero testuale", "classifyValue('0')", "string")]),
     ("createCounter", "Scrivi `createCounter()` che restituisce una funzione. Ogni chiamata deve restituire 1, poi 2, poi 3.",
      "function createCounter() {\n  let value = 0;\n  return function () { value += 1; return value; };\n}",
-     [("prima chiamata", "(() => { const c=createCounter(); return c(); })()", 1), ("stato conservato", "(() => { const c=createCounter(); c(); return c(); })()", 2)]),
+     [("prima chiamata", "(() => { const c=createCounter(); return c(); })()", 1), ("stato conservato", "(() => { const c=createCounter(); c(); return c(); })()", 2), ("istanze indipendenti", "(() => { const a=createCounter(), b=createCounter(); return [a(),a(),a(),b()]; })()", [1,2,3,1])]),
     ("fullName", "Scrivi `fullName(first, last)`; rimuovi spazi esterni e restituisci `'Unknown'` se first è vuoto.",
      "function fullName(first, last = '') {\n  const cleanFirst = String(first ?? '').trim();\n  if (!cleanFirst) return 'Unknown';\n  return `${cleanFirst} ${String(last ?? '').trim()}`.trim();\n}",
      [("nome completo", "fullName(' Giulia ', ' Rossi ')", "Giulia Rossi"), ("mancante", "fullName('', 'Rossi')", "Unknown")]),
     ("activeNames", "Scrivi `activeNames(users)` che restituisce i nomi degli utenti attivi, in ordine, senza modificare l'array.",
      "function activeNames(users) {\n  return users.filter(user => user.active).map(user => user.name);\n}",
-     [("filtra e trasforma", "activeNames([{name:'A',active:true},{name:'B',active:false},{name:'C',active:true}])", ["A", "C"]), ("vuoto", "activeNames([])", [])]),
+     [("filtra e trasforma", "activeNames([{name:'A',active:true},{name:'B',active:false},{name:'C',active:true}])", ["A", "C"]), ("vuoto", "activeNames([])", []), ("nessun attivo", "activeNames([{name:'A',active:false}])", []), ("input conservato", "(() => { const users=[{name:'A',active:true},{name:'B',active:false}]; const before=JSON.stringify(users); activeNames(users); return JSON.stringify(users)===before; })()", True)]),
     ("moveUser", "Scrivi `moveUser(user, city)` che restituisce una copia con `profile.city` aggiornata senza modificare user.",
      "function moveUser(user, city) {\n  return { ...user, profile: { ...(user.profile ?? {}), city } };\n}",
-     [("aggiorna annidato", "moveUser({id:1,profile:{city:'Roma',age:30}},'Milano')", {"id":1,"profile":{"city":"Milano","age":30}}), ("profile assente", "moveUser({id:2},'Milano')", {"id":2,"profile":{"city":"Milano"}})]),
+     [("aggiorna annidato", "moveUser({id:1,profile:{city:'Roma',age:30}},'Milano')", {"id":1,"profile":{"city":"Milano","age":30}}), ("profile assente", "moveUser({id:2},'Milano')", {"id":2,"profile":{"city":"Milano"}}), ("originale e riferimenti", "(() => { const user={id:1,profile:{city:'Roma'}}; const before=JSON.stringify(user); const result=moveUser(user,'Milano'); return JSON.stringify(user)===before && result!==user && result.profile!==user.profile; })()", True)]),
     ("updateSubject", "Scrivi `updateSubject(items, id, patch)` con map e spread. Deve aggiornare solo l'elemento indicato.",
      "function updateSubject(items, id, patch) {\n  return items.map(item => item.id === id ? { ...item, ...patch } : item);\n}",
-     [("aggiornamento", "updateSubject([{id:1,a:1},{id:2,a:2}],2,{a:9})", [{"id":1,"a":1},{"id":2,"a":9}]), ("id assente", "updateSubject([{id:1,a:1}],9,{a:2})", [{"id":1,"a":1}])]),
+     [("aggiornamento", "updateSubject([{id:1,a:1},{id:2,a:2}],2,{a:9})", [{"id":1,"a":1},{"id":2,"a":9}]), ("id assente", "updateSubject([{id:1,a:1}],9,{a:2})", [{"id":1,"a":1}]), ("vuoto", "updateSubject([],1,{a:9})", []), ("originale conservato", "(() => { const items=[{id:1,a:1},{id:2,a:2}]; const before=JSON.stringify(items); const result=updateSubject(items,2,{a:9}); return JSON.stringify(items)===before && result!==items && result[1]!==items[1]; })()", True)]),
     ("sumActiveChecks", "Scrivi `sumActiveChecks(items)` che somma checks soltanto per gli elementi attivi.",
      "function sumActiveChecks(items) {\n  return items.filter(item => item.active).reduce((sum, item) => sum + item.checks, 0);\n}",
      [("somma", "sumActiveChecks([{active:true,checks:4},{active:false,checks:9},{active:true,checks:2}])", 6), ("vuoto", "sumActiveChecks([])", 0)]),
     ("uniqueZones", "Scrivi `uniqueZones(users)` che restituisce le zone uniche mantenendo l'ordine di prima apparizione.",
      "function uniqueZones(users) {\n  return [...new Set(users.map(user => user.zone))];\n}",
      [("uniche", "uniqueZones([{zone:'Centro'},{zone:'Nord'},{zone:'Centro'}])", ["Centro","Nord"])]),
-    ("parsePositive", "Scrivi `parsePositive(value)` che converte il valore in numero e lancia Error se non è finito o è negativo.",
-     "function parsePositive(value) {\n  const number = Number(value);\n  if (!Number.isFinite(number) || number < 0) throw new Error('Invalid positive number');\n  return number;\n}",
-     [("converte", "parsePositive('12')", 12), ("zero", "parsePositive(0)", 0), ("errore", "(() => { try { parsePositive(-1); return false; } catch { return true; } })()", True)]),
+    ("parsePositive", "Scrivi `parsePositive(value)` per numeri non negativi (zero incluso). Accetta numeri e stringhe numeriche non vuote; rifiuta null, undefined, booleani, stringhe vuote, NaN, Infinity e negativi con Error. Non restituire zero per nascondere un input invalido.",
+     "function parsePositive(value) {\n  if ((typeof value !== 'number' && typeof value !== 'string') || (typeof value === 'string' && !value.trim())) throw new Error('Missing number');\n  const number = Number(value);\n  if (!Number.isFinite(number) || number < 0) throw new Error('Invalid non-negative number');\n  return number;\n}",
+     [("converte", "parsePositive('12')", 12), ("zero", "parsePositive(0)", 0), ("input invalidi", "[-1,NaN,Infinity,'abc','', ' ',null,undefined,false].every(value => { try { parsePositive(value); return false; } catch { return true; } })", True)]),
 ]
 
 
@@ -375,9 +383,9 @@ SQL_TASKS = [
     ("Seleziona id, name e checks dei soggetti attivi, ordinati per checks decrescente.",
      "SELECT id, name, checks FROM subjects WHERE active = 1 ORDER BY checks DESC;",
      [[4,"Sara Neri",9],[1,"Mario Rossi",4],[3,"Paolo Verdi",2]]),
-    ("Seleziona name e type di tutti i soggetti con una misura, ordinati per name.",
-     "SELECT s.name, m.type FROM subjects s INNER JOIN measures m ON m.subject_id = s.id ORDER BY s.name;",
-     [["Mario Rossi","Obbligo"],["Paolo Verdi","Controllo"],["Sara Neri","Obbligo"]]),
+    ("Seleziona name e type di tutti i soggetti, inclusi quelli senza misura, ordinati per name. Usa LEFT JOIN: per il soggetto senza misura type deve essere NULL.",
+     "SELECT s.name, m.type FROM subjects s LEFT JOIN measures m ON m.subject_id = s.id ORDER BY s.name;",
+     [["Anna Bianchi",None],["Mario Rossi","Obbligo"],["Paolo Verdi","Controllo"],["Sara Neri","Obbligo"]]),
     ("Conta i soggetti per zona e restituisci zone e totale, ordinate alfabeticamente.",
      "SELECT zone, COUNT(*) AS total FROM subjects GROUP BY zone ORDER BY zone;",
      [["Centro",2],["Nord",1],["Sud",1]]),
@@ -390,36 +398,6 @@ SQL_TASKS = [
 def slugify(value: str) -> str:
     value = value.lower().replace("à", "a").replace("è", "e").replace("ì", "i").replace("ò", "o").replace("ù", "u")
     return re.sub(r"[^a-z0-9]+", "-", value).strip("-")
-
-
-MODULE_PERSPECTIVES = {
-    "orientamento": "Qui non conta partire in fretta: conta rendere visibile il ragionamento. Chi ti osserva deve capire quali informazioni hai raccolto, quale ipotesi stai provando e come decidi se il risultato è corretto.",
-    "javascript": "In JavaScript è utile seguire i valori uno alla volta: che tipo hanno, dove vengono creati e che cosa restituisce ogni espressione. Se sai prevedere questi passaggi, scrivere il codice diventa molto meno meccanico.",
-    "async_http": "Quando entra in gioco una richiesta di rete, il risultato non arriva subito e può anche non arrivare affatto. Per questo devi ragionare sia sul dato atteso sia sugli stati di attesa, errore e annullamento.",
-    "html_css": "Una pagina ben costruita non è soltanto bella: comunica una struttura, funziona da tastiera e si adatta allo spazio disponibile. Parti dal significato degli elementi, poi occupati del loro aspetto.",
-    "typescript": "TypeScript ti aiuta a rendere esplicite le promesse del codice. Un tipo utile racconta quali dati accetti, quali casi sono possibili e quali controlli restano comunque necessari durante l'esecuzione.",
-    "react": "In React la domanda principale è sempre la stessa: da quali dati dipende questa parte dell'interfaccia? Individua chi possiede quei dati e lascia che il rendering descriva ciò che l'utente deve vedere in quel momento.",
-    "backend": "Sul backend ogni dato attraversa un confine: arriva da una richiesta, viene controllato, passa nella logica applicativa e produce una risposta. Tenere distinti questi passaggi rende più semplici sia gli errori sia la sicurezza.",
-    "sql": "Con SQL conviene tradurre la richiesta in una domanda precisa sui dati: quali righe servono, come sono collegate e in quale ordine devono uscire. Prima pensa al risultato, poi scrivi la query.",
-    "git_testing": "Questi strumenti servono a ridurre l'incertezza. Git rende leggibile la storia delle modifiche; test e debugger ti aiutano a dimostrare che un comportamento esiste davvero e continua a funzionare.",
-    "wordpress": "In WordPress il codice vive dentro un sistema già avviato. Devi capire in quale momento agganciare la tua funzione e trattare ogni dato ricevuto come non affidabile fino a quando non viene controllato.",
-    "portfolio": "Non devi presentare un progetto come se fosse perfetto. Una risposta credibile spiega il problema, la scelta fatta, il compromesso accettato e ciò che oggi miglioreresti con più tempo o più esperienza.",
-}
-
-
-MODULE_EXAMPLE_GUIDES = {
-    "orientamento": "Usalo come una scaletta da dire ad alta voce. Ogni riga corrisponde a una decisione che anche l'intervistatore può seguire.",
-    "javascript": "Segui il valore dall'ingresso fino al `return`. Chiediti che cosa cambierebbe con un valore vuoto, mancante o di tipo inatteso.",
-    "async_http": "Individua il momento in cui parte l'operazione, quello in cui arriva la risposta e il punto in cui viene gestito un fallimento.",
-    "html_css": "Prima leggi la struttura HTML e prova a descriverla senza parlare di colori. Poi osserva come il CSS distribuisce lo spazio e che cosa succede restringendo la finestra.",
-    "typescript": "Guarda quali errori il tipo può impedire prima dell'avvio e quali dati, soprattutto quelli esterni, richiedono ancora una verifica a runtime.",
-    "react": "Distingui props, stato e valori calcolati. Poi segui l'evento: quale setter viene chiamato e quale parte della UI cambia al rendering successivo?",
-    "backend": "Segui la richiesta nell'ordine reale: ingresso, controllo, logica, accesso ai dati e risposta. Nota anche dove finirebbe un errore.",
-    "sql": "Leggi prima `FROM` e `JOIN`, poi i filtri e infine le colonne restituite. Immagina due o tre righe concrete per controllare il risultato.",
-    "git_testing": "Chiediti quale prova concreta offre questo comando o questo test. Se fallisse, il messaggio dovrebbe aiutarti a restringere il problema.",
-    "wordpress": "Individua l'hook, il dato ricevuto e il punto in cui viene sanitizzato o mostrato. Sono i tre passaggi che spiegano quasi tutto il frammento.",
-    "portfolio": "Non impararlo a memoria. Usa la struttura per raccontare un episodio vero in meno di un minuto, con una decisione tecnica precisa.",
-}
 
 
 PLAIN_EXPLANATIONS = {
@@ -486,55 +464,50 @@ def term_list(items: list[str]) -> str:
     return "; ".join(f"`{item}`" for item in items)
 
 
-def lesson_markdown(module: str, title: str, summary: str, concepts: str, example: str, pitfalls: str, review_question: str) -> str:
+def lesson_markdown(module: str, title: str, summary: str, concepts: str, example: str, pitfalls: str, review_question: str, lesson_ids: dict[str, str] | None = None) -> str:
     keywords = [item.strip() for item in concepts.split(";")]
-    concept_list = "\n".join(f"- `{item}`" for item in keywords)
+    concept_list = term_list(keywords)
     pitfall_items = [item.strip().rstrip(".") for item in pitfalls.split(";") if item.strip()]
     pitfalls_list = "\n".join(f"- {item[0].upper() + item[1:]}" for item in pitfall_items)
-    first_terms = ", ".join(keywords[:3])
-    if module == "portfolio":
-        example_reading = "Usalo come traccia, non come frase da recitare. Sostituisci ogni affermazione generica con un fatto del tuo progetto: una scelta che hai fatto, una verifica che hai eseguito o un limite che hai riconosciuto."
-        active_practice = "Adesso copri l'esempio e racconta lo stesso concetto usando un episodio reale. Una risposta imperfetta ma tua è più credibile di una formula elegante imparata a memoria."
-        recovery = "Se la risposta suona generica, fermati e aggiungi un dettaglio verificabile: il nome di un componente, un errore incontrato, un'alternativa scartata oppure ciò che oggi cambieresti."
-        checklist = """- Riesco a raccontarlo senza leggere la pagina?
-- Distinguo chiaramente ciò che ho fatto io da ciò che ha prodotto uno strumento?
-- Cito almeno una decisione tecnica e il relativo compromesso?
-- So riconoscere un limite senza sminuire tutto il progetto?"""
+    detail = GUIDES.get(title)
+    prerequisites = ""
+    reasoning = ""
+    if detail:
+        example = detail["example"]
+        reasoning = detail["reasoning"]
+        example_reading = detail["reading"]
+        active_practice = detail["practice"]
+        links = [f"[{name}]({lesson_ids[name]}.md)" if lesson_ids else name for name in detail["prerequisites"]]
+        if links:
+            prerequisites = "Prima di iniziare, ripassa " + human_list(links) + ".\n\n"
     else:
-        example_reading = MODULE_EXAMPLE_GUIDES[module]
-        if title == "Effect e sincronizzazione":
-            example_reading = "Segui il ciclo dell'effect: parte quando cambia `subjectId`, crea un controller e avvia il caricamento. Prima del nuovo effect o dello smontaggio, la cleanup chiama `abort()` e impedisce alla richiesta precedente di continuare inutilmente."
-        active_practice = "Adesso copri l'esempio e prova a ricostruirne la parte essenziale. Non deve essere identico: deve conservare lo stesso comportamento. Quando ci riesci, prova un caso normale e un caso limite."
-        recovery = "Se qualcosa non funziona, evita di cambiare più righe a caso. Riproduci il problema con l'input più piccolo possibile, formula un'ipotesi e verifica una sola modifica per volta."
-        checklist = """- Riesco a spiegarlo senza leggere la pagina?
-- So indicare input, risultato e almeno un caso limite?
-- Riesco a riscrivere l'esempio partendo da un file vuoto?
-- So dire come verificherei che funziona?"""
+        example_reading = REVIEW_ANSWERS[title]
+        active_practice = PRACTICE_SCENARIOS.get(title) or (HTML_TASKS[title][0] if title in HTML_TASKS else TASKS[title][1])
+    language = {"javascript": "javascript", "react": "jsx", "html_css": "html", "typescript": "typescript", "backend": "javascript", "sql": "sql"}.get(module, "text")
+    if title in {"HTTP e API REST", "Autenticazione, CORS e segreti", "Routing e architettura frontend"}:
+        language = "text"
+    source = f"\n\nRiferimento: [documentazione ufficiale]({detail['source']})." if detail and detail["source"] else ""
     return f"""# {title}
 
 ## In parole semplici
 
-L'obiettivo di questa lezione è {summary[0].lower() + summary[1:]}
+{prerequisites}{summary}
 
-{PLAIN_EXPLANATIONS[title]}
-
-### Perché è utile
-
-{MODULE_PERSPECTIVES[module]}
+{PLAIN_EXPLANATIONS[title]}{chr(10) + chr(10) + reasoning if reasoning else ''}
 
 ## Le parole da riconoscere
 
 {concept_list}
 
-Non serve imparare questo elenco a memoria. Per iniziare, concentrati su **{first_terms}** e cerca di usarli mentre descrivi l'esempio qui sotto.
-
 ## Un esempio concreto
 
-```text
+```{language}
 {example}
 ```
 
 {example_reading}
+
+## Prova tu
 
 {active_practice}
 
@@ -542,61 +515,37 @@ Non serve imparare questo elenco a memoria. Per iniziare, concentrati su **{firs
 
 {pitfalls_list}
 
-{recovery}
-
-## Controllo rapido
-
-{checklist}
-
 ## Domanda di verifica
 
 > {review_question}
 
-Prova a rispondere senza rileggere: prima la regola, poi un esempio. Se ti manca un termine, descrivi il comportamento con parole semplici invece di fermarti.
-
-## Prima di andare avanti
-
-Chiudi la pagina per un minuto e ripeti tre cose: che problema risolve questo argomento, quale errore vuoi evitare e quale esempio useresti per spiegarlo. Se una delle tre non viene, riapri soltanto la sezione che ti serve.
-"""
+Confronta la tua spiegazione con la flashcard dedicata alla domanda.{source}
+""".rstrip() + "\n"
 
 
 def code_task(module: str, index: int, title: str):
+    if title in TASKS:
+        return TASKS[title]
+    if title in HTML_TASKS:
+        prompt, solution, tests = HTML_TASKS[title]
+        return "html", prompt, "<!-- Scrivi HTML e CSS qui -->", solution, tests
     if module == "javascript":
-        name, prompt, solution, checks = JS_TASKS[index % len(JS_TASKS)]
+        # Global indices include orientation lessons; select by the lesson's
+        # position inside JavaScript so practice follows the topic taught.
+        js_index = [topic[1] for topic in TOPICS if topic[0] == "javascript"].index(title)
+        name, prompt, solution, checks = JS_TASKS[js_index]
         tests = [{"name": n, "expression": e, "expected": x} for n, e, x in checks]
         return "javascript", prompt, f"function {name}() {{\n  // TODO\n}}", solution, tests
-    if module == "sql":
-        prompt, solution, expected = SQL_TASKS[index % len(SQL_TASKS)]
+    if title in {"SELECT, filtri e ordinamento", "Relazioni e JOIN"}:
+        task_index = 0 if title == "SELECT, filtri e ordinamento" else 1
+        prompt, solution, expected = SQL_TASKS[task_index]
         return "sql", prompt, "-- Scrivi qui la query\nSELECT ...", solution, [{"name":"righe e ordine corretti","mode":"rows","expected":expected}]
-    if module == "html_css":
-        prompt = f"Costruisci una piccola pagina con cui mostrare **{title}**. Deve contenere `main`, un titolo, un form con label correttamente associata e almeno una regola responsive. Mantieni l'esempio essenziale: deve essere facile spiegare perché hai scelto ogni elemento."
-        solution = """<main class="page">\n  <h1>Archivio soggetti</h1>\n  <form>\n    <label for="search">Cerca</label>\n    <input id="search" name="search" type="search" required>\n    <button type="submit">Cerca</button>\n  </form>\n</main>\n<style>\n.page{width:min(100% - 2rem,72rem);margin:auto;display:grid;gap:1rem}\n@media (min-width:48rem){.page{grid-template-columns:1fr 2fr}}\n</style>"""
-        tests = [{"name":"main semantico","mode":"tag","value":"main"},{"name":"titolo","mode":"tag","value":"h1"},{"name":"label associata","mode":"attribute","value":"label:for"},{"name":"media query","mode":"contains","value":"@media"}]
-        return "html", prompt, "<!-- Scrivi HTML e CSS qui -->", solution, tests
-    if module == "typescript":
-        prompt = f"Modella in TypeScript un risultato remoto per esercitarti su **{title}**. Definisci un tipo o un'interface, rappresenta almeno due possibili stati e scrivi una funzione che li gestisca senza usare `any`."
-        solution = """interface Subject { id: number; name: string }
-type LoadResult =
-  | { status: 'success'; data: Subject[] }
-  | { status: 'error'; message: string };
-
-function describe(result: LoadResult): string {
-  if (result.status === 'error') return result.message;
-  return `${result.data.length} soggetti`;
-}"""
-        tests = [{"name":"contratto dichiarato","mode":"regex","value":"(interface|type)\\s+\\w+"},{"name":"stati alternativi","mode":"contains","value":"status"},{"name":"funzione di gestione","mode":"regex","value":"function\\s+\\w+"},{"name":"nessun any","mode":"not_contains","value":"any"}]
-        return "typescript", prompt, "// Definisci qui i tipi e la funzione", solution, tests
-    if module == "react":
-        prompt = f"Crea un componente React piccolo con cui esercitarti su **{title}**. Usa un tipo per gli elementi, conserva la lista nello state, gestisci almeno un evento e usa una `key` stabile. Dopo averlo scritto, preparati a spiegare chi possiede lo stato e che cosa provoca il nuovo render."
-        solution = """interface Item { id: number; name: string }\nfunction ItemList({ initialItems }: { initialItems: Item[] }) {\n  const [items, setItems] = useState<Item[]>(initialItems);\n  const remove = (id: number) => setItems(current => current.filter(item => item.id !== id));\n  return <ul>{items.map(item => <li key={item.id}>{item.name}<button onClick={() => remove(item.id)}>Elimina</button></li>)}</ul>;\n}"""
-        tests = [{"name":"contratto tipizzato","mode":"regex","value":"(interface|type)\\s+\\w+"},{"name":"state","mode":"contains","value":"usestate"},{"name":"evento","mode":"contains","value":"onclick"},{"name":"key stabile","mode":"regex","value":"key\\s*=\\s*\\{[^}]*\\.id"}]
-        return "react", prompt, "// Scrivi qui il componente", solution, tests
-    prompt = f"Spiega **{title}** come lo racconteresti a un collega. Parti da un esempio o da un episodio concreto, descrivi la decisione che prenderesti, segnala un rischio e termina spiegando come verificheresti il risultato."
+    prompt = PRACTICE_SCENARIOS[title] if title in PRACTICE_SCENARIOS else GUIDES[title]["practice"]
     keys = [word.strip() for word in TOPICS[index][6].split(";")[:3]] if index < len(TOPICS) else ["verifica", "errore"]
-    topic_summary = TOPICS[index][5]
-    solution = f"{PLAIN_EXPLANATIONS[title]} In un caso concreto renderei espliciti {term_list(keys[:2])}, spiegherei il rischio che voglio evitare e concluderei con una verifica osservabile, non con un'affermazione generica."
+    prompt += f"\n\nAutoverifica: il controllo cerca solo {term_list(keys[:2])}. Confronta la risposta con il modello e verifica il caso concreto nel laboratorio pertinente."
+    solution = REVIEW_ANSWERS[title] + f"\n\nLessico di ripasso: {term_list(keys[:2])}."
     tests = [{"name":f"usa il concetto: {key}","alternatives":[key]} for key in keys[:2]]
-    return "short", prompt, "", solution, tests
+    return "reflection", prompt, "", solution, tests
 
 
 def build() -> None:
@@ -607,15 +556,30 @@ def build() -> None:
     exercises = []
     flashcards = []
 
-    for global_index, topic in enumerate(TOPICS):
-        module, title, _group, minutes, mandatory, summary, concepts, example, pitfalls, review_question = topic
+    # Derive IDs from the original sequence before changing reading order.
+    # Saved answers/progress and existing learner workspace links keep their IDs.
+    lesson_ids = {}
+    for topic in TOPICS:
+        module, title = topic[:2]
         module_counts[module] = module_counts.get(module, 0) + 1
-        lesson_id = f"{module_lookup[module][1]}-{module_counts[module]:02d}-{slugify(title)[:38]}"
+        lesson_ids[title] = f"{module_lookup[module][1]}-{module_counts[module]:02d}-{slugify(title)[:38]}"
+    ordered_topics = list(enumerate(TOPICS))
+    closure_index = next(i for i, t in ordered_topics if t[1] == "Scope, const, let e closure")
+    function_index = next(i for i, t in ordered_topics if t[1] == "Funzioni e responsabilità")
+    ordered_topics[closure_index], ordered_topics[function_index] = ordered_topics[function_index], ordered_topics[closure_index]
+
+    for global_index, topic in ordered_topics:
+        module, title, _group, minutes, mandatory, summary, concepts, example, pitfalls, review_question = topic
+        lesson_id = lesson_ids[title]
+        if title == "Moduli ed organizzazione del codice":
+            mandatory = True
+        if module in {"typescript", "wordpress"} or title in {"Presentare l'architettura di un'app Electron", "Presentare una pipeline AI multimodale"}:
+            mandatory = False
         body_file = f"lessons/{lesson_id}.md"
-        (CONTENT / body_file).write_text(lesson_markdown(module, title, summary, concepts, example, pitfalls, review_question), encoding="utf-8")
+        (CONTENT / body_file).write_text(lesson_markdown(module, title, summary, concepts, example, pitfalls, review_question, lesson_ids), encoding="utf-8")
         lessons.append({
             "id": lesson_id, "module": module, "title": title,
-            "minutes": minutes, "difficulty": "base" if mandatory else "approfondimento",
+            "minutes": minutes, "difficulty": ("base" if _group == 1 else "intermedio") if mandatory else "approfondimento",
             "mandatory": mandatory, "objectives": [x.strip() for x in concepts.split(";")[:4]],
             "summary": summary, "body_file": body_file,
         })
@@ -623,27 +587,23 @@ def build() -> None:
         # Esercizio di richiamo, specifico per la lezione.
         keywords = [x.strip() for x in concepts.split(";")]
         recall_id = f"ex-{lesson_id}-recall"
-        first_pitfall = pitfalls.split(";")[0].strip().rstrip(".")
-        recall_solution = (
-            f"{PLAIN_EXPLANATIONS[title]} Per usare il vocabolario della lezione, i due riferimenti principali sono {term_list(keywords[:2])}. "
-            f"Un errore da evitare è {first_pitfall.lower()}. Completerei la risposta con un esempio concreto e direi come controllerei il risultato."
-        )
+        recall_solution = REVIEW_ANSWERS[title] + f"\n\nLessico di ripasso: {term_list(keywords[:2])}."
         exercises.append({
-            "id": recall_id, "lesson_id": lesson_id, "title": f"Richiamo: {title}", "kind": "short",
-            "difficulty": "breve", "minutes": 8, "xp": 15,
-            "prompt": f"Prepara una spiegazione breve su **{title}**, come se dovessi insegnarlo a un'altra persona. Usa {term_list(keywords[:2])}, aggiungi un esempio concreto e indica un errore che eviteresti. Cinque–otto frasi sono sufficienti.",
+            "id": recall_id, "lesson_id": lesson_id, "title": f"Richiamo: {title}", "kind": "reflection",
+            "difficulty": "breve", "minutes": 8, "xp": 0,
+            "prompt": f"{review_question}\n\nUsa un esempio e descrivi il comportamento, includendo {term_list(keywords[:2])}. Il controllo verifica soltanto questi termini, non la correttezza della spiegazione: confronta la tua risposta con il modello.",
             "starter": "", "solution": recall_solution,
             "hints": [
                 f"Parti dall'idea più semplice: {PLAIN_EXPLANATIONS[title].split('.')[0].lower()}.",
                 f"Controlla di aver usato entrambi i termini richiesti: {term_list(keywords[:2])}.",
-                "Aggiungi un episodio, un dato o un frammento concreto: evita di chiudere la risposta con la sola definizione.",
+                "Descrivi un input e un risultato che permettano di controllare la spiegazione.",
             ],
             "tests": [{"name":f"usa il concetto: {keywords[0]}","alternatives":[keywords[0]]},{"name":f"usa il concetto: {keywords[1]}","alternatives":[keywords[1]]}],
             "explanation": "Il controllo automatico cerca i concetti richiesti, ma la verifica importante resta la tua: rileggi la risposta ad alta voce e controlla che contenga una regola, un esempio e un possibile errore.",
         })
 
         kind, prompt, starter, solution, tests = code_task(module, global_index, title)
-        if kind == "short":
+        if kind == "reflection":
             practice_hints = [
                 "Scegli prima una situazione concreta: una decisione presa, un errore trovato oppure un limite del progetto.",
                 "Dedica una frase alla scelta, una al rischio e una al modo in cui hai verificato il risultato.",
@@ -656,11 +616,11 @@ def build() -> None:
                 "Fai funzionare il caso più semplice. Solo dopo aggiungi controlli e casi limite.",
                 f"Se sei bloccato, torna a questi concetti: {term_list(keywords[:3])}. Quale manca nella tua soluzione?",
             ]
-            practice_explanation = f"La soluzione usa {term_list(keywords[:3])} senza aggiungere passaggi inutili. Confronta il comportamento, non la formattazione, e verifica soprattutto i casi limite."
+            practice_explanation = "Confronta la soluzione con il contratto e i casi dell'esercizio. " + ("I controlli di struttura non eseguono la UI: prova anche le interazioni indicate nel browser." if kind in {"react", "html"} else "I test eseguono i casi dichiarati: aggiungi una variante che distingua un comportamento corretto da uno errato.")
         exercises.append({
             "id": f"ex-{lesson_id}-practice", "lesson_id": lesson_id,
             "title": f"Pratica: {title}", "kind": kind,
-            "difficulty": "media", "minutes": 18 if kind not in {"short"} else 12, "xp": 30,
+            "difficulty": "media", "minutes": 12 if kind == "reflection" else 18, "xp": 0 if kind == "reflection" else 30,
             "prompt": prompt, "starter": starter, "solution": solution,
             "hints": practice_hints,
             "tests": tests, "explanation": practice_explanation,
@@ -668,7 +628,7 @@ def build() -> None:
 
         cards = [
             (f"Qual è l'idea principale di **{title}** e dove entra `{keywords[0]}`?", PLAIN_EXPLANATIONS[title]),
-            (review_question, f"Una risposta solida usa {term_list(keywords[:2])}, li collega a un esempio e termina con una verifica o un caso limite."),
+            (review_question, REVIEW_ANSWERS[title]),
             (f"Qual è un errore tipico legato a **{title}**?", "I rischi più comuni sono: " + pitfalls[0].lower() + pitfalls[1:]),
         ]
         for card_index, (question, answer) in enumerate(cards, 1):
@@ -682,36 +642,31 @@ def build() -> None:
         ("lab-react-list", "react", "Archivio React con ricerca", 1, 75, "Crea componenti, filtri, empty state ed eliminazione immutabile."),
         ("lab-ts-model", "typescript", "Contratti TypeScript", 2, 45, "Modella dati e stati remoti con union discriminate."),
         ("lab-react-form", "react", "Form controllato con validazione", 2, 75, "Implementa creazione e modifica con errori accessibili."),
-        ("lab-react-api", "react", "CRUD React collegato a API", 2, 100, "Integra lista, form, fetch, errori e aggiornamenti ottimistici."),
+        ("lab-react-api", "react", "CRUD React collegato a API", 2, 100, "Integra lista, form, fetch, stati remoti, errori e retry."),
         ("lab-sql", "sql", "Database gestionale", 2, 60, "Progetta schema e query per soggetti, misure e controlli."),
         ("lab-git", "git_testing", "Workflow Git e conflitto", 2, 40, "Esegui branch, commit piccoli, merge e risoluzione guidata."),
         ("lab-debug-app", "git_testing", "Diagnosi applicazione rotta", 2, 70, "Parti da test falliti e correggi una regressione alla volta."),
-        ("lab-final", "portfolio", "Mini gestionale finale", 2, 120, "Simula il test tecnico completo con React, API, validazione e README."),
+        ("lab-final", "portfolio", "Mini gestionale finale", 2, 120, "Costruisci e verifica un archivio completo con React, API, validazione e README."),
     ]
     labs = []
     for lab_id, module, title, _group, minutes, description in labs_spec:
         labs.append({
             "id":lab_id,"module":module,"title":title,"minutes":minutes,"difficulty":"laboratorio",
             "description":description,
-            "requirements":[
-                "Prima di scrivere codice, riassumi il risultato atteso con un esempio normale e un caso limite.",
-                "Costruisci prima la versione minima che funziona; aggiungi i miglioramenti uno alla volta.",
-                "Esegui i test dopo ogni passaggio e, quando uno fallisce, correggi una sola causa per volta.",
-                "Nel README annota i comandi necessari, le decisioni principali e almeno un limite rimasto.",
-            ],
+            "requirements":LAB_BRIEFS[lab_id],
             "rubric":["Il comportamento richiesto funziona anche nei casi limite","Il codice si legge facilmente e ogni parte ha una responsabilità chiara","Gli errori vengono gestiti in modo esplicito e utile","I test dimostrano le scelte descritte nel README"],
             "workspace_template":"react" if "react" in lab_id or lab_id == "lab-final" else "plain",
         })
 
     simulations = [
-        {"id":"sim-js-30","title":"Live coding JavaScript — 30 minuti","minutes":30,"brief":"Ricevi una collezione di soggetti. Devi filtrarla, aggiornare un elemento e calcolare un riepilogo senza modificare i dati originali.","checklist":["Ripeti il requisito con parole tue","Scrivi un esempio normale e un caso limite","Dividi la soluzione in funzioni piccole","Prova anche un array vuoto","Spiega il costo della soluzione e un possibile compromesso"]},
-        {"id":"sim-react-60","title":"Live coding React — 60 minuti","minutes":60,"brief":"Costruisci una lista ricercabile, un form controllato e un'eliminazione con conferma. Mostra chiaramente anche lo stato vuoto.","checklist":["Definisci la forma dei dati","Decidi quale componente possiede lo state","Gestisci la lista vuota","Usa una key stabile","Prova gli eventi come farebbe un utente"]},
+        {"id":"sim-js-30","title":"Sessione autonoma JavaScript — 30 minuti","minutes":30,"brief":"Ricevi una collezione di soggetti. Devi filtrarla, aggiornare un elemento e calcolare un riepilogo senza modificare i dati originali.","checklist":["Ripeti il requisito con parole tue","Scrivi un esempio normale e un caso limite","Dividi la soluzione in funzioni piccole","Prova anche un array vuoto","Spiega il costo della soluzione e un possibile compromesso"]},
+        {"id":"sim-react-60","title":"Sessione autonoma React — 60 minuti","minutes":60,"brief":"Costruisci una lista ricercabile, un form controllato e un'eliminazione con conferma. Mostra chiaramente anche lo stato vuoto.","checklist":["Definisci la forma dei dati","Decidi quale componente possiede lo state","Gestisci la lista vuota","Usa una key stabile","Prova gli eventi come farebbe un utente"]},
         {"id":"sim-debug-45","title":"Debugging guidato — 45 minuti","minutes":45,"brief":"Hai davanti una piccola applicazione con errori e test falliti. Trova le cause senza riscrivere tutto da capo.","checklist":["Riproduci il problema","Leggi per intero errore e stack trace","Formula un'ipotesi verificabile","Applica la correzione più piccola possibile","Esegui di nuovo tutti i test per evitare regressioni"]},
         {"id":"sim-complete-60","title":"Sfida completa — 60 minuti","minutes":60,"brief":"Completa una sessione che unisce spiegazione tecnica, domande web, analisi di due progetti e riflessione sull'uso consapevole dell'IA.","checklist":["Riassumi il tuo approccio in circa 90 secondi","Racconta due decisioni tecniche concrete","Descrivi un bug che hai realmente affrontato","Riconosci un limite e spiega come lo miglioreresti","Annota due domande da approfondire"]},
     ]
 
     catalog = {
-        "meta":{"name":"DEV//48","version":"1.0","estimated_hours":"12–16","language":"it"},
+        "meta":{"name":"DEV//48","version":"1.0","estimated_hours":f"{sum(item['minutes'] for item in lessons if item['mandatory']) / 60:.1f} ore di lezioni essenziali; {sum(item['minutes'] for item in lessons) / 60:.1f} ore di lezioni complete, pratica esclusa","language":"it"},
         "modules":[{"id":m,"order":order,"title":title,"description":description} for m,order,title,description in MODULES],
         "lessons":lessons,"exercises":exercises,"labs":labs,"flashcards":flashcards,"simulations":simulations,
     }

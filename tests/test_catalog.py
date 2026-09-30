@@ -32,12 +32,14 @@ def test_catalog_rejects_unknown_track_and_missing_track_catalog(tmp_path):
         Catalog(tmp_path, track="amazon-sde-oa")
 
 
-def test_every_lesson_has_two_exercises_and_substantial_markdown():
+def test_every_lesson_has_two_exercises_and_reviewable_markdown():
     catalog = Catalog(ROOT / "content")
     for lesson in catalog.lessons:
         assert len(catalog.exercises_for(lesson.id)) >= 2
         body = catalog.lesson_body(lesson)
-        assert len(body) >= 1_500
+        assert "## Un esempio concreto" in body
+        assert "## Prova tu" in body
+        assert body.count("```") >= 2 and body.count("```") % 2 == 0
         assert "## Dove ci si confonde spesso" in body
         assert "## Domanda di verifica" in body
 
@@ -55,14 +57,52 @@ def test_editorial_copy_is_natural_and_topic_specific():
         body = catalog.lesson_body(lesson)
         assert body.startswith(f"# {lesson.title}\n\n## In parole semplici")
         assert PLAIN_EXPLANATIONS[lesson.title] in body
-        assert "L'obiettivo di questa lezione è " in body
+        assert "Chiudi la pagina per un minuto e ripeti tre cose" not in body
+        assert "## Controllo rapido" not in body
     for phrase in banned_phrases:
         assert phrase not in all_text
         assert all(phrase not in catalog.lesson_body(lesson) for lesson in catalog.lessons)
     for exercise in catalog.exercises:
-        if exercise.kind == "short":
-            assert len(exercise.solution) >= 220
-            assert "esempio" in (exercise.prompt + exercise.solution).lower()
+        if exercise.kind == "reflection":
+            assert exercise.xp == 0
+            assert "confronta" in exercise.prompt.lower()
+            assert "controllo" in exercise.prompt.lower()
+
+
+def test_javascript_react_progression_prerequisites_and_practice():
+    import re
+    from tools.js_react_notes import GUIDES, REVIEW_ANSWERS
+
+    catalog = Catalog(ROOT / "content")
+    positions = {lesson.title: i for i, lesson in enumerate(catalog.lessons)}
+    by_title = {lesson.title: lesson for lesson in catalog.lessons}
+    cards = {card.id: card for card in catalog.flashcards}
+    assert positions["Funzioni e responsabilità"] < positions["Scope, const, let e closure"]
+    assert by_title["Moduli ed organizzazione del codice"].mandatory
+    assert not by_title["Generics essenziali"].mandatory
+    assert not by_title["Presentare una pipeline AI multimodale"].mandatory
+    # Reordered units retain the IDs already persisted by earlier releases.
+    assert by_title["Scope, const, let e closure"].id == "01-02-scope-const-let-e-closure"
+    assert by_title["Funzioni e responsabilità"].id == "01-03-funzioni-e-responsabilita"
+    expected_functions = {
+        "Valori, tipi e confronti": "classifyValue", "Scope, const, let e closure": "createCounter",
+        "Funzioni e responsabilità": "fullName", "Array: map, filter, find e some": "activeNames",
+        "Oggetti, destructuring e spread": "moveUser", "Immutabilità e operazioni CRUD": "updateSubject",
+        "Reduce, Set e Map": "sumActiveChecks", "Errori e validazione": "parsePositive",
+    }
+    for title, name in expected_functions.items():
+        practice = next(e for e in catalog.exercises_for(by_title[title].id) if e.id.endswith("-practice"))
+        assert name in practice.prompt and f"function {name}" in practice.solution
+    for lesson in catalog.lessons:
+        body = catalog.lesson_body(lesson)
+        for target in re.findall(r"\]\((\d\d-[^)]+\.md)\)", body):
+            assert (ROOT / "content" / "lessons" / target).is_file(), (lesson.id, target)
+        for prerequisite in GUIDES.get(lesson.title, {}).get("prerequisites", []):
+            assert positions[prerequisite] < positions[lesson.title]
+        assert REVIEW_ANSWERS[lesson.title] == cards[f"fc-{lesson.id}-2"].answer
+    practices = [e for e in catalog.exercises if e.id.startswith("ex-05-") and e.id.endswith("-practice")]
+    assert len({e.solution for e in practices}) == len(practices)
+    assert all("non esegue React" in e.prompt for e in practices if e.kind == "react")
 
 
 def test_dotnet_angular_course_is_complete_and_explicit_about_its_checks():

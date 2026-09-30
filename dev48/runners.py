@@ -695,9 +695,9 @@ const __dev48Results = [];
 function __dev48Equal(a, b) {
   return JSON.stringify(a) === JSON.stringify(b);
 }
-function __dev48Check(name, fn, expected) {
+async function __dev48Check(name, fn, expected) {
   try {
-    const actual = fn();
+    const actual = await fn();
     __dev48Results.push({name, passed: __dev48Equal(actual, expected), actual, expected});
   } catch (error) {
     __dev48Results.push({name, passed: false, error: String(error), expected});
@@ -706,7 +706,7 @@ function __dev48Check(name, fn, expected) {
 """
     for test in tests:
         expected = json.dumps(test.get("expected"), ensure_ascii=False)
-        harness += f"\n__dev48Check({json.dumps(test['name'])}, () => ({test['expression']}), {expected});"
+        harness += f"\nawait __dev48Check({json.dumps(test['name'])}, () => ({test['expression']}), {expected});"
     harness += "\nconsole.log('DEV48_RESULT:' + JSON.stringify(__dev48Results));\n"
     with TemporaryDirectory(prefix="dev48_js_") as temp:
         script = Path(temp) / "exercise.mjs"
@@ -723,7 +723,7 @@ function __dev48Check(name, fn, expected) {
     stderr = _trim(process.stderr)
     if process.returncode != 0:
         detail = stderr or stdout or "Il processo è terminato con un errore."
-        return RunResult(False, 0, f"Errore di sintassi o esecuzione TypeScript:\n{detail}", ())
+        return RunResult(False, 0, f"Errore di sintassi o esecuzione JavaScript:\n{detail}", ())
     marker = next((line for line in reversed(stdout.splitlines()) if line.startswith("DEV48_RESULT:")), "")
     if not marker:
         message = stderr or stdout or "Il processo non ha prodotto risultati."

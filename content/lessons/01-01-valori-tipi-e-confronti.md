@@ -2,38 +2,32 @@
 
 ## In parole semplici
 
-L'obiettivo di questa lezione è capire cosa contiene una variabile e prevedere conversioni e confronti.
+Capire cosa contiene una variabile e prevedere conversioni e confronti.
 
 JavaScript può convertire automaticamente un valore durante un confronto. Usare `===` e controllare il tipo rende il risultato più prevedibile, soprattutto quando i dati arrivano da form o API.
 
-### Perché è utile
-
-In JavaScript è utile seguire i valori uno alla volta: che tipo hanno, dove vengono creati e che cosa restituisce ogni espressione. Se sai prevedere questi passaggi, scrivere il codice diventa molto meno meccanico.
+Una variabile contiene un valore, e il tipo influenza ciò che puoi farci. `const` dichiara un riferimento che non puoi riassegnare; `let` consente la riassegnazione. `if` sceglie un ramo in base a una condizione e `return`, che useremo nelle funzioni, termina la chiamata restituendo un valore. Parti da confronti espliciti quando il requisito riguarda un tipo preciso.
 
 ## Le parole da riconoscere
 
-- `string`
-- `number`
-- `boolean`
-- `null`
-- `undefined`
-- `typeof`
-- `===`
-- `truthy e falsy`
-
-Non serve imparare questo elenco a memoria. Per iniziare, concentrati su **string, number, boolean** e cerca di usarli mentre descrivi l'esempio qui sotto.
+`string`; `number`; `boolean`; `null`; `undefined`; `typeof`; `===`; `truthy e falsy`
 
 ## Un esempio concreto
 
-```text
-const age = 30;
-const label = age >= 18 ? 'adult' : 'minor';
-console.log(typeof age, label);
+```javascript
+const fromInput = '0';
+console.log(typeof fromInput); // 'string'
+console.log(fromInput === 0); // false
+console.log(Number(fromInput) === 0); // true
+if (fromInput) console.log('stringa non vuota');
+console.log(typeof null); // 'object': particolarità storica
 ```
 
-Segui il valore dall'ingresso fino al `return`. Chiediti che cosa cambierebbe con un valore vuoto, mancante o di tipo inatteso.
+`'0'` è una stringa non vuota, quindi è truthy; il numero `0` è falsy. `===` confronta senza la conversione implicita di `==`. `null` esprime spesso un'assenza intenzionale; `undefined` compare, per esempio, leggendo una proprietà che manca. Non usare soltanto `typeof` per distinguerli.
 
-Adesso copri l'esempio e prova a ricostruirne la parte essenziale. Non deve essere identico: deve conservare lo stesso comportamento. Quando ci riesci, prova un caso normale e un caso limite.
+## Prova tu
+
+Prevedi prima l'esito di `'' === false`, `0 === false` e `null === undefined`. Poi eseguili. In `classifyValue`, prova anche `false`, zero e la stringa `'0'`: non devono essere classificati come mancanti.
 
 ## Dove ci si confonde spesso
 
@@ -41,21 +35,8 @@ Adesso copri l'esempio e prova a ricostruirne la parte essenziale. Non deve esse
 - Confondere null con undefined
 - Considerare '0' come numero zero
 
-Se qualcosa non funziona, evita di cambiare più righe a caso. Riproduci il problema con l'input più piccolo possibile, formula un'ipotesi e verifica una sola modifica per volta.
-
-## Controllo rapido
-
-- Riesco a spiegarlo senza leggere la pagina?
-- So indicare input, risultato e almeno un caso limite?
-- Riesco a riscrivere l'esempio partendo da un file vuoto?
-- So dire come verificherei che funziona?
-
 ## Domanda di verifica
 
 > Qual è la differenza tra == e ===?
 
-Prova a rispondere senza rileggere: prima la regola, poi un esempio. Se ti manca un termine, descrivi il comportamento con parole semplici invece di fermarti.
-
-## Prima di andare avanti
-
-Chiudi la pagina per un minuto e ripeti tre cose: che problema risolve questo argomento, quale errore vuoi evitare e quale esempio useresti per spiegarlo. Se una delle tre non viene, riapri soltanto la sezione che ti serve.
+Confronta la tua spiegazione con la flashcard dedicata alla domanda.
