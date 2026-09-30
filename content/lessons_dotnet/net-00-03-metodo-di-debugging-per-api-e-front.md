@@ -1,21 +1,8 @@
 # Metodo di debugging per API e Frontend
 
-## In parole semplici
-
-L'obiettivo di questa lezione è isolare un errore distinguendo problemi di compilazione C#, errori HTTP di rete e bug di rendering Angular.
-
 Il debugging sistematico richiede di isolare il perimetro: prima verifica la rete (DevTools Network), poi l'output del backend (log o eccezioni C#), infine lo stato del componente Angular. Qui usiamo un metodo con `if` e `return` per classificare pochi codici HTTP: ogni ramo è spiegato prima dell'esercizio.
 
-## Le parole da riconoscere
-
-- `stack trace`
-- `network tab`
-- `status code`
-- `console.log`
-- `breakpoint`
-- `falsificabile`
-
-## Anatomia e Sintassi del Codice
+## Partiamo da quello che puoi osservare
 
 ### Matrice Diagnostica degli Errori:
 - **Errore di Compilazione C# (`error CS...`)**: il backend non compila per sintassi errata, tipi non corrispondenti o riferimenti mancanti.
@@ -38,7 +25,7 @@ public static string Classify(int statusCode) {
 }
 ```
 
-## Un esempio concreto
+## Segui un caso dall'inizio alla fine
 
 ```text
 // 1. Guarda la Console del browser per errori JS/TS
@@ -46,16 +33,14 @@ public static string Classify(int statusCode) {
 // 3. Guarda il terminale del server per lo stack trace C#
 ```
 
-### Seguilo passo per passo
+### Ricostruisci il caso con i dati iniziali
 
 1. Parti dal sintomo osservabile nel browser: errore JavaScript, schermata vuota o richiesta fallita. Non modificare codice ancora.
 2. Apri Network e leggi URL, metodo e status code. Un `404` indica una rotta non trovata; un `500` sposta l'indagine sul server.
 3. Se la richiesta non parte, controlla Console e componente Angular; se parte ma fallisce, confronta la risposta con il log del backend.
 4. Nel classificatore, prova i limiti `199`, `200`, `299`, `300`, `400`, `499`, `500`, `599` e `600`: ogni `if` controlla una fascia e `return` termina il metodo appena trova quella giusta.
 
-## Pattern Guida per gli Esercizi
-
-Usa il frammento come riferimento iniziale. Prima di aprire gli indizi, prova a prevedere un caso della consegna; dopo la soluzione, riscrivi il passaggio che ti mancava.
+## Una variante da provare
 
 ```csharp
 public static class HttpErrorClassifier {
@@ -68,11 +53,9 @@ public static class HttpErrorClassifier {
 }
 ```
 
-## Dove ci si confonde spesso
+## Se il risultato non è quello atteso
 
 - Cercare l'errore nel componente Angular quando la richiesta fallisce con HTTP 500 nel server
 - modificare file a caso senza leggere il messaggio.
 
-## Domanda di verifica
-
-> Se un pulsante in Angular non aggiorna la tabella, quali tre controlli esegui in ordine?
+> **Fermati e ricostruisci il passaggio** Se un pulsante in Angular non aggiorna la tabella, quali tre controlli esegui in ordine?

@@ -1,51 +1,61 @@
 # Progettazione dell'esperienza utente e feedback visivo
 
-## In parole semplici
+Un click che avvia una richiesta non produce subito un risultato. Se la vista non cambia, la persona può cliccare ancora; se il server rifiuta, lasciare il pulsante disabilitato sembra un blocco. La UI deve rappresentare l'intero ciclo, non soltanto il successo.
 
-L'obiettivo di questa lezione è creare interfacce piacevoli con stati di caricamento skeleton, toast di notifica e micro-interazioni.
+## Il progetto visto da chi deve usarlo
 
-Per operazioni che richiedono attesa o possono fallire, un feedback chiaro aiuta a capire se l'azione è stata avviata e come è terminata.
+### Stati osservabili dal template
+```typescript
+import { signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 
-## Le parole da riconoscere
+type SaveState = 'idle' | 'loading' | 'success' | 'error';
+readonly state = signal<SaveState>('idle');
 
-- `ux`
-- `skeleton loader`
-- `toast`
-- `accessibilita`
-- `micro-interazioni`
-- `feedback visivo`
-
-## Anatomia e Sintassi del Codice
-
-### I Tre Stati di Qualsiasi Operazione Asincrona:
-1. **Pending (In Corso)**: disabilita il pulsante di submit per prevenire doppi invii e mostra un indicatore visivo.
-2. **Success (Completata)**: mostra un toast o messaggio temporaneo di successo e aggiorna la lista.
-3. **Error (Fallita)**: evidenzia il campo errato o mostra una notifica chiara con ProblemDetails.
-
-## Un esempio concreto
-
-```html
-<!-- Disabilitare pulsante e mostrare spinner mentre isSaving() è true -->
-<button [disabled]="isSaving()">
-  @if (isSaving()) { <span>Salvataggio...</span> } @else { <span>Salva</span> }
-</button>
+// Estratto del componente: il service e il form sono già stati iniettati.
+async save(): Promise<void> {
+  this.state.set('loading');
+  try {
+    await firstValueFrom(this.subjectsService.save(this.form.getRawValue()));
+    this.state.set('success');
+  } catch {
+    this.state.set('error');
+  }
+}
 ```
 
-### Seguilo passo per passo
+Poiché `HttpClient` restituisce un Observable, `firstValueFrom` lo attende come Promise; in una UI reattiva puoi invece gestire la richiesta con `subscribe` o convertirla nello stato del template.
 
-1. Quando parte il salvataggio, `isSaving()` disabilita il pulsante per evitare invii ripetuti.
-2. Il template mostra `Salvataggio...` durante l'attesa e `Salva` quando l'operazione termina; la persona riceve un'indicazione visibile.
-3. Al successo o all'errore, mostra un messaggio associato allo stato. Per i cambiamenti annunciabili aggiungi un'area `role="status"` o `role="alert"` con il comportamento appropriato.
-4. Prova una rete lenta, un errore e un doppio click. Controlla tastiera e screen reader, non solo l'aspetto visivo.
+```html
+<button [disabled]="state() === 'loading'" (click)="save()">
+  @if (state() === 'loading') { <span>Salvataggio…</span> }
+  @else { <span>Salva</span> }
+</button>
+@if (state() === 'success') { <p role="status">Modifiche salvate.</p> }
+@if (state() === 'error') { <p role="alert">Salvataggio non riuscito. Riprova.</p> }
+```
 
-## Pattern Guida per gli Esercizi
+Il template disabilita il doppio invio durante l'attesa e rende visibile la conclusione. Collega gli errori di validazione del server ai campi; un errore di rete deve lasciare i dati ripristinabili. Usa `role="status"` per un aggiornamento informativo e `role="alert"` per un errore che richiede attenzione.
 
-La pratica breve isola una regola e non avvia l'applicazione Angular. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
+## Attraversa i file e i processi coinvolti
 
-## Dove ci si confonde spesso
+```text
+state.set('loading');
+try { await service.save(value); state.set('success'); }
+catch { state.set('error'); }
+```
+
+### Racconta l'operazione dal file al risultato
+
+1. Al click, lo stato passa da `idle` a `loading`; il pulsante si disabilita e mostra l'attesa.
+2. Quando l'API risponde con successo, la lista si aggiorna e il template annuncia il completamento.
+3. Se la richiesta fallisce, il `catch` porta lo stato a `error`; il pulsante si riattiva e un messaggio spiega come proseguire.
+4. Prova una rete lenta, una risposta 400 di validazione, un errore 500 e un doppio click. Verifica tastiera e annunci screen reader oltre all'aspetto visivo.
+
+La funzione breve modella solo le transizioni di stato. Nel laboratorio Monorepo e nel portfolio prova il flusso con richieste HTTP riuscite e fallite e conserva il form in caso di errore.
+
+## Che cosa deve poter verificare un'altra persona?
 
 - Non mostrare alcuno stato di caricamento lasciando credere all'utente che il click non sia stato registrato.
 
-## Domanda di verifica
-
-> Quali problemi previeni disabilitando il pulsante durante una richiesta, e che cosa devi fare se fallisce?
+> **Quale decisione puoi motivare con il codice?** Quali problemi previeni disabilitando il pulsante durante una richiesta, e che cosa devi fare se fallisce?

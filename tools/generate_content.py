@@ -334,17 +334,17 @@ TOPICS = [
 
 
 MODULES = [
-    ("orientamento", "00", "Orientamento e diagnostico", "Imposta un metodo di studio pratico e un approccio sistematico al debugging."),
-    ("javascript", "01", "JavaScript fondamentale", "Il linguaggio che devi saper scrivere senza assistenza."),
-    ("async_http", "02", "Async, HTTP e API", "Dati remoti, errori e confini di sicurezza."),
-    ("html_css", "03", "HTML e CSS", "Struttura semantica, accessibilità e layout."),
-    ("typescript", "04", "TypeScript", "Contratti e dati affidabili."),
-    ("react", "05", "React", "Componenti, stato, form, effect e CRUD."),
-    ("backend", "06", "Backend e sicurezza", "Node, route, servizi e rischi web."),
-    ("sql", "07", "SQL e database", "Query, relazioni, integrità e transazioni."),
-    ("git_testing", "08", "Git, test e debugging", "Workflow professionale e qualità."),
-    ("wordpress", "09", "WordPress essenziale", "Plugin custom e sicurezza di base."),
-    ("portfolio", "10", "Progetti e comunicazione tecnica", "Racconta progetti complessi, decisioni tecniche e risultati in modo chiaro."),
+    ("orientamento", "00", "Orientamento e metodo", "Imposta un percorso di studio pratico e un metodo per diagnosticare i problemi."),
+    ("javascript", "01", "JavaScript fondamentale", "Scrivi funzioni e trasformazioni sui dati in autonomia."),
+    ("async_http", "02", "Asincronia, HTTP e API", "Gestisci richieste remote, errori e dati provenienti da altre applicazioni."),
+    ("html_css", "03", "HTML e CSS", "Costruisci pagine semantiche, accessibili e adatte a schermi diversi."),
+    ("typescript", "04", "TypeScript", "Descrivi i dati con tipi chiari e controlla le varianti possibili."),
+    ("react", "05", "React", "Componi interfacce e gestisci stato, form e richieste dati."),
+    ("backend", "06", "Backend e sicurezza", "Organizza API e servizi Node.js e applica le difese web essenziali."),
+    ("sql", "07", "SQL e database", "Interroga dati collegati e mantieni l'integrità con vincoli e transazioni."),
+    ("git_testing", "08", "Git, test e debugging", "Gestisci modifiche, verifica comportamenti e correggi regressioni."),
+    ("wordpress", "09", "WordPress", "Crea plugin essenziali e gestisci input e permessi con attenzione."),
+    ("portfolio", "10", "Progetti e decisioni tecniche", "Organizza il lavoro e documenta scelte, verifiche e risultati."),
 ]
 
 
@@ -627,26 +627,26 @@ def build() -> None:
         })
 
         cards = [
-            (f"Qual è l'idea principale di **{title}** e dove entra `{keywords[0]}`?", PLAIN_EXPLANATIONS[title]),
+            (f"A che cosa serve **{title}**?", PLAIN_EXPLANATIONS[title]),
             (review_question, REVIEW_ANSWERS[title]),
-            (f"Qual è un errore tipico legato a **{title}**?", "I rischi più comuni sono: " + pitfalls[0].lower() + pitfalls[1:]),
+            (f"Quale errore evitare quando lavori su **{title}**?", "Un rischio da evitare: " + pitfalls[0].lower() + pitfalls[1:]),
         ]
         for card_index, (question, answer) in enumerate(cards, 1):
             flashcards.append({"id":f"fc-{lesson_id}-{card_index}","module":module,"question":question,"answer":answer})
 
     labs_spec = [
-        ("lab-js-crud", "javascript", "CRUD immutabile di soggetti", 1, 55, "Implementa aggiunta, modifica, eliminazione, filtro e riepilogo su un dataset."),
-        ("lab-js-debug", "javascript", "Debugging di funzioni difettose", 1, 45, "Ripara sei bug su tipi, ricerca, mutazioni ed edge case."),
-        ("lab-html-dashboard", "html_css", "Dashboard responsive accessibile", 1, 60, "Costruisci una dashboard da zero senza framework CSS."),
-        ("lab-fetch", "async_http", "Client API resiliente", 1, 55, "Gestisci loading, success, empty, error, retry e annullamento."),
-        ("lab-react-list", "react", "Archivio React con ricerca", 1, 75, "Crea componenti, filtri, empty state ed eliminazione immutabile."),
-        ("lab-ts-model", "typescript", "Contratti TypeScript", 2, 45, "Modella dati e stati remoti con union discriminate."),
-        ("lab-react-form", "react", "Form controllato con validazione", 2, 75, "Implementa creazione e modifica con errori accessibili."),
-        ("lab-react-api", "react", "CRUD React collegato a API", 2, 100, "Integra lista, form, fetch, stati remoti, errori e retry."),
-        ("lab-sql", "sql", "Database gestionale", 2, 60, "Progetta schema e query per soggetti, misure e controlli."),
-        ("lab-git", "git_testing", "Workflow Git e conflitto", 2, 40, "Esegui branch, commit piccoli, merge e risoluzione guidata."),
-        ("lab-debug-app", "git_testing", "Diagnosi applicazione rotta", 2, 70, "Parti da test falliti e correggi una regressione alla volta."),
-        ("lab-final", "portfolio", "Mini gestionale finale", 2, 120, "Costruisci e verifica un archivio completo con React, API, validazione e README."),
+        ("lab-js-crud", "javascript", "Gestione immutabile dei soggetti", 1, 55, "Aggiungi, modifica, rimuovi e filtra soggetti senza alterare i dati originali."),
+        ("lab-js-debug", "javascript", "Debugging di funzioni", 1, 45, "Trova e correggi sei problemi legati a tipi, ricerca, mutazioni e casi limite."),
+        ("lab-html-dashboard", "html_css", "Dashboard accessibile e responsive", 1, 60, "Costruisci una dashboard con HTML e CSS, curando tastiera, focus e layout."),
+        ("lab-fetch", "async_http", "Client per API affidabili", 1, 55, "Gestisci caricamento, successo, lista vuota, errori, nuovi tentativi e annullamento."),
+        ("lab-react-list", "react", "Archivio React ricercabile", 1, 75, "Crea una lista filtrabile con stato vuoto ed eliminazione senza mutare i dati."),
+        ("lab-ts-model", "typescript", "Modelli e contratti TypeScript", 2, 45, "Descrivi i dati e gli stati di una richiesta con tipi e union discriminate."),
+        ("lab-react-form", "react", "Form React con validazione", 2, 75, "Crea e modifica record con un form controllato e messaggi di errore accessibili."),
+        ("lab-react-api", "react", "Gestione React collegata a un'API", 2, 100, "Collega lista e form a un'API e mostra caricamento, errori, successo e nuovi tentativi."),
+        ("lab-sql", "sql", "Database per un gestionale", 2, 60, "Progetta tabelle, vincoli e query per soggetti, misure e controlli."),
+        ("lab-git", "git_testing", "Branch, commit e conflitti", 2, 40, "Crea branch, registra modifiche piccole e risolvi un conflitto nella repository di pratica."),
+        ("lab-debug-app", "git_testing", "Debugging di un'applicazione", 2, 70, "Indaga i test falliti e correggi i problemi uno alla volta, aggiungendo regressioni utili."),
+        ("lab-final", "portfolio", "Progetto gestionale finale", 2, 120, "Costruisci e verifica un archivio con React e API, poi documenta avvio e limiti nel README."),
     ]
     labs = []
     for lab_id, module, title, _group, minutes, description in labs_spec:
@@ -659,14 +659,14 @@ def build() -> None:
         })
 
     simulations = [
-        {"id":"sim-js-30","title":"Sessione autonoma JavaScript — 30 minuti","minutes":30,"brief":"Ricevi una collezione di soggetti. Devi filtrarla, aggiornare un elemento e calcolare un riepilogo senza modificare i dati originali.","checklist":["Ripeti il requisito con parole tue","Scrivi un esempio normale e un caso limite","Dividi la soluzione in funzioni piccole","Prova anche un array vuoto","Spiega il costo della soluzione e un possibile compromesso"]},
-        {"id":"sim-react-60","title":"Sessione autonoma React — 60 minuti","minutes":60,"brief":"Costruisci una lista ricercabile, un form controllato e un'eliminazione con conferma. Mostra chiaramente anche lo stato vuoto.","checklist":["Definisci la forma dei dati","Decidi quale componente possiede lo state","Gestisci la lista vuota","Usa una key stabile","Prova gli eventi come farebbe un utente"]},
-        {"id":"sim-debug-45","title":"Debugging guidato — 45 minuti","minutes":45,"brief":"Hai davanti una piccola applicazione con errori e test falliti. Trova le cause senza riscrivere tutto da capo.","checklist":["Riproduci il problema","Leggi per intero errore e stack trace","Formula un'ipotesi verificabile","Applica la correzione più piccola possibile","Esegui di nuovo tutti i test per evitare regressioni"]},
-        {"id":"sim-complete-60","title":"Sfida completa — 60 minuti","minutes":60,"brief":"Completa una sessione che unisce spiegazione tecnica, domande web, analisi di due progetti e riflessione sull'uso consapevole dell'IA.","checklist":["Riassumi il tuo approccio in circa 90 secondi","Racconta due decisioni tecniche concrete","Descrivi un bug che hai realmente affrontato","Riconosci un limite e spiega come lo miglioreresti","Annota due domande da approfondire"]},
+        {"id":"sim-js-30","title":"JavaScript · gestione dei soggetti (30 min)","minutes":30,"brief":"Parti da un elenco di soggetti: filtralo, aggiorna un record e calcola un riepilogo senza modificare i dati originali.","checklist":["Riassumi il requisito con parole tue","Prova un caso normale e uno limite","Dividi il lavoro in funzioni piccole","Controlla anche l'elenco vuoto","Descrivi il costo della soluzione e un compromesso"]},
+        {"id":"sim-react-60","title":"React · lista e form (60 min)","minutes":60,"brief":"Crea una lista ricercabile, un form controllato e l'eliminazione di un elemento con conferma. Mostra anche quando la lista è vuota.","checklist":["Definisci la forma dei dati","Scegli quale componente mantiene lo stato","Gestisci la lista vuota","Assegna una chiave stabile a ogni riga","Prova il flusso con mouse e tastiera"]},
+        {"id":"sim-debug-45","title":"Debugging · individua e correggi il problema (45 min)","minutes":45,"brief":"Esamina una piccola applicazione con test falliti. Riproduci il problema, individua la causa e limita la correzione ai punti necessari.","checklist":["Riproduci il problema","Leggi l'errore e la traccia completa","Formula un'ipotesi verificabile","Applica una correzione circoscritta","Esegui di nuovo i test e controlla le aree vicine"]},
+        {"id":"sim-complete-60","title":"Prova completa · ragionamento e progetti (60 min)","minutes":60,"brief":"Alterna spiegazione tecnica, domande sul web, analisi di due progetti e riflessione sull'uso dell'IA.","checklist":["Riassumi il tuo approccio in circa 90 secondi","Descrivi due decisioni tecniche concrete","Racconta un bug che hai affrontato davvero","Riconosci un limite e spiega come lo miglioreresti","Annota due domande da approfondire"]},
     ]
 
     catalog = {
-        "meta":{"name":"DEV//48","version":"1.0","estimated_hours":f"{sum(item['minutes'] for item in lessons if item['mandatory']) / 60:.1f} ore di lezioni essenziali; {sum(item['minutes'] for item in lessons) / 60:.1f} ore di lezioni complete, pratica esclusa","language":"it"},
+        "meta":{"name":"Percorso JavaScript e React","version":"1.0","estimated_hours":f"{sum(item['minutes'] for item in lessons if item['mandatory']) / 60:.1f} ore di lezioni essenziali; {sum(item['minutes'] for item in lessons) / 60:.1f} ore di lezioni complete, pratica esclusa","language":"it"},
         "modules":[{"id":m,"order":order,"title":title,"description":description} for m,order,title,description in MODULES],
         "lessons":lessons,"exercises":exercises,"labs":labs,"flashcards":flashcards,"simulations":simulations,
     }

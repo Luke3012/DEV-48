@@ -1,10 +1,6 @@
 # Reactive Forms: FormGroup e FormControl
 
-## In parole semplici
-
-L'obiettivo di questa lezione è costruire form reattivi complessi e controllati gestendo stato, valori e validità dal TypeScript.
-
-Reactive Forms mantengono valori, stato e validatori in un modello TypeScript esplicito; sono ancora una scelta solida per form complessi e codice esistente. Angular 22 offre anche Signal Forms, stabili e vicine al modello basato su signals: qui le confrontiamo per riconoscere quale approccio usare.
+Per inviare un profilo servono nome, email ed età. Il form deve ricordare il valore corrente di ogni campo, sapere se l'utente l'ha toccato o modificato e decidere se i dati sono validi; `FormControl` modella un campo e `FormGroup` aggrega l'intero modulo.
 
 ### Nel percorso
 
@@ -12,53 +8,56 @@ Da conoscere: [Data Binding moderno: interpolazione, property ed event binding](
 
 Il laboratorio Form Reattivo con Validazione Remota collega le regole allo stato reale dei controlli. La panoramica Signal Forms è facoltativa: puoi proseguire con Reactive Forms senza implementare un secondo form.
 
-## Le parole da riconoscere
+## Lo stato che l'utente sta costruendo
 
-- `reactive forms`
-- `formgroup`
-- `formcontrol`
-- `formbuilder`
-- `formcontrolname`
-- `stato validita`
-
-## Anatomia e Sintassi del Codice
-
-### Creazione di un FormGroup con FormBuilder:
+### Il modello del form vive nel componente
 ```typescript
 import { Component, inject } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
-  selector: 'app-login-form',
-  standalone: true,
+  selector: 'app-profile-form',
   imports: [ReactiveFormsModule],
   template: `
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-      <input formControlName="email" placeholder="Email" />
-      <input type="password" formControlName="password" />
-      <button type="submit" [disabled]="loginForm.invalid">Accedi</button>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label>Nome <input formControlName="name" /></label>
+      @if (form.controls.name.touched && form.controls.name.hasError('required')) {
+        <p>Inserisci il nome.</p>
+      }
+
+      <label>Email <input type="email" formControlName="email" /></label>
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <p>Controlla l'indirizzo email.</p>
+      }
+
+      <label>Età <input type="number" formControlName="age" /></label>
+      <button type="submit" [disabled]="form.invalid">Salva</button>
     </form>
   `
 })
-export class LoginFormComponent {
+export class ProfileFormComponent {
   private readonly fb = inject(FormBuilder);
-  loginForm = this.fb.nonNullable.group({
+  readonly form = this.fb.nonNullable.group({
+    name: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(8)]]
+    age: [18, [Validators.min(18)]]
   });
 
-  onSubmit() {
-    if (this.loginForm.valid) {
-      // Invia i dati al servizio di login; evita di registrare password nei log.
-      const credentials = this.loginForm.getRawValue();
+  submit(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
     }
+    const profile = this.form.getRawValue();
+    // Invia profile al servizio, poi mostra successo o errore.
   }
 }
 ```
 
-### Signal Forms in Angular 22
-Signal Forms sono incluse in `@angular/forms/signals`. Un modello signal diventa la fonte dei dati; `form()` crea l'albero dei campi e `FormField` collega un campo al template.
+`ReactiveFormsModule` fornisce le direttive del template e va inserito negli `imports` standalone. `value` contiene i dati; `valid`/`invalid` sintetizzano i validator; `touched` indica che il focus è entrato ed è uscito dal controllo; `dirty` indica una modifica rispetto al valore iniziale; `pending` segnala una validazione asincrona in corso. Questi stati permettono di mostrare il messaggio nel momento utile, non al primo rendering.
 
+### Un'alternativa per i nuovi progetti signal-based
+Da Angular 22, Signal Forms è stabile e inclusa nel pacchetto `@angular/forms`. Il modello dati diventa un Signal; `form()` costruisce la struttura dei campi e `FormField` la collega ai controlli:
 ```typescript
 import { Component, signal } from '@angular/core';
 import { email, form, FormField, required } from '@angular/forms/signals';
@@ -69,40 +68,36 @@ import { email, form, FormField, required } from '@angular/forms/signals';
   template: `<label>Email <input type="email" [formField]="loginForm.email" /></label>`
 })
 export class SignalLoginComponent {
-  model = signal({ email: '' });
-  loginForm = form(this.model, path => {
+  readonly model = signal({ email: '' });
+  readonly loginForm = form(this.model, path => {
     required(path.email);
     email(path.email);
   });
 }
 ```
+Reactive Forms resta stabile ed è una scelta solida, soprattutto per codice esistente o form complessi. Questo percorso insegna quel modello e il laboratorio lo applica; Signal Forms è una panoramica per confrontare i flussi, non un secondo esercizio da completare. [Confronto ufficiale Angular](https://angular.dev/guide/forms/signals/comparison).
 
-Scegli Signal Forms per familiarizzare con form nuovi basati su signals; scegli Reactive Forms quando vuoi il modello esplicito già usato negli esempi e nei progetti esistenti, soprattutto se i form sono complessi o dinamici. In questo corso il laboratorio prosegue con Reactive Forms; Signal Forms è una panoramica, non un secondo insieme di esercizi da completare. [Confronto ufficiale Angular](https://angular.dev/guide/forms/signals/comparison).
-
-## Un esempio concreto
+## Segui un campo o una navigazione
 
 ```typescript
-loginForm = fb.group({
+readonly form = this.fb.nonNullable.group({
+  name: ['', Validators.required],
   email: ['', [Validators.required, Validators.email]],
-  age: [18, [Validators.min(18)]]
+  age: [18, Validators.min(18)]
 });
 ```
 
-### Seguilo passo per passo
+### Segui la persona mentre completa il flusso
 
-1. `fb.group` crea due controlli: `email` parte vuoto e `age` parte da `18`.
-2. `Validators.required` e `Validators.email` controllano il valore email; `Validators.min(18)` controlla il minimo dell'età.
-3. Il `FormGroup` aggrega valori e stato dei controlli. Un'età sotto 18 o un indirizzo non valido rende il form non valido; il template deve mostrare gli errori e impedire l'invio.
-4. Confronta l'idea con il breve esempio Signal Forms: in Angular 22 è stabile e usa un modello signal; il laboratorio del corso continua con Reactive Forms per esercitare il modello esplicito.
+1. All'avvio `name` ed `email` sono vuoti: i controlli sono invalidi, ma `touched` è `false`, quindi gli errori non disturbano prima dell'interazione.
+2. L'utente entra nel campo e poi lo lascia: `touched` diventa `true`; se manca il nome, il template mostra il messaggio richiesto.
+3. Quando inserisce un'email valida e un'età di almeno 18, i controlli diventano validi e il gruppo aggrega `form.valid === true`. Una verifica remota aggiungerà `pending` mentre aspetta il server.
+4. Il submit legge `getRawValue()` solo quando il form è valido. Se il server rifiuta la richiesta, mostra l'errore vicino al form e riattiva il pulsante; non interpretare un errore di rete come validità.
 
-## Pattern Guida per gli Esercizi
+La funzione breve verifica soltanto una regola TypeScript e non istanzia Angular Forms. Il laboratorio collega validator, touched/pending e invio al modello reale del form e ai test TestBed.
 
-La pratica breve isola una regola e non avvia l'applicazione Angular. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
-
-## Dove ci si confonde spesso
+## Rendi visibile lo stato che blocca il flusso
 
 - Dimenticare di importare `ReactiveFormsModule` negli `imports` del componente Standalone, provocando l'errore 'formGroup is not a known property of form'.
 
-## Domanda di verifica
-
-> Qual è la differenza fondamentale tra Template-Driven Forms e Reactive Forms in Angular?
+> **Quale stato decide che cosa accade dopo?** Qual è la differenza fondamentale tra Template-Driven Forms e Reactive Forms in Angular?

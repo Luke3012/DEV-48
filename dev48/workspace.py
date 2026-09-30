@@ -36,7 +36,7 @@ def ensure_lab_workspace(root: Path, lab: Lab) -> Path:
             creative = "\n\n## Estensioni facoltative\n" + "\n".join(f"- {item}" for item in lab.creative_goals)
         commands = {
             "amazon_node": "Esegui `npm test` da questa cartella; non servono pacchetti esterni.",
-            "amazon_cpp": "Apri `CMakeLists.txt`; il test runner dell'app compila con GCC o Clang in C++20.",
+            "amazon_cpp": "Apri `CMakeLists.txt`; l'app compila ed esegue i test con GCC o Clang in C++20.",
             "dotnet": "Dalla cartella `server/` esegui `dotnet restore`, poi `dotnet test Tests/Server.Tests.csproj`. Per i progetti API avvia `dotnet run --urls http://localhost:5000`.",
             "angular": "Dalla cartella `client/` esegui `npm install`, poi `npm test`. Avvia la pagina con `npm start` e apri l'URL indicato nel terminale.",
             "monorepo": "In un terminale entra in `server/`, esegui `dotnet restore` e `dotnet run --urls http://localhost:5000`. In un secondo entra in `client/`, esegui `npm install` e `npm start`. Per i test usa `dotnet test Tests/Server.Tests.csproj` da `server/` e `npm test` da `client/`.",
@@ -45,10 +45,10 @@ def ensure_lab_workspace(root: Path, lab: Lab) -> Path:
             commands = "Questo laboratorio verifica codice isolato: da `server/` esegui `dotnet test Tests/Server.Tests.csproj`; da `client/` esegui `npm install` e `npm test`. Per osservare il componente avvia `npm start` da `client/`."
         readme.write_text(
             f"# {lab.title}\n\n{lab.description}\n\n"
-            "Questo workspace contiene uno starter da completare. I test automatici verificano soltanto i comportamenti dichiarati dai test presenti; leggi anche i criteri e controlla manualmente i requisiti che non sono coperti.\n\n"
+            "Questa cartella contiene un progetto iniziale da completare. I test automatici verificano soltanto i comportamenti coperti dalla suite; leggi i criteri e controlla anche i requisiti non verificati automaticamente.\n\n"
             "## Requisiti\n\n" f"{requirements}\n\n## Criteri di qualità\n\n{rubric}{creative}\n\n"
             "## Avvio e test\n\n"
-            "Usa il pulsante **Esegui test** nell'app dopo ogni modifica.\n\n"
+            "Dopo ogni modifica, usa il pulsante **Esegui test** nell'app.\n\n"
             f"{commands}\n{course_lab_notes(lab)}",
             encoding="utf-8",
         )
@@ -130,7 +130,7 @@ def _ensure_react_project(target: Path, lab: Lab) -> None:
 def open_vscode(path: Path) -> tuple[bool, str]:
     code = shutil.which("code")
     if not code:
-        return False, f"VS Code CLI non trovato. Apri manualmente: {path}"
+        return False, f"Il comando di VS Code non è disponibile. Apri questa cartella da VS Code: {path}"
     subprocess.Popen([code, str(path)], cwd=path)
     return True, f"Aperto in VS Code: {path}"
 
@@ -177,6 +177,6 @@ def install_lab_dependencies(path: Path) -> tuple[bool, str]:
             success = False
 
     if not outputs:
-        return False, "Nessun gestore dipendenze rilevato (né dotnet né npm)."
+        return False, "Non ho trovato un progetto .NET o Node da preparare in questa cartella."
 
     return success, ("\n\n".join(outputs))[-8000:]

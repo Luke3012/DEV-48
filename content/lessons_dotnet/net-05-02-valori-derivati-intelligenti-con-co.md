@@ -1,10 +1,6 @@
 # Valori derivati intelligenti con computed()
 
-## In parole semplici
-
-L'obiettivo di questa lezione è creare segnali dipendenti che si ricalcolano automaticamente e memorizzano il risultato.
-
-`computed()` crea un valore derivato in sola lettura. Angular memorizza il calcolo e aggiorna le dipendenze in base ai Signals letti durante l'ultima esecuzione; la funzione viene valutata quando il valore serve.
+Se un carrello contiene righe e quantità, il totale dipende da quei dati. Memorizzare sia le righe sia un totale modificabile richiede di ricordare ogni punto di aggiornamento: basta dimenticarne uno per mostrare una cifra incoerente.
 
 ### Nel percorso
 
@@ -12,58 +8,53 @@ Da conoscere: [Introduzione a signal() e aggiornamento stato con set() e update(
 
 Un totale dipende dagli elementi: mantenere due valori modificabili separati obbliga a sincronizzarli. Il laboratorio Dashboard Reattiva con Angular Signals verifica l'aggiornamento dei totali quando la lista cambia.
 
-## Le parole da riconoscere
+## Quale dato è sorgente e quale è derivato?
 
-- `computed`
-- `derivazione di stato`
-- `memoization`
-- `funzione pura`
-- `dipendenze dinamiche`
-
-## Anatomia e Sintassi del Codice
-
-### Caratteristiche di `computed()`:
-1. **Memoization**: `computed()` calcola il valore quando serve e riusa il risultato finché le dipendenze lette non cambiano.
-2. **Sola lettura**: un segnale `computed` non espone `.set()` o `.update()`; modifica i segnali sorgente e lascia derivare il valore.
-3. **Dipendenze dinamiche**: Angular tiene conto dei Signals letti durante l'ultima esecuzione della funzione. Mantieni il calcolo puro: non aggiornare stato e non avviare richieste al suo interno.
-
+### Stato sorgente e stato derivato
 ```typescript
-const price = signal(100);
-const taxRate = signal(0.22);
-const totalPrice = computed(() => price() * (1 + taxRate()));
-```
+import { computed, signal } from '@angular/core';
 
-## Un esempio concreto
+type CartItem = { id: number; name: string; price: number; quantity: number };
 
-```typescript
-const items = signal([10, 20, 30]);
-const total = computed(() => items().reduce((a, b) => a + b, 0));
-const isFreeShipping = computed(() => total() >= 50);
-```
-
-### Seguilo passo per passo
-
-1. `items()` restituisce `[10, 20, 30]`; `total` somma gli elementi e produce `60`.
-2. `isFreeShipping` legge `total()`: dato che `60 >= 50`, il valore derivato è `true`.
-3. `computed()` memorizza il risultato e ricalcola quando cambia un Signal effettivamente letto; non è il posto per chiamate HTTP o aggiornamenti di stato.
-4. Aggiungi `5` agli articoli e verifica che il totale diventi `65`. Rimuovi un elemento e controlla come cambia la soglia della spedizione.
-
-## Pattern Guida per gli Esercizi
-
-La pratica breve isola una regola e non avvia l'applicazione Angular. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
-
-```typescript
 export class CartStore {
-    items = signal<{ price: number; quantity: number }[]>([]);
-    total = computed(() => this.items().reduce((sum, item) => sum + item.price * item.quantity, 0));
-    hasItems = computed(() => this.items().length > 0);
+  private readonly _items = signal<CartItem[]>([]);
+  readonly items = this._items.asReadonly();
+
+  readonly subtotal = computed(() =>
+    this._items().reduce((sum, item) => sum + item.price * item.quantity, 0)
+  );
+  readonly itemCount = computed(() =>
+    this._items().reduce((sum, item) => sum + item.quantity, 0)
+  );
+  readonly hasItems = computed(() => this._items().length > 0);
+
+  add(item: CartItem): void {
+    this._items.update(current => [...current, item]);
+  }
 }
 ```
 
-## Dove ci si confonde spesso
+`_items` è stato sorgente, posseduto e modificato dal servizio. `subtotal`, `itemCount` e `hasItems` sono proiezioni in sola lettura. `computed` osserva le letture fatte dalla funzione, memorizza il risultato e lo ricalcola quando una dipendenza cambia; il calcolo deve essere sincrono e senza effetti esterni.
+
+Se aggiorni manualmente sia `_items` sia un Signal `total`, ogni operazione di aggiunta, rimozione e modifica deve ricordarsi di aggiornare entrambi. Una derivazione centrale elimina questa duplicazione e rende visibile la relazione fra dati e risultato.
+
+## Osserva come si propaga un aggiornamento
+
+```typescript
+const total = computed(() => items().reduce((sum, item) => sum + item.price * item.quantity, 0));
+```
+
+### Segui la modifica fino alla vista
+
+1. Con due articoli da `10 € × 2` e `5 € × 1`, `subtotal()` deriva `25` da `_items()`.
+2. `itemCount()` produce `3`; non è un secondo contatore da incrementare manualmente.
+3. `add()` sostituisce l'array con una nuova lista. Angular invalida i computed che hanno letto `_items()`; il prossimo accesso ricalcola il risultato.
+4. Rimuovi un articolo aggiornando solo `_items`. Se totale e conteggio cambiano correttamente, lo stato derivato ha una sola fonte di verità.
+
+La pratica breve verifica una derivazione isolata. Nel laboratorio Dashboard prova lista vuota, aggiunta e rimozione con array immutabili, quindi osserva totali e percentuali nel componente reale.
+
+## Quando usare un calcolo o un effetto
 
 - Inserire effetti collaterali (chiamate HTTP, manipolazione manuale del DOM) dentro una funzione `computed()` (deve essere rigorosamente pura!).
 
-## Domanda di verifica
-
-> Perché una funzione passata a `computed()` deve essere rigorosamente pura e priva di side-effect?
+> **Quali dipendenze vengono lette?** Perché una funzione passata a `computed()` deve essere rigorosamente pura e priva di side-effect?

@@ -1,86 +1,51 @@
 # Programmazione Asincrona: Task, async/await ed Eccezioni
 
-## In parole semplici
+Quando il server attende una risposta dal database o da un servizio HTTP, il risultato non è disponibile subito. L'obiettivo dell'asincronia è rappresentare quell'attesa senza tenere occupato il thread soltanto per aspettare: non significa avviare automaticamente un nuovo thread né eseguire il calcolo più in fretta.
 
-L'obiettivo di questa lezione è gestire operazioni I/O senza bloccare il thread del server e trattare gli errori con robustezza.
+## Dal problema alla regola del linguaggio
 
-Durante una vera attesa I/O asincrona, `await` sospende il metodo senza bloccare il thread in attesa. Il codice dopo `await` riprende quando il `Task` termina; chiamare `.Result` o `.Wait()` blocca invece il chiamante.
-
-## Le parole da riconoscere
-
-- `task`
-- `async`
-- `await`
-- `try catch`
-- `cancellation token`
-- `non bloccante`
-- `thread pool`
-
-## Anatomia e Sintassi del Codice
-
-### Anatomia del Modello Asincrono in C#:
-1. **`async Task<T>`**: indica un metodo asincrono che restituirà un valore di tipo `T`.
-2. **`await`**: sospende il metodo fino al completamento del Task; per operazioni I/O asincrone non tiene un thread occupato solo per aspettare.
-3. **`try / catch / finally`**: intercetta eventuali eccezioni sollevate durante l'operazione asincrona.
-
+### Una chiamata I/O e il valore che arriva dopo
 ```csharp
-public class DataFetcher(HttpClient client) {
-  public async Task<string> DownloadContentAsync(string url, CancellationToken ct) {
-    try {
-        return await client.GetStringAsync(url, ct);
-    } catch (HttpRequestException ex) {
-        throw new InvalidOperationException("Impossibile scaricare il contenuto.", ex);
-    }
-  }
-}
-```
+using System.Net;
+using System.Net.Http.Json;
 
-In un'app ASP.NET Core configura il client con `IHttpClientFactory` e iniettalo, invece di creare un nuovo `HttpClient` per ogni richiesta.
-
-Nei flussi asincroni usa `await` fino al chiamante. `.Result` e `.Wait()` bloccano il thread: sotto carico possono esaurire il thread pool. Il deadlock dipende dal contesto di sincronizzazione; ASP.NET Core non usa quello delle vecchie applicazioni ASP.NET.
-
-## Un esempio concreto
-
-```csharp
-public async Task<string> FetchDataAsync(int id, CancellationToken ct = default)
+public sealed class UserClient(HttpClient http)
 {
-    try {
-        await Task.Delay(50, ct);
-        return $"Dati per {id}";
-    } catch (Exception ex) {
-        Console.Error.WriteLine(ex.Message);
-        throw;
+    public async Task<UserDto?> GetUserAsync(int id, CancellationToken cancellationToken)
+    {
+        using var response = await http.GetAsync($"/api/users/{id}", cancellationToken);
+        if (response.StatusCode == HttpStatusCode.NotFound) return null;
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<UserDto>(cancellationToken);
     }
 }
+
+public sealed record UserDto(int Id, string Name);
 ```
 
-### Seguilo passo per passo
+`Task<UserDto?>` rappresenta un'operazione futura il cui risultato può essere un utente o `null`; non contiene già l'utente. `await` restituisce il controllo al chiamante mentre l'I/O è in corso e riprende il metodo quando la risposta arriva. Nei progetti ASP.NET Core configura `HttpClient` con `IHttpClientFactory` e passa il `CancellationToken` della richiesta quando è disponibile.
 
-1. `FetchDataAsync` restituisce un `Task<string>`: il chiamante riceve un'operazione da attendere, non una stringa immediata.
-2. `await Task.Delay(50, ct)` sospende quel metodo fino al completamento o alla cancellazione; non blocca il thread con `.Wait()`.
-3. Se il ritardo termina, il metodo restituisce `Dati per {id}`. Se il token annulla l'operazione, si verifica `OperationCanceledException`, che va trattata come cancellazione attesa.
-4. Chiama il metodo con un token già annullato e poi con uno attivo. Distingui la cancellazione dagli errori imprevisti invece di catturare ogni eccezione come se fosse un successo.
+Un metodo asincrono che fa soltanto calcolo CPU-bound non diventa non bloccante grazie alla parola `async`. Il parallelismo è un tema separato: più operazioni possono sovrapporsi, ma `await` da solo non le avvia tutte.
 
-## Pattern Guida per gli Esercizi
-
-Usa il frammento come riferimento iniziale. Prima di aprire gli indizi, prova a prevedere un caso della consegna; dopo la soluzione, riscrivi il passaggio che ti mancava.
+## Traccia i valori nel programma
 
 ```csharp
-using System.Threading.Tasks;
-
-public static class AsyncDataService {
-    public static async Task<string> GetUserGreetingAsync(string name) {
-        await Task.Delay(10);
-        return $"Benvenuto, {name}!";
-    }
-}
+Task<string> pending = httpClient.GetStringAsync(url, cancellationToken);
+string body = await pending;
 ```
 
-## Dove ci si confonde spesso
+### Calcola il risultato prima di eseguirlo
+
+1. La chiamata HTTP restituisce un `Task<string>` che rappresenta la risposta ancora attesa; il server non ha già ricevuto il testo.
+2. `await` sospende questa continuazione. Durante l'attesa I/O il thread può servire altro lavoro, invece di restare bloccato su `.Wait()`.
+3. Se la rete risponde, `body` riceve il testo. Se il token annulla l'operazione o la rete fallisce, l'attesa propaga un'eccezione al chiamante.
+4. Gestisci `OperationCanceledException` come cancellazione quando è quella richiesta e registra gli errori inattesi al confine appropriato. Non trasformare ogni errore in un risultato vuoto.
+
+L'esercizio breve restituisce un `Task` per farti osservare il contratto; nel laboratorio e negli endpoint del corso segui `await` fino al chiamante e passa la cancellazione quando l'operazione dipende dalla richiesta HTTP.
+
+## Casi che cambiano il risultato
 
 - Usare `.Result` o `.Wait()` che possono causare deadlock bloccando il thread
 - usare `async void` anziché `async Task` (consentito solo per eventi UI).
 
-## Domanda di verifica
-
-> Perché `async/await` è fondamentale per la scalabilità di un server web come ASP.NET Core?
+> **Che cosa succede se cambia l'input?** Perché `async/await` è fondamentale per la scalabilità di un server web come ASP.NET Core?

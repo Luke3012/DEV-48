@@ -1,10 +1,6 @@
 # Architettura Pulita: separazione di Domain, Application e API
 
-## In parole semplici
-
-L'obiettivo di questa lezione è organizzare una soluzione enterprise isolando entità di dominio, casi d'uso e adapter infrastrutturali.
-
-La Clean Architecture stabilisce che le regole di business e il dominio centrale non devono dipendere da nessun framework esterno, database o libreria UI. I dettagli dipendono dal dominio, mai il contrario.
+Se il dominio importa EF Core, un cambio del database si propaga alle regole che dovrebbero restare stabili. Clean Architecture rende esplicita la direzione delle dipendenze: il codice esterno può conoscere i contratti interni, mentre il nucleo non conosce framework e adapter.
 
 ### Nel percorso
 
@@ -12,63 +8,49 @@ Da conoscere: [Dependency Injection: Transient, Scoped e Singleton](net-03-02-de
 
 Usa questa separazione quando regole e integrazioni cambiano in modo indipendente. Un CRUD piccolo può iniziare con cartelle e servizi nello stesso progetto: creare quattro progetti subito aggiunge configurazione senza necessariamente migliorare lo studio. Angular comunica con l'API via HTTP e non è un assembly dipendente da Domain. L'esercizio considera i riferimenti tra layer di business; il punto di composizione dell'API può conoscere Infrastructure per registrare le implementazioni.
 
-## Le parole da riconoscere
+## Il comportamento che vogliamo proteggere
 
-- `clean architecture`
-- `onion architecture`
-- `domain layer`
-- `application layer`
-- `infrastructure`
-- `dependency rule`
-
-## Anatomia e Sintassi del Codice
-
-### I Layer della Clean Architecture:
-1. **Domain (Nucleo)**: Entità pure, Value Objects, eccezioni di dominio. Zero dipendenze esterne.
-2. **Application (Casi d'Uso)**: DTO, interfacce dei repository, comandi e query di business. Dipende solo dal Domain.
-3. **Infrastructure**: Implementazione concreta dei repository con EF Core, invio email, client HTTP esterni. Dipende da Application e Domain.
-4. **API / Presentation**: Minimal API di ASP.NET Core o frontend Angular. Riceve le richieste e delega ai casi d'uso.
-
-## Un esempio concreto
+### Dipendenze nel progetto, dati nella richiesta
+```text
+src/
+  Domain/          Subject, regole e invarianti
+  Application/     RegisterSubject, ISubjectRepository
+  Infrastructure/  AppDbContext, repository EF Core
+  Api/             route handler e composizione DI
+```
 
 ```text
-API endpoint -> caso d'uso Application -> regole Domain
-
-Infrastructure implementa i contratti dichiarati verso il centro. Domain non conosce database, ASP.NET Core o Angular.
+Runtime:   HTTP → API → Application → Domain
+                         ↓ contratto
+                     repository
+                         ↑ implementato da
+Build-time: Infrastructure → Application / Domain
+            Api → Application / Infrastructure (composition root)
 ```
 
-### Seguilo passo per passo
+Application dichiara la porta che le serve; Infrastructure dipende da quel contratto e lo realizza con EF Core. L'API è il composition root: registra l'implementazione e traduce la richiesta HTTP in una chiamata al caso d'uso. Angular resta un processo separato e comunica con l'API via HTTP, non è un assembly del Domain.
 
-1. Il Domain contiene regole e modelli centrali; non importa EF Core o ASP.NET Core.
-2. Application coordina casi d'uso e dichiara le porte di cui ha bisogno; Infrastructure può implementare quelle porte usando EF Core.
-3. API riceve richieste HTTP e compone i servizi. Le dipendenze puntano verso il centro: Domain non dipende dai dettagli esterni.
-4. Segui una richiesta dal route handler al caso d'uso e al repository. Se trovi un `DbContext` nel Domain, sposta l'accesso al database verso Infrastructure.
+La stessa idea può iniziare con quattro cartelle in un solo progetto. Dividere subito una piccola app in molti progetti aggiunge riferimenti e configurazione; fallo quando le dipendenze o i test diventano più chiari grazie al confine.
 
-## Pattern Guida per gli Esercizi
+## Prepara, esegui, osserva
 
-La pratica breve isola una regola e non avvia l'applicazione .NET. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
-
-```csharp
-using System.Threading;
-using System.Threading.Tasks;
-
-public sealed record Subject(string Name);
-
-public interface ISubjectRepository {
-    Task SaveAsync(Subject subject, CancellationToken cancellationToken);
-}
-
-public sealed class RegisterSubject(ISubjectRepository repository) {
-    public Task ExecuteAsync(Subject subject, CancellationToken cancellationToken) =>
-        repository.SaveAsync(subject, cancellationToken);
-}
+```text
+POST /api/subjects → RegisterSubject → ISubjectRepository
+EF Core repository → SQLite
 ```
 
-## Dove ci si confonde spesso
+### Rendi riproducibile il comportamento
+
+1. API riceve JSON e costruisce un comando per `RegisterSubject`.
+2. Application applica il caso d'uso e dipende dall'interfaccia `ISubjectRepository`, dichiarata verso il centro.
+3. Il contenitore DI in Api fornisce l'implementazione Infrastructure; questa usa `DbContext` per salvare.
+4. Verifica i riferimenti fra progetti: se `Domain` importa ASP.NET Core o EF Core, il dettaglio esterno è entrato nel nucleo. Se l'app è piccola, prima dimostra il valore del confine con test semplici.
+
+La verifica dell'esercizio riguarda soltanto le dipendenze consentite. Nel portfolio, annota quale modifica rende più semplice questa separazione e quale costo di configurazione introduce.
+
+## Che cosa rende il difetto osservabile?
 
 - Far dipendere il Domain da EF Core o da librerie web
 - saltare i layer e scrivere query SQL direttamente nei componenti UI.
 
-## Domanda di verifica
-
-> Qual è la regola cardinale della Clean Architecture riguardo alla direzione delle dipendenze?
+> **Quale evidenza dimostra il comportamento?** Qual è la regola cardinale della Clean Architecture riguardo alla direzione delle dipendenze?

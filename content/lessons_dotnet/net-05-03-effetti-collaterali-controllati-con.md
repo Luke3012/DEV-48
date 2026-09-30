@@ -1,75 +1,51 @@
 # Effetti collaterali controllati con effect()
 
-## In parole semplici
+Un valore calcolato appartiene allo stato dell'applicazione; scrivere su `localStorage`, inviare telemetria o aggiornare una libreria esterna è invece un effetto collaterale. Separare le due cose evita che un calcolo apparentemente innocuo inizi richieste o mutazioni.
 
-L'obiettivo di questa lezione è eseguire operazioni esterne (localStorage, logging, sincronizzazione) in risposta a cambi di stato.
+## Quale dato è sorgente e quale è derivato?
 
-La funzione `effect()` esegue codice esterno quando cambiano i Signals letti al suo interno. Può sincronizzare il browser storage o registrare log; per derivare valori è preferibile `computed()`.
-
-## Le parole da riconoscere
-
-- `effect`
-- `side effect`
-- `cleanup`
-- `localstorage`
-- `injection context`
-- `oncleanup`
-
-## Anatomia e Sintassi del Codice
-
-### Regole e Uso Corretto di `effect()`:
-1. **Injection Context**: `effect()` deve essere chiamato all'interno del costruttore del componente o come inizializzatore di proprietà.
-2. **Tracciamento automatico**: Angular traccia automaticamente tutti i segnali letti dentro l'effetto:
+### Un calcolo non è un effetto
+Usa `computed` per ricavare il nome visibile da un valore sorgente; usa `effect` quando occorre sincronizzare un'API esterna.
 ```typescript
-import { Component, effect, signal } from '@angular/core';
+import { Component, computed, effect, signal } from '@angular/core';
 
-@Component({ selector: 'app-theme', template: '' })
+@Component({ selector: 'app-theme', template: '<button (click)="toggle()">{{ themeName() }}</button>' })
 export class ThemeComponent {
-  darkMode = signal(false);
+  private readonly dark = signal(false);
+  readonly themeName = computed(() => this.dark() ? 'dark' : 'light');
 
   constructor() {
     effect(() => {
-      // Si riesegue ogni volta che darkMode() cambia!
-      localStorage.setItem('theme', this.darkMode() ? 'dark' : 'light');
+      console.info('Tema selezionato:', this.themeName());
     });
   }
+
+  toggle(): void { this.dark.update(value => !value); }
 }
 ```
 
-In Angular 22 scrivere Signals dentro un effect è consentito; `allowSignalWrites` è deprecato e non serve ([riferimento Angular](https://angular.dev/api/core/CreateEffectOptions)). Il rischio di cicli rimane: per calcolare uno stato a partire da altro stato preferisci `computed()`. Usa effect per sincronizzare una risorsa esterna, prevedendo la pulizia quando necessario.
+L'effetto viene eseguito almeno una volta e legge `themeName()`, quindi segue le dipendenze lette. Viene creato nel contesto di iniezione del componente e Angular lo distrugge con il componente. Gli effetti sono asincroni nel ciclo di change detection.
 
-## Un esempio concreto
+Per storage o DOM considera il ciclo di vita del browser: non accedere a `localStorage` durante il rendering server-side. Se l'effetto avvia un timer o una sottoscrizione, registra la pulizia prima della prossima esecuzione o della distruzione. Evita di copiare un Signal in un altro con `effect`: usa `computed` o, per stato derivato che l'utente può anche impostare, valuta `linkedSignal`.
 
-```typescript
-effect(() => {
-  console.log('Nuovo tema selezionato:', theme());
-});
-```
-
-### Seguilo passo per passo
-
-1. L'effect legge `theme()`: questa lettura registra il Signal come dipendenza dell'effetto.
-2. Quando l'effect viene creato, esegue il corpo e scrive nel log il tema corrente; una modifica successiva del Signal provoca una nuova esecuzione.
-3. `console.log` è un effetto esterno, quindi è adatto a un effect. Il calcolo del nome del tema, invece, dovrebbe stare in `computed()`.
-4. Cambia il tema due volte e osserva il log. Se l'effetto avvia una risorsa o un abbonamento, aggiungi una cleanup invece di crearne uno nuovo a ogni esecuzione.
-
-## Pattern Guida per gli Esercizi
-
-La pratica breve isola una regola e non avvia l'applicazione Angular. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
+## Osserva come si propaga un aggiornamento
 
 ```typescript
-export class ThemeManager {
-    isDark = signal(false);
-    themeName = computed(() => this.isDark() ? 'dark' : 'light');
-    toggle() { this.isDark.update(v => !v); }
-}
+effect(() => console.info('Tema selezionato:', themeName()));
 ```
 
-## Dove ci si confonde spesso
+### Segui la modifica fino alla vista
+
+1. Alla creazione il componente inizializza `dark` a `false`; `computed` ricava `light` senza modificare altri dati.
+2. `effect` legge `themeName()` e registra quella dipendenza; il primo log viene eseguito dal ciclo reattivo di Angular.
+3. Al click, `toggle()` aggiorna solo lo stato sorgente. Il nome derivato cambia e l'effetto sincronizza il log esterno.
+4. Se il componente viene distrutto, il suo effetto viene terminato. Per una risorsa avviata dall'effetto, aggiungi cleanup; per un totale o un'etichetta, resta su `computed`.
+
+L'esercizio riguarda una regola pura di tema; non richiede di copiare `themeName` in un altro Signal. Nel laboratorio usa `effect` soltanto se sincronizzi davvero una risorsa esterna.
+
+## Quando usare un calcolo o un effetto
 
 - Usare `effect()` per derivare nuovo stato (per questo scopo si DEVE usare `computed()`)
 - creare loop di aggiornamenti infiniti.
 
-## Domanda di verifica
-
-> Qual è la differenza concettuale fondamentale tra un `computed()` e un `effect()`?
+> **Quali dipendenze vengono lette?** Qual è la differenza concettuale fondamentale tra un `computed()` e un `effect()`?

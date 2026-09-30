@@ -1,84 +1,78 @@
 # Progetto Angular Standalone e Bootstrap applicazione
 
-## In parole semplici
-
-L'obiettivo di questa lezione è avviare un'applicazione Angular moderna senza NgModule usando bootstrapApplication.
-
-Nei nuovi progetti Angular i componenti standalone sono il modello predefinito e dichiarano direttamente le dipendenze del template. NgModule resta supportato: standalone evita di doverlo usare in molti casi, ma non lo elimina dal framework.
+Angular non parte da un componente trovato per caso: una catena di file indica al browser quale elemento ospita l'app, quale componente è la radice e quali servizi sono disponibili quando i componenti vengono creati.
 
 ### Nel percorso
 
 Da conoscere: [TypeScript di base: variabili, funzioni e array](net-00-02-typescript-di-base-variabili-funzio.md); [HTML essenziale e CSS per leggere i template Angular](net-00-03-html-essenziale-e-css-per-leggere-i.md); [Introduzione a signal() e aggiornamento stato con set() e update()](net-05-01-introduzione-a-signal-e-aggiornamen.md); [Valori derivati intelligenti con computed()](net-05-02-valori-derivati-intelligenti-con-co.md).
 
-Le basi di `signal()` e `computed()` precedono questa lezione: nei componenti useremo subito valori reattivi. Ripassale dai richiami qui sotto se necessario. Nel laboratorio Catalogo Standalone con Control Flow i file sono `src/main.ts`, `src/app/app.ts` e `src/app/app.config.ts`; gli esempi con `AppComponent` usano un nome illustrativo, da adattare all'export del tuo file.
+Le basi di `signal()` e `computed()` precedono questa lezione: nei componenti useremo subito valori reattivi. Ripassale dai richiami qui sotto se necessario. Nel laboratorio Catalogo Standalone con Control Flow ritroverai `src/index.html`, `src/main.ts`, `src/app/app.ts` e `src/app/app.config.ts`; qui usiamo gli stessi nomi ed export dello starter.
 
-## Le parole da riconoscere
+## La vista che vogliamo costruire
 
-- `standalone`
-- `bootstrapapplication`
-- `main.ts`
-- `appconfig`
-- `providehttpclient`
-- `provide-router`
+### Dall'HTML al componente radice
+Nel progetto generato dal laboratorio, i file essenziali sono `src/index.html`, `src/main.ts`, `src/app/app.ts`, `src/app/app.config.ts` e `src/app/app.routes.ts`.
 
-## Anatomia e Sintassi del Codice
-
-### Bootstrap di un'applicazione Standalone (in `main.ts`):
-```typescript
-import { bootstrapApplication } from '@angular/platform-browser';
-import { AppComponent } from './app/app.component';
-import { appConfig } from './app/app.config';
-
-bootstrapApplication(AppComponent, appConfig)
-  .catch(err => console.error(err));
+`src/index.html` fornisce l'elemento host:
+```html
+<body><app-root></app-root></body>
 ```
 
-### Configurazione Servizi Globali (in `app.config.ts`):
+`src/main.ts` avvia il componente esportato da `app.ts` e gli passa la configurazione:
+```typescript
+import { bootstrapApplication } from '@angular/platform-browser';
+import { App } from './app/app';
+import { appConfig } from './app/app.config';
+
+bootstrapApplication(App, appConfig).catch(error => console.error(error));
+```
+
+`src/app/app.ts` collega la classe al selettore presente nell'HTML:
+```typescript
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+
+@Component({
+  selector: 'app-root',
+  imports: [RouterOutlet],
+  template: '<h1>Catalogo</h1><router-outlet />',
+  styleUrl: './app.css'
+})
+export class App {}
+```
+
+`src/app/app.config.ts` registra i servizi applicativi:
 ```typescript
 import { ApplicationConfig } from '@angular/core';
-import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
-  providers: [
-    provideRouter(routes),
-    provideHttpClient()
-  ]
+  providers: [provideRouter(routes), provideHttpClient()]
 };
 ```
 
-## Un esempio concreto
+Un provider configura il contenitore d'iniezione: `provideRouter` rende disponibile il Router con queste route; `provideHttpClient` rende iniettabile `HttpClient`. Togli il secondo e un servizio che lo richiede può fallire con `NullInjectorError`. `imports` del componente, invece, rende direttive o componenti disponibili nel suo template: provider e template import non sono la stessa cosa. Nei nuovi componenti `standalone` è il default; `NgModule` resta supportato per codice esistente.
+
+## Segui il dato fino al DOM
 
 ```typescript
-bootstrapApplication(AppComponent, {
-  providers: [provideHttpClient(), provideRouter(routes)]
-});
+bootstrapApplication(App, appConfig).catch(error => console.error(error));
 ```
 
-### Seguilo passo per passo
+### Dal modello alla schermata
 
-1. `bootstrapApplication(AppComponent, ...)` crea la radice Angular senza richiedere un modulo applicativo.
-2. L'array `providers` registra servizi disponibili nell'app: `provideHttpClient()` configura `HttpClient` e `provideRouter(routes)` configura le rotte.
-3. `main.ts` passa il componente radice e i provider; l'HTML iniziale deve contenere il selettore del componente, spesso `<app-root>`.
-4. Togli un provider alla volta e individua l'errore che compare quando il componente tenta di usare quel servizio. Ripristinalo prima di proseguire.
+1. Il browser legge `index.html` e crea `<app-root>`; il bundler esegue il file d'ingresso `main.ts`.
+2. `bootstrapApplication(App, appConfig)` crea l'injector applicativo con i provider e istanzia `App` sull'elemento `app-root`.
+3. Angular compila il template della radice e inserisce `router-outlet`; il Router vi mostra il componente associato all'URL corrente.
+4. Rimuovi `provideHttpClient()` e segui l'errore dal componente che usa `HttpClient` all'injector. Ripristinalo e controlla che la richiesta parta; se rimuovi `RouterOutlet` da `imports`, il compilatore segnala che il template non riconosce quell'elemento.
 
-## Pattern Guida per gli Esercizi
+Il laboratorio Standalone usa proprio `main.ts`, `app.ts` e `app.config.ts`. Prova la pagina nel browser: la pratica breve non avvia Angular e quindi non può dimostrare il bootstrap o il rendering.
 
-La pratica breve isola una regola e non avvia l'applicazione Angular. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
-
-```typescript
-export class AppBootstrapStatus {
-    isReady = signal(false);
-    init() { this.isReady.set(true); }
-}
-```
-
-## Dove ci si confonde spesso
+## Che cosa deve conoscere il template?
 
 - Cercare di dichiarare un componente Standalone dentro le `declarations` di un NgModule
 - dimenticare `provideHttpClient()` nel bootstrap.
 
-## Domanda di verifica
-
-> Quale responsabilità dichiara un componente standalone nel proprio decoratore `@Component`?
+> **Che cosa collega classe e vista?** Quale responsabilità dichiara un componente standalone nel proprio decoratore `@Component`?

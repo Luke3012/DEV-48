@@ -11,7 +11,7 @@ from textual import events, on
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical, ScrollableContainer
-from textual.screen import Screen
+from textual.screen import ModalScreen, Screen
 from rich.cells import cell_len
 from rich.text import Text as RichText
 from textual.widgets import (
@@ -375,20 +375,20 @@ class AdaptiveFooter(Footer):
 
 
 GLOSSARY = {
-    "Angular Standalone": "Architettura Angular moderna priva di NgModule: i componenti dichiarano direttamente dipendenze e template.",
-    "API": "Contratto con cui due componenti software comunicano. Definisce operazioni, input, output ed errori.",
-    "ASP.NET Core": "Framework open-source multipiattaforma di Microsoft per la creazione di Web API e servizi cloud ad alte prestazioni.",
-    "Async/await": "Sintassi per comporre Promise o Task mantenendo leggibile il flusso asincrono.",
-    "Autenticazione": "Verifica chi è l'utente. È distinta dall'autorizzazione, che stabilisce cosa può fare.",
-    "C#": "Linguaggio moderno, fortemente tipizzato e orientato agli oggetti, con supporto avanzato per pattern matching, record e async.",
+    "Angular Standalone": "Modello Angular in cui componenti, direttive e pipe dichiarano le proprie dipendenze senza richiedere un NgModule. Può convivere con NgModule nei progetti esistenti.",
+    "API": "Contratto che descrive come un programma può chiedere dati o operazioni a un altro: input, risultati ed errori previsti.",
+    "ASP.NET Core": "Framework .NET per creare siti, API e servizi web.",
+    "Async/await": "Parole chiave per attendere un risultato asincrono mantenendo leggibile il codice. In JavaScript e TypeScript lavorano con Promise; in C# con Task.",
+    "Autenticazione": "Verifica l'identità di una persona o di un servizio. L'autorizzazione stabilisce quali operazioni può svolgere.",
+    "C#": "Linguaggio .NET con tipi statici e supporto a oggetti, record, pattern matching e programmazione asincrona.",
     "CORS": "Regola applicata dal browser alle richieste cross-origin. Non sostituisce autenticazione o autorizzazione.",
     "Closure": "Funzione che conserva accesso allo scope lessicale in cui è stata creata.",
-    "Component": "Unità Angular o React che descrive una parte della UI a partire da stato e input.",
-    "Controlled input": "Campo form il cui valore proviene dallo state e viene aggiornato tramite evento.",
+    "Component": "Parte riutilizzabile di un'interfaccia. Riceve dati, mantiene o usa stato e descrive ciò che viene mostrato.",
+    "Controlled input": "Campo il cui valore è mantenuto nello stato dell'applicazione e aggiornato quando la persona scrive.",
     "CRUD": "Create, Read, Update, Delete: operazioni fondamentali sulle entità.",
-    "DbContext": "Classe principale di Entity Framework Core che rappresenta una sessione con il database relazionale.",
-    "Effect": "Sincronizzazione o side-effect dopo il render; in Angular effect() reagisce alle variazioni dei segnali.",
-    "Entity Framework Core": "ORM ufficiale di .NET che astrae tabelle e relazioni del database in classi C# tipizzate.",
+    "DbContext": "Oggetto di Entity Framework Core che tiene traccia delle entità lette o modificate e coordina le operazioni sul database.",
+    "Effect": "Codice eseguito quando cambiano i dati reattivi letti al suo interno. In Angular usalo per sincronizzare risorse esterne, non per duplicare valori derivabili.",
+    "Entity Framework Core": "Libreria .NET che permette di leggere e modificare un database usando classi e query C#.",
     "Foreign key": "Vincolo che collega una riga a una chiave di un'altra tabella.",
     "Immutabilità": "Creare un nuovo valore invece di modificare quello precedente; rende prevedibili gli aggiornamenti di stato.",
     "IPC": "Inter-process communication. In Electron collega renderer, preload e main process.",
@@ -396,16 +396,16 @@ GLOSSARY = {
     "JWT": "JSON Web Token: standard per l'autenticazione stateless basata su token compatti firmati digitalmente.",
     "Key React": "Identificatore stabile tra elementi fratelli, usato per riconciliare una lista.",
     "LINQ": "Language Integrated Query: sintassi dichiarativa di C# per interrogare e trasformare collezioni e database.",
-    "Middleware": "Funzione nel percorso request/response che applica logica trasversale o prepara la richiesta.",
-    "Minimal API": "Modello moderno e sintetico di ASP.NET Core per definire endpoint HTTP con elevate prestazioni.",
-    "Promise": "Oggetto che rappresenta il futuro completamento o fallimento di un'operazione asincrona.",
+    "Middleware": "Passaggio della pipeline web che può esaminare o modificare una richiesta e la relativa risposta.",
+    "Minimal API": "Modo diretto di definire endpoint HTTP in ASP.NET Core, spesso senza creare controller.",
+    "Promise": "Oggetto JavaScript che rappresenta un risultato disponibile in seguito oppure un errore.",
     "Props": "Input di un componente forniti dal genitore e non modificabili dal figlio.",
     "RAG": "Recupero di informazioni pertinenti prima della generazione per aggiungere contesto a un modello.",
     "REST": "Stile di API orientato a risorse e semantica HTTP.",
-    "Signals": "Primitiva reattiva moderna di Angular (signal, computed, effect) che traccia le modifiche allo stato in modo granulare.",
-    "State": "Memoria locale di un componente che, quando aggiornata, provoca un aggiornamento reattivo.",
-    "Transaction": "Gruppo di operazioni database atomico: riesce interamente oppure viene annullato.",
-    "Type narrowing": "Riduzione di una union TypeScript mediante controlli che provano quale variante è presente.",
+    "Signals": "Strumenti Angular per rappresentare uno stato leggibile e aggiornabile, derivare valori e reagire alle dipendenze lette.",
+    "State": "Dati che descrivono la situazione corrente dell'interfaccia o dell'applicazione.",
+    "Transaction": "Gruppo di operazioni sul database che viene confermato insieme oppure annullato in caso di errore.",
+    "Type narrowing": "Controlli che restringono una union TypeScript alla forma valida in quel punto del codice.",
     "xUnit": "Framework moderno e standard di unit testing per .NET, guidato da attributi [Fact] e [Theory].",
     "XSS": "Esecuzione di contenuto non fidato nel browser; si mitiga con escaping e API sicure.",
 }
@@ -426,14 +426,58 @@ class TimedScreen(Screen):
             store.add_time(self.tracked_id, self.tracked_type, int(monotonic() - self._entered_at))
 
 
+class ConfirmAmazonResetScreen(ModalScreen[bool]):
+    BINDINGS = [("escape", "cancel", "Annulla")]
+
+    DEFAULT_CSS = """
+    ConfirmAmazonResetScreen {
+        align: center middle;
+    }
+    #amazon-reset-dialog {
+        width: 78;
+        max-width: 90%;
+        height: auto;
+        border: round #f59e0b;
+        background: #11182a;
+        padding: 1 2;
+    }
+    #amazon-reset-actions {
+        height: 3;
+        margin-top: 1;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        with Vertical(id="amazon-reset-dialog"):
+            yield Static(
+                "[bold #fbbf24]Vuoi ricominciare il percorso Amazon da zero?[/]\n\n"
+                "Saranno rimossi completamenti, risposte, tentativi, suggerimenti, punteggi, XP, "
+                "tempi registrati e storico delle attività Amazon. Gli altri percorsi, la scelta "
+                "del linguaggio e i file dei progetti di laboratorio resteranno intatti."
+            )
+            with Horizontal(id="amazon-reset-actions"):
+                yield Button("ANNULLA", id="cancel")
+                yield Button("AZZERA IL PERCORSO", id="confirm", classes="warning")
+
+    def on_mount(self) -> None:
+        self.set_focus(self.query_one("#cancel", Button))
+
+    def action_cancel(self) -> None:
+        self.dismiss(False)
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id in {"cancel", "confirm"}:
+            self.dismiss(event.button.id == "confirm")
+
+
 class TrackSelectionScreen(Screen):
     BINDINGS = [
         *((str(index), f"select_track({index - 1})", definition.name)
           for index, definition in enumerate(TRACK_DEFINITIONS, 1)),
-        ("left", "previous_track", "Sinistra"),
-        ("right", "next_track", "Destra"),
-        ("up", "previous_track", "Precedente"),
-        ("down", "next_track", "Successivo"),
+        ("left", "previous_track", "Percorso precedente"),
+        ("right", "next_track", "Percorso successivo"),
+        ("up", "previous_track", "Percorso precedente"),
+        ("down", "next_track", "Percorso successivo"),
         ("escape", "quit", "Esci"),
     ]
 
@@ -471,14 +515,14 @@ class TrackSelectionScreen(Screen):
                             f"{len(catalog.flashcards)} flashcard[/]",
                             classes="card-desc",
                         ),
-                        Button(f"▶ SCEGLI [Tasto {index}]", id=f"btn-track-{definition.id}"),
+                        Button(f"▶ APRI PERCORSO {index}", id=f"btn-track-{definition.id}"),
                         id=f"track-card-{definition.id}",
                         classes="track-card" + active_class,
                     )
 
             available_keys = ", ".join(str(index) for index in range(1, len(TRACK_DEFINITIONS) + 1))
             yield Static(
-                f"[#91a4c7]Usa [bold #67e8f9]{available_keys}[/], le frecce e Invio, oppure seleziona una card.[/]",
+                f"[#91a4c7]Premi [bold #67e8f9]{available_keys}[/] e Invio, oppure scegli un percorso con le frecce.[/]",
                 id="track-instruction",
             )
         yield AdaptiveFooter()
@@ -540,22 +584,24 @@ class DashboardScreen(Screen):
             with ScrollableContainer(id="dashboard-content"):
                 yield Static(
                     f"[bold #67e8f9]DEV//48[/]  [#34d399]{track_title}[/]  [#91a4c7]· Ctrl+T per scegliere percorso[/]\n"
-                    "Impara, sperimenta e costruisci. Riparti esattamente da dove eri rimasto.",
+                    "Studia, prova il codice e costruisci progetti. Riprendi il percorso o riapri l'attività visitata più di recente.",
                     classes="hero",
                 )
                 with Horizontal(classes="stats-row"):
-                    yield Static(f"[bold #67e8f9]{stats['percent']}%[/]\nPROGRESSO", id="dashboard-percent", classes="stat-card")
+                    yield Static(f"[bold #67e8f9]{stats['percent']}%[/]\nCOMPLETATO", id="dashboard-percent", classes="stat-card")
                     yield Static(f"[bold #a78bfa]{stats['xp']}[/]\nXP", id="dashboard-xp", classes="stat-card")
                     yield Static(f"[bold #34d399]{stats['completed_lessons']}[/]/{stats['total_lessons']}\nLEZIONI", id="dashboard-lessons", classes="stat-card")
                     yield Static(f"[bold #fbbf24]{stats['completed_exercises']}[/]/{stats['total_exercises']}\nESERCIZI", id="dashboard-exercises", classes="stat-card last")
-                yield Label("PROGRESSO COMPLESSIVO", classes="muted")
+                yield Label("AVANZAMENTO · LEZIONI ED ESERCIZI", classes="muted")
                 yield ProgressBar(total=100, show_eta=False, id="overall-progress")
+                if self.app.catalog.track == "amazon-sde-oa":
+                    yield Button("↺ RICOMINCIA IL PERCORSO", id="reset-amazon-progress", classes="warning")
                 yield Static(self.app.learning_plan_markup(), id="learning-plan", classes="panel")
                 last_label = self.app.last_item_title()
                 next_label = self.app.next_step_title()
                 yield Static(
                     f"[bold #67e8f9]PROSSIMO PASSO[/]  {next_label}\n"
-                    + (f"[bold #34d399]ULTIMA SCHERMATA[/]  {last_label}" if last_label else "[#91a4c7]ULTIMA SCHERMATA  Nessuna: il percorso è pronto per iniziare.[/]"),
+                    + (f"[bold #34d399]ULTIMA ATTIVITÀ[/]  {last_label}" if last_label else "[#91a4c7]ULTIMA ATTIVITÀ  Nessuna: puoi iniziare dal percorso.[/]"),
                     id="last-item", classes="resume-info",
                 )
             with Horizontal(classes="actions", id="dashboard-actions"):
@@ -564,7 +610,7 @@ class DashboardScreen(Screen):
                     id="continue", classes="primary",
                 )
                 yield Button(
-                    "↩ ULTIMA SCHERMATA" if last_label else "↩ NESSUNA SCHERMATA",
+                    "↩ RIPRENDI ATTIVITÀ" if last_label else "↩ NESSUNA ATTIVITÀ",
                     id="resume", classes="success", disabled=not bool(last_label),
                 )
                 yield Button("▦ CURRICULUM", id="curriculum")
@@ -582,7 +628,7 @@ class DashboardScreen(Screen):
 
     def refresh_dashboard(self) -> None:
         stats = self.app.stats()
-        self.query_one("#dashboard-percent", Static).update(f"[bold #67e8f9]{stats['percent']}%[/]\nPROGRESSO")
+        self.query_one("#dashboard-percent", Static).update(f"[bold #67e8f9]{stats['percent']}%[/]\nCOMPLETATO")
         self.query_one("#dashboard-xp", Static).update(f"[bold #a78bfa]{stats['xp']}[/]\nXP")
         self.query_one("#dashboard-lessons", Static).update(
             f"[bold #34d399]{stats['completed_lessons']}[/]/{stats['total_lessons']}\nLEZIONI"
@@ -597,16 +643,16 @@ class DashboardScreen(Screen):
         next_label = self.app.next_step_title()
         last_text = f"[bold #67e8f9]PROSSIMO PASSO[/]  {next_label}\n"
         last_text += (
-            f"[bold #34d399]ULTIMA SCHERMATA[/]  {last_label}"
+            f"[bold #34d399]ULTIMA ATTIVITÀ[/]  {last_label}"
             if last_label
-            else "[#91a4c7]ULTIMA SCHERMATA  Nessuna: il percorso è pronto per iniziare.[/]"
+            else "[#91a4c7]ULTIMA ATTIVITÀ  Nessuna: puoi iniziare dal percorso.[/]"
         )
         self.query_one("#last-item", Static).update(last_text)
 
         continue_button = self.query_one("#continue", Button)
         continue_button.label = "▶ PROSSIMO PASSO" if last_label else "▶ INIZIA"
         resume_button = self.query_one("#resume", Button)
-        resume_button.label = "↩ ULTIMA SCHERMATA" if last_label else "↩ NESSUNA SCHERMATA"
+        resume_button.label = "↩ RIPRENDI ATTIVITÀ" if last_label else "↩ NESSUNA ATTIVITÀ"
         resume_button.disabled = not bool(last_label)
 
     def action_previous_control(self) -> None:
@@ -626,9 +672,21 @@ class DashboardScreen(Screen):
             "labs": lambda: self.app.push_screen(LabsScreen()),
             "flashcards": lambda: self.app.push_screen(FlashcardsScreen()),
             "challenges": lambda: self.app.push_screen(ChallengesScreen()),
+            "reset-amazon-progress": self.confirm_amazon_reset,
         }
         if event.button.id in actions:
             actions[event.button.id]()
+
+    def confirm_amazon_reset(self) -> None:
+        if self.app.catalog.track == "amazon-sde-oa":
+            self.app.push_screen(ConfirmAmazonResetScreen(), callback=self.finish_amazon_reset)
+
+    def finish_amazon_reset(self, confirmed: bool | None) -> None:
+        if not confirmed:
+            return
+        self.app.reset_amazon_progress()
+        self.refresh_dashboard()
+        self.app.notify("Percorso Amazon azzerato. Puoi ricominciare dalla prima lezione.", title="Percorso")
 
 
 class CurriculumScreen(Screen):
@@ -637,14 +695,14 @@ class CurriculumScreen(Screen):
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
         with Vertical(classes="page"):
-            yield Static("[bold #67e8f9]CURRICULUM[/]  Cerca e apri con Enter", classes="hero")
-            yield Input(placeholder="Cerca titolo, modulo o obiettivo…", id="search")
+            yield Static("[bold #67e8f9]CURRICULUM[/]  Seleziona una lezione e premi Invio", classes="hero")
+            yield Input(placeholder="Cerca una lezione per titolo, modulo o obiettivo…", id="search")
             yield DataTable(cursor_type="row", zebra_stripes=True, id="table")
         yield AdaptiveFooter()
 
     def on_mount(self) -> None:
         table = self.query_one("#table", DataTable)
-        table.add_columns("Stato", "Modulo", "Lezione", "Min", "Livello")
+        table.add_columns("Stato", "Modulo", "Lezione", "Durata", "Livello")
         self.refresh_rows("")
         self.set_focus(table)
 
@@ -663,7 +721,8 @@ class CurriculumScreen(Screen):
                 continue
             state = "✓" if lesson.id in completed else ("◆" if lesson.mandatory else "·")
             title = f"[G{lesson.recommended_day}] {lesson.title}" if lesson.recommended_day else lesson.title
-            table.add_row(state, modules[lesson.module], title, str(lesson.minutes), lesson.difficulty, key=lesson.id)
+            difficulty = {"easy": "facile", "medium": "media", "hard": "difficile"}.get(lesson.difficulty, lesson.difficulty)
+            table.add_row(state, modules[lesson.module], title, str(lesson.minutes), difficulty, key=lesson.id)
 
     def on_input_changed(self, event: Input.Changed) -> None:
         self.refresh_rows(event.value)
@@ -683,7 +742,7 @@ class ReviewScreen(Screen):
         with Vertical(classes="page"):
             yield Static(
                 "[bold #67e8f9]REVISIONE DEGLI ERRORI[/]\n"
-                "Riapri i tentativi ancora irrisolti; separa gli esercizi passati dopo avere letto la soluzione.",
+                "Rivedi gli esercizi non superati e quelli completati dopo aver consultato la soluzione.",
                 classes="hero",
             )
             yield DataTable(cursor_type="row", zebra_stripes=True, id="table")
@@ -691,7 +750,7 @@ class ReviewScreen(Screen):
 
     def on_mount(self) -> None:
         table = self.query_one("#table", DataTable)
-        table.add_columns("Stato", "Esercizio", "Tentativi", "ID")
+        table.add_columns("Stato", "Esercizio", "Tentativi", "Lingua")
         exercise_ids = {
             exercise_progress_id(item, self.app.coding_language)
             for item in self.app.catalog.exercises
@@ -701,9 +760,9 @@ class ReviewScreen(Screen):
             exercise = self.app.catalog.exercise_by_id.get(exercise_id)
             if not exercise:
                 continue
-            label = "DA RIPROVARE" if item["kind"] == "failed" else "DOPO SOLUZIONE"
+            label = "DA RIPROVARE" if item["kind"] == "failed" else "SOLUZIONE VISTA"
             title = exercise.title + (f" · {language.upper()}" if language else "")
-            table.add_row(label, title, str(item["attempts"]), exercise_id, key=item["item_id"])
+            table.add_row(label, title, str(item["attempts"]), language.upper() if language else "—", key=item["item_id"])
         self.set_focus(table)
 
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
@@ -720,6 +779,7 @@ class LessonScreen(TimedScreen):
     BINDINGS = [
         ("escape", "back", "Indietro"),
         ("ctrl+s", "complete", "Completa"),
+        Binding("l", "toggle_language", "Lingua"),
         ("left", "previous_control", "Sinistra"),
         ("right", "next_control", "Destra"),
         ("enter", "activate", "Conferma"),
@@ -753,8 +813,11 @@ class LessonScreen(TimedScreen):
         with Vertical(classes="page"):
             yield Static(f"[bold #67e8f9]{lesson.title}[/]\n[#91a4c7]{lesson.minutes} min · {lesson.difficulty}[/]", classes="hero")
             with ScrollableContainer(id="lesson-scroll", can_focus=True):
-                yield Markdown(self.app.catalog.lesson_body(lesson), id="lesson-markdown")
+                lesson_language = self.app.coding_language if self.app.catalog.track == "amazon-sde-oa" else None
+                yield Markdown(self.app.catalog.lesson_body(lesson, lesson_language), id="lesson-markdown")
             with Horizontal(classes="actions"):
+                if self.app.catalog.track == "amazon-sde-oa":
+                    yield Button(f"⌘ LINGUA: {self.app.coding_language.upper()}", id="language")
                 yield Button(advance_label, id="advance", classes="primary")
                 yield Button("← CURRICULUM", id="back")
         yield AdaptiveFooter()
@@ -763,11 +826,27 @@ class LessonScreen(TimedScreen):
         super().on_mount()
         self.set_focus(self.query_one("#lesson-scroll", ScrollableContainer))
 
+    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        if action == "toggle_language" and self.app.catalog.track != "amazon-sde-oa":
+            return False
+        return True
+
     def action_back(self) -> None:
         self.app.pop_screen()
 
     def action_complete(self) -> None:
         self.complete_and_advance()
+
+    def action_toggle_language(self) -> None:
+        if self.app.catalog.track != "amazon-sde-oa":
+            return
+        self.app.coding_language = "cpp" if self.app.coding_language == "python" else "python"
+        self.app.store.set_setting("amazon_coding_language", self.app.coding_language)
+        self.query_one("#language", Button).label = f"⌘ LINGUA: {self.app.coding_language.upper()}"
+        self.query_one("#lesson-markdown", Markdown).update(
+            self.app.catalog.lesson_body(self.lesson, self.app.coding_language)
+        )
+        self.app.notify(f"Teoria e prossimi esercizi in {self.app.coding_language.upper()}")
 
     def action_next_control(self) -> None:
         advance = self.query_one("#advance", Button)
@@ -807,7 +886,9 @@ class LessonScreen(TimedScreen):
             self.app.continue_course()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        if event.button.id == "advance":
+        if event.button.id == "language":
+            self.action_toggle_language()
+        elif event.button.id == "advance":
             self.complete_and_advance()
         elif event.button.id == "back":
             self.app.pop_screen()
@@ -815,7 +896,7 @@ class LessonScreen(TimedScreen):
 
 class ExerciseScreen(TimedScreen):
     BINDINGS = [
-        ("escape", "back", "Indietro"), ("f5", "run", "Esegui"),
+        ("escape", "back", "Indietro"), ("f5", "run", "Controlla"),
         ("h", "hint", "Indizio"), ("ctrl+s", "save", "Salva"),
         ("f1", "toggle_theory", "Teoria"),
         ("l", "toggle_language", "Lingua"),
@@ -856,28 +937,44 @@ class ExerciseScreen(TimedScreen):
         state = self.app.store.get(self.progress_id)
         initial = state.get("answer") or self.content_for_language("starter")
         language = {"javascript":"javascript","react":"javascript","typescript":"typescript","csharp":"csharp","angular":"typescript","html":"html","css":"css","sql":"sql","python":"python","cpp":"cpp"}.get(self.active_kind)
-        reward = "autovalutazione · nessun XP" if ex.kind == "reflection" else f"{ex.xp} XP"
+        kind_label = {
+            "reflection": "RIPASSO",
+            "javascript": "JAVASCRIPT",
+            "typescript": "TYPESCRIPT",
+            "angular": "ANGULAR",
+            "csharp": "C#",
+            "html": "HTML",
+            "css": "CSS",
+            "python": "PYTHON",
+            "cpp": "C++",
+            "sql": "SQL",
+            "react": "REACT",
+        }.get(self.active_kind, self.active_kind.upper())
+        reward = "autoverifica · 0 XP" if ex.kind == "reflection" else f"{ex.xp} XP"
         scope_note = {
-            "csharp": "Il runner compila il codice ed esegue i casi dichiarati nell'esercizio; non garantisce ogni possibile comportamento.",
-            "angular": "Il runner prova la logica TypeScript con piccoli mock: non avvia Angular, non compila i template, non esegue tsc e non controlla il DOM. Usa i laboratori per provare un progetto Angular reale.",
-            "typescript": "Il controllo verifica la sintassi eseguibile e i requisiti indicati; non sostituisce `tsc` né un progetto Angular completo.",
-            "html": "Il controllo verifica struttura e requisiti testuali; non esegue il rendering in un browser.",
-            "css": "Il controllo verifica requisiti testuali; non esegue il rendering o la resa responsive in un browser.",
-            "reflection": "Questa autoverifica cerca i termini richiesti; non valuta il significato. Confronta la spiegazione con il modello.",
-            "python": "Python gira in un processo separato con test, timeout e output limitato. Il processo non è isolato dal sistema operativo e può accedere a file o rete.",
-            "cpp": "Il sorgente C++20 viene compilato e provato contro più asserzioni, con timeout e output limitato. Il processo non è isolato dal sistema operativo e può accedere a file o rete.",
-        }.get(self.active_kind, "Il runner mostra i controlli automatici previsti per questo esercizio.")
+            "csharp": "Il controllo compila il codice con .NET e lo prova sui casi indicati. Altri input possono avere risultati diversi.",
+            "angular": "Il controllo prova la logica TypeScript con piccoli mock: non avvia Angular, non compila template o tipi e non mostra la pagina nel browser. Per questo usa i laboratori Angular.",
+            "typescript": "Il controllo esegue la logica e verifica i casi indicati, ma non compila i tipi TypeScript né avvia un'app Angular.",
+            "javascript": "Node.js esegue il codice e lo confronta con i casi indicati nell'esercizio.",
+            "sql": "La query viene eseguita su un database SQLite temporaneo e confrontata con il risultato previsto.",
+            "react": "Il controllo cerca la struttura e il testo richiesti nel JSX; non avvia l'interfaccia e non prova le interazioni nel browser.",
+            "html": "Il controllo verifica la struttura e alcuni requisiti nel testo; non mostra la pagina in un browser.",
+            "css": "Il controllo cerca nel testo le regole richieste; non mostra la pagina e non verifica il layout nel browser.",
+            "reflection": "Il controllo cerca le parole indicate, ma non valuta il significato della risposta. Confrontala con il modello.",
+            "python": "Il codice Python viene eseguito in un processo separato con timeout e limite di output. Non è isolato da file o rete e usa i permessi del tuo account.",
+            "cpp": "Il codice C++20 viene compilato ed eseguito sui controlli previsti, con timeout e limite di output. Non è isolato da file o rete e usa i permessi del tuo account.",
+        }.get(self.active_kind, "Il controllo automatico mostra i risultati previsti per questo esercizio.")
         tags = []
         if ex.no_ai:
-            tags.append("NO AI")
+            tags.append("SENZA AI")
         if ex.no_internet:
-            tags.append("NO INTERNET")
+            tags.append("SENZA INTERNET")
         if ex.timed:
-            tags.append("TIMED")
+            tags.append("A TEMPO")
         tag_text = (" · " + " · ".join(tags)) if tags else ""
         yield Header(show_clock=True)
         with Vertical(classes="page"):
-            yield Static(f"[bold #67e8f9]{ex.title}[/]\n[#91a4c7]{self.active_kind.upper()} · {ex.minutes} min · {reward} · tentativi: {state.get('attempts', 0)}{tag_text}[/]", classes="hero")
+            yield Static(f"[bold #67e8f9]{ex.title}[/]\n[#91a4c7]{kind_label} · {ex.minutes} min · {reward} · controlli eseguiti: {state.get('attempts', 0)}{tag_text}[/]", classes="hero")
             if ex.timed:
                 yield Static("", id="exercise-timer", classes="stat-card")
             with Horizontal(id="exercise-layout"):
@@ -894,8 +991,9 @@ class ExerciseScreen(TimedScreen):
                             goals_txt = "\n".join(f"- ★ {g}" for g in ex.creative_goals)
                             yield Static(f"\n[bold #34d399]Estensioni facoltative · non valutate automaticamente[/]\n{goals_txt}", classes="panel")
                     with ScrollableContainer(id="theory-scroll", can_focus=True):
-                        yield Static("[bold #a78bfa]TEORIA DELLA LEZIONE[/]\nF1 apre o richiude la teoria senza perdere risposta, cursore o punto di lettura. ESC torna prima all'esercizio; da lì puoi rientrare nella lezione al punto in cui l'avevi lasciata.", classes="panel")
-                        yield Markdown(self.app.catalog.lesson_body(self.app.catalog.lesson_by_id[ex.lesson_id]), id="theory-markdown")
+                        yield Static("[bold #a78bfa]TEORIA DELLA LEZIONE[/]\nPremi F1 per passare dalla traccia alla teoria. Risposta, cursore e posizione di lettura restano salvati. Esc torna alla traccia; da lì puoi riaprire la lezione.", classes="panel")
+                        lesson_language = self.coding_language if self.app.catalog.track == "amazon-sde-oa" else None
+                        yield Markdown(self.app.catalog.lesson_body(self.app.catalog.lesson_by_id[ex.lesson_id], lesson_language), id="theory-markdown")
                 with Vertical(id="exercise-right"):
                     if self.active_kind in CODE_EDITOR_KINDS:
                         yield CodeTextArea(
@@ -911,7 +1009,7 @@ class ExerciseScreen(TimedScreen):
                     with ScrollableContainer(id="result-scroll", can_focus=True):
                         yield Static("", id="result")
             with Horizontal(id="exercise-actions", classes="actions"):
-                yield Button("▶ ESEGUI [F5]", id="run", classes="primary")
+                yield Button("CONTROLLA TERMINI [F5]" if ex.kind == "reflection" else "▶ ESEGUI TEST [F5]", id="run", classes="primary")
                 if ex.variants:
                     yield Button(f"⌘ LINGUA: {self.coding_language.upper()} [L]", id="language")
                 if ex.timed:
@@ -983,7 +1081,11 @@ class ExerciseScreen(TimedScreen):
         editor.text = state.get("answer") or self.content_for_language("starter")
         editor.language = {"python": "python", "cpp": "cpp"}.get(self.active_kind)
         self.query_one("#language", Button).label = f"⌘ LINGUA: {self.coding_language.upper()} [L]"
-        self.app.notify(f"Prossimi esercizi in {self.coding_language.upper()}")
+        lesson_language = self.coding_language if self.app.catalog.track == "amazon-sde-oa" else None
+        self.query_one("#theory-markdown", Markdown).update(
+            self.app.catalog.lesson_body(self.app.catalog.lesson_by_id[self.exercise.lesson_id], lesson_language)
+        )
+        self.app.notify(f"Lingua impostata: {self.coding_language.upper()}")
 
     def editor_value(self) -> str:
         return self.query_one("#editor", TextArea).text
@@ -1036,7 +1138,7 @@ class ExerciseScreen(TimedScreen):
         else:
             self.update_result(f"[bold {color}]{icon} {result.score}%[/]\n{result.output}\n\n{details}")
         if result.passed and self.exercise.kind == "reflection":
-            self.app.notify("Autoverifica completata · confronta la risposta con il modello.", title="Richiamo")
+            self.app.notify("Le parole richieste sono presenti. Confronta la risposta con il modello: il controllo non ne valuta il significato.", title="Ripasso")
         elif result.passed:
             self.app.notify(f"Esercizio superato · +{self.exercise.xp} XP", title="Ottimo")
         elif attempts >= 2:
@@ -1053,11 +1155,11 @@ class ExerciseScreen(TimedScreen):
         state = self.app.store.get(self.progress_id)
         if int(state.get("attempts", 0)) < self.exercise.solution_after_attempts:
             remaining = self.exercise.solution_after_attempts - int(state.get("attempts", 0))
-            self.update_result(f"[bold #fbbf24]SOLUZIONE BLOCCATA[/]\nServono ancora {remaining} tentativi reali. Usa H per un indizio.")
+            self.update_result(f"[bold #fbbf24]SOLUZIONE NON ANCORA DISPONIBILE[/]\nPer sbloccarla completa ancora {remaining} controlli. Premi H per un indizio.")
             return
         self.app.store.mark_solution_viewed(self.progress_id)
         solution = self.content_for_language("solution")
-        text = f"SOLUZIONE COMMENTATA · {self.coding_language.upper()}\n\n{solution}\n\n{self.exercise.explanation}"
+        text = f"SOLUZIONE · {self.coding_language.upper()}\n\n{solution}\n\n{self.exercise.explanation}"
         self.update_result(text)
 
     def action_next_exercise(self) -> None:
@@ -1065,7 +1167,7 @@ class ExerciseScreen(TimedScreen):
 
     def next_exercise(self) -> None:
         if self.app.store.get(self.progress_id).get("status") != "completed":
-            self.app.notify("Supera questo esercizio prima di passare al prossimo passo.", severity="warning")
+            self.app.notify("Completa il controllo dell'esercizio prima di passare al successivo.", severity="warning")
             return
         exercises = self.app.catalog.exercises_for(self.exercise.lesson_id)
         completed = self.app.store.completed_ids()
@@ -1095,7 +1197,7 @@ class LabsScreen(Screen):
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
         with Vertical(classes="page"):
-            yield Static("[bold #67e8f9]LABORATORI[/]\nProgetti più lunghi, workspace persistente e test reali.", classes="hero")
+            yield Static("[bold #67e8f9]LABORATORI[/]\nSviluppa i progetti nella cartella di lavoro. Ogni scheda indica quali test puoi eseguire.", classes="hero")
             yield DataTable(cursor_type="row", zebra_stripes=True, id="table")
         yield AdaptiveFooter()
 
@@ -1141,27 +1243,30 @@ class LabScreen(TimedScreen):
             goals = "\n".join(f"- ★ {x}" for x in lab.creative_goals)
             creative = f"\n\n## Estensioni facoltative (autovalutazione)\n{goals}"
         verification = {
-            "amazon_node": "L'app esegue la suite Node.js (`npm test`) presente nel workspace.",
-            "amazon_cpp": "L'app compila ed esegue la suite C++20 con GCC o Clang.",
-        }.get(
-            lab.workspace_template,
-            "L'app esegue la suite xUnit e/o Angular presente nel workspace.",
-        )
-        dependency_action = "↓ VERIFICA C++20" if lab.workspace_template == "amazon_cpp" else "↓ INSTALLA DIPENDENZE"
+            "plain": "La suite Node.js inclusa nel progetto.",
+            "react": "La suite React inclusa nel progetto.",
+            "angular": "I test Angular del progetto.",
+            "dotnet": "I test xUnit del progetto .NET.",
+            "monorepo": "I test xUnit del server .NET e la suite Angular del client.",
+            "amazon_node": "La suite Node.js del progetto (`npm test`).",
+            "amazon_cpp": "Compila ed esegue i test C++20 con GCC o Clang.",
+        }.get(lab.workspace_template, "I test inclusi nel progetto.")
+        dependency_action = "⌕ TROVA COMPILATORE C++" if lab.workspace_template == "amazon_cpp" else "↓ PREPARA DIPENDENZE"
         yield Header(show_clock=True)
         with Vertical(classes="page"):
-            yield Static(f"[bold #67e8f9]{lab.title}[/]\n[#91a4c7]{lab.minutes} min · {lab.difficulty}[/]", classes="hero")
+            difficulty = {"easy": "facile", "medium": "media", "hard": "difficile"}.get(lab.difficulty, lab.difficulty)
+            yield Static(f"[bold #67e8f9]{lab.title}[/]\n[#91a4c7]{lab.minutes} min · {difficulty}[/]", classes="hero")
             with ScrollableContainer(id="lab-scroll", can_focus=True):
-                yield Markdown(f"## Brief\n\n{lab.description}\n\n## Requisiti\n\n{requirements}\n\n## Rubrica\n\n{rubric}{creative}\n\n> **Verifica automatica:** {verification} Un esito verde conferma quei test; rileggi la rubrica per i criteri non coperti. Il workspace non viene sovrascritto quando riapri l'app.")
-                yield Static("Pronto.", id="lab-result", classes="panel")
+                yield Markdown(f"## Traccia\n\n{lab.description}\n\n## Requisiti\n\n{requirements}\n\n## Criteri di revisione\n\n{rubric}{creative}\n\n> **Test automatici:** DEV//48 esegue {verification} se scegli Esegui test. Un esito positivo conferma soltanto quei test; usa requisiti e criteri di revisione per controllare il resto. Riaprendo l'app, i file già presenti nella cartella di lavoro vengono conservati.")
+                yield Static("Scegli un'azione per iniziare.", id="lab-result", classes="panel")
             with Horizontal(classes="actions"):
                 yield Button("▣ APRI VS CODE", id="open", classes="primary")
                 yield Button(dependency_action, id="install")
                 yield Button("▶ ESEGUI TEST", id="test", classes="success")
                 if lab.repository_variants:
-                    yield Button(f"STACK: {self.app.store.get_setting('amazon_repository_language', 'node').upper()}", id="repository-language")
+                    yield Button(f"PROGETTO: {self.app.store.get_setting('amazon_repository_language', 'node').upper()}", id="repository-language")
                 elif lab.workspace_template in {"amazon_cpp", "amazon_node"}:
-                    yield Button("USA QUESTO STACK", id="choose-stack")
+                    yield Button("USA PER IL PIANO", id="choose-stack")
                 yield Button("← LAB", id="back")
         yield AdaptiveFooter()
 
@@ -1214,14 +1319,15 @@ class LabScreen(TimedScreen):
         elif event.button.id == "choose-stack":
             language = "cpp" if self.lab.workspace_template == "amazon_cpp" else "node"
             self.app.store.set_setting("amazon_repository_language", language)
-            result.update(f"Stack repository scelto: {language.upper()}. Il piano e i mock useranno questa scelta.")
+            result.update(f"Tecnologia scelta per i progetti: {language.upper()}. Il piano e le simulazioni seguiranno questa scelta.")
         elif event.button.id == "open":
             ok, message = open_vscode(self.workspace())
             result.update(message)
         elif event.button.id == "install":
-            result.update("Installazione in corso… può richiedere alcuni minuti al primo avvio.")
+            busy_text = "Controllo del compilatore in corso…" if self.lab.workspace_template == "amazon_cpp" else "Preparazione delle dipendenze in corso… al primo avvio può richiedere alcuni minuti."
+            result.update(busy_text)
             ok, message = await asyncio.to_thread(install_lab_dependencies, self.workspace())
-            result.update(("[bold #34d399]COMPLETATA[/]\n" if ok else "[bold #fb7185]ERRORE[/]\n") + message)
+            result.update(("[bold #34d399]OPERAZIONE COMPLETATA[/]\n" if ok else "[bold #fb7185]OPERAZIONE NON RIUSCITA[/]\n") + message)
         elif event.button.id == "test":
             result.update("Test in esecuzione…")
             test_result = await asyncio.to_thread(run_lab_tests, self.workspace())
@@ -1237,7 +1343,7 @@ class LabScreen(TimedScreen):
 
 
 class FlashcardsScreen(Screen):
-    BINDINGS = [("escape", "back", "Indietro"), ("space", "flip", "Risposta"), ("right", "next", "Avanti"), ("left", "previous", "Indietro")]
+    BINDINGS = [("escape", "back", "Indietro"), ("space", "flip", "Mostra risposta"), ("right", "next", "Avanti"), ("left", "previous", "Indietro")]
 
     def __init__(self) -> None:
         super().__init__()
@@ -1247,7 +1353,7 @@ class FlashcardsScreen(Screen):
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
         with Vertical(classes="page"):
-            yield Static(f"[bold #67e8f9]FLASHCARD[/]\n{len(self.app.catalog.flashcards)} domande per il recupero attivo. Spazio mostra la risposta.", classes="hero")
+            yield Static(f"[bold #67e8f9]FLASHCARD[/]\n{len(self.app.catalog.flashcards)} domande per ripassare. Prova a rispondere prima di mostrare la risposta.", classes="hero")
             yield Static("", id="card", classes="panel")
             with Horizontal(classes="actions"):
                 yield Button("← PRECEDENTE", id="previous")
@@ -1261,7 +1367,7 @@ class FlashcardsScreen(Screen):
 
     def render_card(self) -> None:
         card = self.app.catalog.flashcards[self.index]
-        answer = f"\n\n[bold #34d399]RISPOSTA[/]\n{card.answer}" if self.flipped else "\n\n[#91a4c7]Formula la risposta ad alta voce prima di premere Spazio.[/]"
+        answer = f"\n\n[bold #34d399]RISPOSTA[/]\n{card.answer}" if self.flipped else "\n\n[#91a4c7]Prova a rispondere; premi Spazio o Invio per mostrare la risposta.[/]"
         self.query_one("#card", Static).update(f"[#a78bfa]{self.index+1}/{len(self.app.catalog.flashcards)} · {card.module.upper()}[/]\n\n[bold]{card.question}[/]{answer}")
 
     def action_flip(self) -> None:
@@ -1324,7 +1430,7 @@ class ChallengesScreen(Screen):
         with Vertical(classes="page"):
             yield Static(
                 "[bold #67e8f9]SIMULAZIONI E COMPORTAMENTO[/]\n"
-                "DSA e repository a tempo, scenari Work Simulation e familiarizzazione Work Style.",
+                "Problemi di algoritmi e debugging a tempo, scenari di lavoro e riflessioni Work Style.",
                 classes="hero",
             )
             yield DataTable(cursor_type="row", zebra_stripes=True, id="table")
@@ -1332,14 +1438,14 @@ class ChallengesScreen(Screen):
 
     def on_mount(self) -> None:
         table = self.query_one("#table", DataTable)
-        table.add_columns("Tipo", "Attività", "Minuti", "Descrizione")
+        table.add_columns("Tipo", "Attività", "Tempo", "Descrizione")
         for sim in self.app.catalog.simulations:
-            table.add_row("Full Mock" if sim.kind == "full_mock" else "Simulazione", sim.title, str(sim.minutes), sim.brief, key=sim.id)
-        table.add_row("Review", "Errori e soluzioni consultate", "—", "Riprendi gli esercizi da rivedere.", key="review")
+            table.add_row("Simulazione completa" if sim.kind == "full_mock" else "Simulazione", sim.title, str(sim.minutes), sim.brief, key=sim.id)
+        table.add_row("Ripasso", "Esercizi da rivedere", "—", "Riapri esercizi non superati o completati dopo aver consultato la soluzione.", key="review")
         for scenario in self.app.catalog.work_scenarios:
-            table.add_row("Work Simulation", scenario.title, "—", scenario.brief, key=scenario.id)
+            table.add_row("Scenario di lavoro", scenario.title, "—", scenario.brief, key=scenario.id)
         if self.app.catalog.work_style:
-            table.add_row("Work Style", "Familiarizzazione e autovalutazione", "15", "Leggi con calma, rispondi in modo coerente e personale.", key="work-style")
+            table.add_row("Riflessione", "Work Style", "—", "Domande personali senza punteggio o risposte modello.", key="work-style")
         self.set_focus(table)
 
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
@@ -1366,7 +1472,7 @@ class ChallengesScreen(Screen):
 
 
 class WorkScenarioScreen(Screen):
-    BINDINGS = [("escape", "back", "Indietro"), ("ctrl+s", "submit", "Valuta la classifica")]
+    BINDINGS = [("escape", "back", "Indietro"), ("ctrl+s", "submit", "Mostra il confronto")]
 
     def __init__(self, scenario: WorkScenario) -> None:
         super().__init__()
@@ -1376,14 +1482,14 @@ class WorkScenarioScreen(Screen):
         options = "\n\n".join(f"**{item['id']}.** {item['text']}" for item in self.scenario.options)
         yield Header(show_clock=True)
         with Vertical(classes="page"):
-            yield Static(f"[bold #67e8f9]{self.scenario.title}[/]\n[#91a4c7]Work Simulation · ragionamento prima della risposta[/]", classes="hero")
+            yield Static(f"[bold #67e8f9]{self.scenario.title}[/]\n[#91a4c7]Scenario di lavoro · ordina le azioni prima del confronto[/]", classes="hero")
             with ScrollableContainer(id="scenario-scroll", can_focus=True):
                 yield Markdown(f"## Situazione\n\n{self.scenario.brief}\n\n## Possibili risposte\n\n{options}")
-                yield Static("Ordina tutte le opzioni dalla più efficace alla meno efficace. È un confronto ragionato, non un punteggio ufficiale.", classes="panel")
+                yield Static("Ordina le opzioni dalla più efficace alla meno efficace. Il controllo verifica solo che ogni lettera compaia una volta, poi mostra la graduatoria di riferimento e le motivazioni. Non assegna un punteggio.", classes="panel")
                 yield TextArea("", id="scenario-answer", show_line_numbers=False)
                 yield Markdown("", id="scenario-feedback", classes="panel")
             with Horizontal(classes="actions"):
-                yield Button("▣ CONFRONTA RAGIONAMENTO [CTRL+S]", id="submit", classes="primary")
+                yield Button("▣ MOSTRA IL CONFRONTO [CTRL+S]", id="submit", classes="primary")
                 yield Button("← SCENARI", id="back")
         yield AdaptiveFooter()
 
@@ -1416,7 +1522,7 @@ class WorkScenarioScreen(Screen):
             if self.scenario.learning_focus else ""
         )
         return (
-            f"La tua classifica: {answer}\nLettura di confronto: {order}\n\n{notes}\n\nPrincipi in gioco: {principles}. "
+            f"La tua classifica: {answer}\nGraduatoria di riferimento: {order}\n\n{notes}\n\nPrincipi in gioco: {principles}. "
             "La scelta dipende dal contesto: confronta impatto, reversibilità, evidenza e comunicazione prima di decidere."
             f"{learning_focus}"
         )
@@ -1427,7 +1533,7 @@ class WorkScenarioScreen(Screen):
         expected_ids = {item["id"] for item in self.scenario.options}
         if len(ranked) != len(expected_ids) or set(ranked) != expected_ids:
             self.query_one("#scenario-feedback", Static).update(
-                f"Scrivi ogni lettera una sola volta, per esempio: {' > '.join(item['id'] for item in self.scenario.options)}"
+                f"Inserisci ogni lettera una sola volta, separandole con >. Per esempio: {' > '.join(item['id'] for item in self.scenario.options)}"
             )
             return
         self.app.store.set_setting(f"scenario_revision:{self.scenario.id}", self.answer_revision())
@@ -1458,12 +1564,12 @@ class WorkStyleScreen(Screen):
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
         with Vertical(classes="page"):
-            yield Static("[bold #67e8f9]WORK STYLE · FAMILIARIZZAZIONE[/]\nNessun punteggio e nessuna risposta da imitare: usa esempi veri e mantieni coerenza.", classes="hero")
+            yield Static("[bold #67e8f9]WORK STYLE · RIFLESSIONE SUL MODO DI LAVORARE[/]\nNessun punteggio o risposta da imitare: ripensa a esperienze reali e rispondi con sincerità.", classes="hero")
             with ScrollableContainer(id="work-style-scroll", can_focus=True):
                 yield Static("", id="work-style-title", classes="panel")
                 yield Markdown("", id="work-style-prompt")
                 yield TextArea("", id="work-style-answer", show_line_numbers=False)
-                yield Static("Non è un test di personalità: non cercare di ottimizzare una risposta modello. Salva soltanto le note che ti aiutano a riflettere.", classes="panel")
+                yield Static("Non è un test di personalità e non esiste una risposta modello. Salva le note che ti aiutano a riflettere.", classes="panel")
             with Horizontal(classes="actions"):
                 yield Button("← PRECEDENTE", id="previous")
                 yield Button("SALVA [CTRL+S]", id="save", classes="primary")
@@ -1523,19 +1629,24 @@ class SimulationScreen(TimedScreen):
 
     def compose(self) -> ComposeResult:
         checklist = "\n".join(f"- [ ] {item}" for item in self.simulation.checklist)
+        verification_note = (
+            "Avvia i test del progetto con il pulsante dedicato. La checklist resta da valutare da te; il timer è indipendente."
+            if self.simulation.repository_lab_id
+            else "Questa schermata non esegue il progetto né valuta la checklist. Usa le voci per rivedere il lavoro; il timer è solo un riferimento."
+        )
         yield Header(show_clock=True)
         with Vertical(classes="page"):
             yield Static(f"[bold #67e8f9]{self.simulation.title}[/]", classes="hero")
             yield Static("", id="timer", classes="stat-card")
             with ScrollableContainer(id="lab-scroll", can_focus=True):
-                yield Markdown(f"## Brief\n\n{self.simulation.brief}\n\n## Checklist\n\n{checklist}\n\n## Regola\n\nSegui le condizioni indicate nella traccia e nel tuo invito reale. Per questa simulazione, usa il timer come tempo indipendente e non trasferire i minuti inutilizzati.")
+                yield Markdown(f"## Traccia\n\n{self.simulation.brief}\n\n## Checklist\n\n{checklist}\n\n## Verifica\n\n{verification_note}")
             with Horizontal(classes="actions"):
                 yield Button("▶ AVVIA / PAUSA [SPAZIO]", id="toggle", classes="primary")
-                yield Button("↺ RESET", id="reset")
+                yield Button("↺ AZZERA TIMER", id="reset")
                 if self.simulation.repository_lab_id:
-                    yield Button("▣ APRI REPOSITORY", id="open-repo")
+                    yield Button("▣ APRI PROGETTO", id="open-repo")
                     yield Button("▶ ESEGUI TEST", id="run-repo")
-                    yield Button(f"STACK: {self.app.store.get_setting('amazon_repository_language', 'node').upper()}", id="repository-language")
+                    yield Button(f"TECNOLOGIA: {self.app.store.get_setting('amazon_repository_language', 'node').upper()}", id="repository-language")
                 yield Button("← SIMULAZIONI", id="back")
         yield AdaptiveFooter()
 
@@ -1585,11 +1696,11 @@ class SimulationScreen(TimedScreen):
             self.render_timer()
         if self.remaining == 0 and self.running:
             self.running = False
-            self.app.notify("Tempo terminato. Completa la checklist e valuta il risultato.", severity="warning")
+            self.app.notify("Tempo scaduto. Il timer è fermo; puoi ancora rivedere il lavoro con la checklist.", severity="warning")
 
     def render_timer(self) -> None:
         minutes, seconds = divmod(self.remaining, 60)
-        state = "IN CORSO" if self.running else "IN PAUSA"
+        state = "IN CORSO" if self.running else ("TERMINATO" if self.remaining == 0 else "IN PAUSA")
         self.query_one("#timer", Static).update(f"[bold #67e8f9]{minutes:02d}:{seconds:02d}[/]\n{state}")
 
     def action_toggle(self) -> None:
@@ -1605,7 +1716,7 @@ class SimulationScreen(TimedScreen):
         elif event.button.id == "repository-language" and not self.running:
             language = "cpp" if self.app.store.get_setting("amazon_repository_language", "node") == "node" else "node"
             self.app.store.set_setting("amazon_repository_language", language)
-            self.query_one("#repository-language", Button).label = f"STACK: {language.upper()}"
+            self.query_one("#repository-language", Button).label = f"TECNOLOGIA: {language.upper()}"
         elif event.button.id == "reset":
             self.remaining = self.simulation.minutes * 60
             self.running = False
@@ -1621,7 +1732,7 @@ class SimulationScreen(TimedScreen):
                 self.app.notify(message)
             else:
                 result = await asyncio.to_thread(run_lab_tests, workspace)
-                self.app.notify(result.output, title="Test repository")
+                self.app.notify(result.output, title="Test del progetto")
 
 
 def assessment_prompt(exercise: Exercise) -> str:
@@ -1631,7 +1742,7 @@ def assessment_prompt(exercise: Exercise) -> str:
 
 class CodingSimulationScreen(TimedScreen):
     """Timed single-file coding practice without hint or solution reveal."""
-    BINDINGS = [("escape", "back", "Indietro"), ("space", "toggle", "Avvia"), ("f5", "run", "Esegui test"), ("l", "toggle_language", "Lingua prima dell'avvio")]
+    BINDINGS = [("escape", "back", "Indietro"), ("space", "toggle", "Avvia"), ("f5", "run", "Controlla codice"), ("l", "toggle_language", "Lingua prima dell'avvio")]
     tracked_type = "simulation"
 
     def __init__(self, simulation: Simulation) -> None:
@@ -1661,11 +1772,11 @@ class CodingSimulationScreen(TimedScreen):
         variant = self.variant()
         yield Header(show_clock=True)
         with Vertical(classes="page"):
-            yield Static(f"[bold #fbbf24]{self.simulation.title}[/] · NO AI · NO INTERNET\n{self.exercise.title}", classes="hero")
+            yield Static(f"[bold #fbbf24]{self.simulation.title}[/] · SENZA AI · SENZA INTERNET\n{self.exercise.title}", classes="hero")
             yield Static("", id="coding-sim-timer", classes="stat-card")
             with ScrollableContainer(id="coding-sim-prompt", can_focus=True):
                 yield Markdown(assessment_prompt(self.exercise))
-                yield Static("Durante il timer non ci sono hint o soluzione. Usa il runner soltanto per controllare il codice.", classes="panel")
+                yield Static("Durante il timer non puoi consultare indizi o soluzione. F5 controlla il codice sui casi previsti.", classes="panel")
             yield CodeTextArea(
                 variant.get("starter", self.exercise.starter),
                 language=self.language,
@@ -1678,9 +1789,9 @@ class CodingSimulationScreen(TimedScreen):
                 yield Static("", id="coding-sim-output", classes="panel")
             with Horizontal(classes="actions"):
                 yield Button("▶ AVVIA [SPAZIO]", id="toggle", classes="primary")
-                yield Button(f"▶ ESEGUI [{self.language.upper()}] [F5]", id="run", disabled=True)
+                yield Button(f"▶ CONTROLLA [{self.language.upper()}] [F5]", id="run", disabled=True)
                 yield Button(f"⌘ LINGUA: {self.language.upper()} [L]", id="language")
-                yield Button("↺ RESET TIMER", id="reset")
+                yield Button("↺ AZZERA TIMER", id="reset")
                 yield Button("← SIMULAZIONI", id="back")
         yield AdaptiveFooter()
 
@@ -1695,7 +1806,7 @@ class CodingSimulationScreen(TimedScreen):
 
     def render_timer(self) -> None:
         minutes, seconds = divmod(self.remaining, 60)
-        state = "IN CORSO" if self.running else "IN PAUSA"
+        state = "IN CORSO" if self.running else ("PRONTO" if not self.started else "TERMINATO")
         self.query_one("#coding-sim-timer", Static).update(f"[bold #67e8f9]{minutes:02d}:{seconds:02d}[/] · {state}")
 
     def tick(self) -> None:
@@ -1743,7 +1854,7 @@ class CodingSimulationScreen(TimedScreen):
         editor.text = variant.get("starter", self.exercise.starter)
         editor.language = next_language
         self.query_one("#language", Button).label = f"⌘ LINGUA: {next_language.upper()} [L]"
-        self.query_one("#run", Button).label = f"▶ ESEGUI [{next_language.upper()}] [F5]"
+        self.query_one("#run", Button).label = f"▶ CONTROLLA [{next_language.upper()}] [F5]"
 
     def action_reset(self) -> None:
         if self.started:
@@ -1770,7 +1881,7 @@ class CodingSimulationScreen(TimedScreen):
 
 class FullMockScreen(TimedScreen):
     """Sequential 40 + 60 minute practice; the coding clock never rolls over."""
-    BINDINGS = [("escape", "attempt_back", "Bloccato durante il mock"), ("f5", "run_coding", "Esegui test")]
+    BINDINGS = [("escape", "attempt_back", "Uscita bloccata durante la simulazione"), ("f5", "run_coding", "Controlla codice")]
     tracked_type = "simulation"
 
     def __init__(self, simulation: Simulation) -> None:
@@ -1795,12 +1906,12 @@ class FullMockScreen(TimedScreen):
 
     def repository_prompt_text(self) -> str:
         return (
-            "## Repository · 60 minuti\n\n"
-            "Apri il progetto e parti dal README. Avvia la suite di test, osserva le failure e segui il dato "
+            "## Progetto · 60 minuti\n\n"
+            "Apri il progetto e parti dal README. Avvia i test, osserva gli errori e segui il dato "
             "attraverso i file pertinenti. Formula un'ipotesi verificabile alla volta, applica una modifica "
             "circoscritta e riesegui la suite completa. Usa i contratti esistenti come riferimento; annota "
             "eventuali incertezze invece di allargare il cambiamento.\n\n"
-            "Il timer parte da 60:00 anche se hai consegnato prima la sezione coding."
+            "Il timer parte da 60:00 anche se termini prima la sezione sul problema."
         )
 
     def variant_value(self, key: str) -> str:
@@ -1810,10 +1921,10 @@ class FullMockScreen(TimedScreen):
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
         with Vertical(classes="page"):
-            yield Static(f"[bold #fbbf24]{self.simulation.title}[/]\n40 minuti di coding · poi stop · 60 minuti di repository", classes="hero")
+            yield Static(f"[bold #fbbf24]{self.simulation.title}[/]\n40 minuti per il problema · poi stop · 60 minuti sul progetto", classes="hero")
             yield Static("", id="mock-timer", classes="stat-card")
             with ScrollableContainer(id="mock-coding-prompt", can_focus=True):
-                yield Static("La prima sezione ha un solo problema e un limite autonomo di 40 minuti. Non consultare gli hint o la soluzione.", classes="panel")
+                yield Static("La prima sezione contiene un problema da risolvere in 40 minuti. Non consultare gli indizi o la soluzione.", classes="panel")
                 yield Markdown(assessment_prompt(self.exercise))
             with ScrollableContainer(id="mock-repository-prompt", can_focus=True):
                 yield Markdown(self.repository_prompt_text())
@@ -1827,13 +1938,13 @@ class FullMockScreen(TimedScreen):
             )
             yield Static("", id="mock-result", classes="panel")
             with Horizontal(classes="actions", id="mock-actions"):
-                yield Button("▶ AVVIA CODING · 40:00", id="start", classes="primary")
-                yield Button(f"REPOSITORY: {self.app.store.get_setting('amazon_repository_language', 'node').upper()}", id="repository-language")
-                yield Button(f"▶ TEST CODING [{self.coding_language.upper()}] [F5]", id="run-coding", disabled=True)
-                yield Button("STOP · PASSA ALLA REPOSITORY", id="finish-coding", disabled=True)
+                yield Button("▶ AVVIA PROBLEMA · 40:00", id="start", classes="primary")
+                yield Button(f"PROGETTO: {self.app.store.get_setting('amazon_repository_language', 'node').upper()}", id="repository-language")
+                yield Button(f"▶ CONTROLLA PROBLEMA [{self.coding_language.upper()}] [F5]", id="run-coding", disabled=True)
+                yield Button("STOP · PASSA AL PROGETTO", id="finish-coding", disabled=True)
                 yield Button("▣ APRI VS CODE", id="open-repository", disabled=True)
-                yield Button("▶ TEST REPOSITORY", id="run-repository", disabled=True)
-                yield Button("CONCLUDI MOCK", id="finish-mock", disabled=True, classes="success")
+                yield Button("▶ CONTROLLA PROGETTO", id="run-repository", disabled=True)
+                yield Button("TERMINA SIMULAZIONE", id="finish-mock", disabled=True, classes="success")
         yield AdaptiveFooter()
 
     def on_mount(self) -> None:
@@ -1852,7 +1963,7 @@ class FullMockScreen(TimedScreen):
 
     def action_attempt_back(self) -> None:
         if self.locked:
-            self.app.notify("Il mock è sequenziale: completa la sezione in corso prima di uscire.", severity="warning")
+            self.app.notify("La simulazione è sequenziale: completa entrambe le sezioni prima di uscire.", severity="warning")
         else:
             self.app.pop_screen()
 
@@ -1864,14 +1975,14 @@ class FullMockScreen(TimedScreen):
         if self.remaining == 0:
             if self.phase == 0:
                 self.start_repository()
-                self.app.notify("Stop alla sezione coding. Ora hai 60 minuti autonomi per la repository.", severity="warning")
+                self.app.notify("La prima sezione è terminata. Inizia ora il lavoro sul progetto: hai 60 minuti.", severity="warning")
             else:
                 self.finish_mock()
 
     def render_timer(self) -> None:
         minutes, seconds = divmod(self.remaining, 60)
-        names = {0: "CODING QUESTION", 1: "CODE REPOSITORY", 2: "MOCK CONCLUSO"}
-        state = "IN CORSO" if self.running else "IN PAUSA"
+        names = {0: "PROBLEMA", 1: "PROGETTO", 2: "SIMULAZIONE CONCLUSA"}
+        state = "IN CORSO" if self.running else ("PRONTO" if not self.started else "CONCLUSA")
         self.query_one("#mock-timer", Static).update(
             f"[bold #67e8f9]{names[self.phase]} · {minutes:02d}:{seconds:02d}[/] · {state}"
         )
@@ -1940,7 +2051,7 @@ class FullMockScreen(TimedScreen):
         elif event.button.id == "repository-language" and not self.started:
             language = "cpp" if self.app.store.get_setting("amazon_repository_language", "node") == "node" else "node"
             self.app.store.set_setting("amazon_repository_language", language)
-            self.query_one("#repository-language", Button).label = f"REPOSITORY: {language.upper()}"
+            self.query_one("#repository-language", Button).label = f"PROGETTO: {language.upper()}"
         elif event.button.id == "run-coding":
             await self.action_run_coding()
         elif event.button.id == "finish-coding" and self.phase == 0:
@@ -1956,7 +2067,7 @@ class FullMockScreen(TimedScreen):
 
     def action_dashboard(self) -> None:
         if self.locked:
-            self.app.notify("Completa la sezione del mock in corso prima di tornare alla Dashboard.", severity="warning")
+            self.app.notify("Completa entrambe le sezioni della simulazione prima di tornare alla dashboard.", severity="warning")
             return
         self.app.pop_screen()
 
@@ -2020,6 +2131,42 @@ class Dev48App(App):
         track_item_ids.update(exercise_progress_id(item, self.coding_language) for item in self.catalog.exercises)
         return self.store.stats(len(self.catalog.lessons), len(self.catalog.exercises), track_item_ids)
 
+    def reset_amazon_progress(self) -> dict[str, int]:
+        if self.catalog.track != "amazon-sde-oa":
+            return {"progress": 0, "events": 0, "settings": 0}
+
+        item_ids: set[str] = set()
+        setting_keys: set[str] = set()
+        for collection in (
+            self.catalog.lessons,
+            self.catalog.labs,
+            self.catalog.flashcards,
+            self.catalog.simulations,
+            self.catalog.work_scenarios,
+            self.catalog.work_style,
+        ):
+            item_ids.update(item.id for item in collection)
+
+        for lab in self.catalog.labs:
+            item_ids.update(
+                lab.for_repository_language(language).id
+                for language in lab.repository_variants
+            )
+
+        for exercise in self.catalog.exercises:
+            # Remove both language-specific entries and any legacy unqualified entry.
+            item_ids.add(exercise.id)
+            setting_keys.add(exercise_started_setting_key(exercise.id))
+            for language in ("python", "cpp"):
+                progress_id = exercise_progress_id(exercise, language)
+                item_ids.add(progress_id)
+                setting_keys.add(exercise_started_setting_key(progress_id))
+
+        setting_keys.update(f"scenario_revision:{item.id}" for item in self.catalog.work_scenarios)
+        if self.store.get_setting("last_item") in item_ids:
+            setting_keys.add("last_item")
+        return self.store.reset_items(item_ids, setting_keys)
+
     def learning_plan_markup(self) -> str:
         completed = self.store.completed_ids()
         required = [item for item in self.catalog.lessons if item.mandatory]
@@ -2029,7 +2176,7 @@ class Dev48App(App):
         track_name = self.catalog.meta.get("name", "DEV//48")
         lines = [f"[bold #a78bfa]PERCORSO: {track_name}[/]"]
         lines.append(f"\n[{'█' * bars}{'░' * (20-bars)}]  {done}/{len(required)} lezioni essenziali · {minutes//60}h {minutes%60:02d}m")
-        lines.append(f"\n{len(self.catalog.modules)} moduli · {len(self.catalog.labs)} laboratori · {len(self.catalog.simulations)} sfide pratiche")
+        lines.append(f"\n{len(self.catalog.modules)} moduli · {len(self.catalog.labs)} laboratori · {len(self.catalog.simulations)} simulazioni")
         if self.catalog.study_plan:
             lines.append("\n[bold #fbbf24]PIANO ESSENZIALE · 6 GIORNI[/]")
             planned_minutes = 0
@@ -2059,26 +2206,28 @@ class Dev48App(App):
                 hours, minutes_left = divmod(day_minutes, 60)
                 lesson_text = " · ".join(item.title for item in lesson_items)
                 exercise_text = " · ".join(item.title for item in exercise_items)
+                scenario_titles = {item.id: item.title for item in self.catalog.work_scenarios}
+                style_titles = {item.id: item.title for item in self.catalog.work_style}
                 optional_text = " · ".join(
                     [item.title for item in lab_items]
                     + [item.title for item in simulation_items]
-                    + [f"scenario {item_id.removeprefix('sde-ws-')}" for item_id in scenario_ids]
-                    + [f"work style {item_id.removeprefix('sde-style-')}" for item_id in style_ids]
+                    + [scenario_titles[item_id] for item_id in scenario_ids if item_id in scenario_titles]
+                    + [style_titles[item_id] for item_id in style_ids if item_id in style_titles]
                 )
                 lines.append(
-                    f"\n[G{day['day']}] {day['title']} · {hours}h {minutes_left:02d}m · {day_done}/{day_total} lezioni/esercizi"
+                    f"\n[G{day['day']}] {day['title']} · {hours}h {minutes_left:02d}m · {day_done}/{day_total} attività completate"
                     f"\n[#cbd5e1]Lezioni: {lesson_text}[/]"
                     + (f"\n[#cbd5e1]Esercizi: {exercise_text}[/]" if exercise_text else "")
                     + (f"\n[#91a4c7]Pratica: {optional_text}[/]" if optional_text else "")
-                    + f"\n[#91a4c7]Recall: {day.get('flashcard_minutes', 0)} min flashcard · {day.get('review_minutes', 0)} min error review[/]"
+                    + f"\n[#91a4c7]Ripasso: {day.get('flashcard_minutes', 0)} min con flashcard · {day.get('review_minutes', 0)} min per rivedere errori e soluzioni[/]"
                 )
-            lines.append(f"\n[#91a4c7]Carico essenziale pianificato: {planned_minutes//60}h {planned_minutes%60:02d}m. Gli esercizi, laboratori e simulazioni restanti sono ripassi facoltativi nel curriculum.[/]")
-        lines.append("\n[#91a4c7]◆ obbligatorio   · approfondimento   Ctrl+T cambia traccia   Ctrl+K curriculum   Ctrl+G glossario[/]")
+            lines.append(f"\n[#91a4c7]Carico essenziale pianificato: {planned_minutes//60}h {planned_minutes%60:02d}m. Gli esercizi, i laboratori e le simulazioni non inclusi nel piano restano disponibili nel curriculum.[/]")
+        lines.append("\n[#91a4c7]◆ obbligatorio   · approfondimento   Ctrl+T cambia percorso   Ctrl+K programma   Ctrl+G glossario[/]")
         return "".join(lines)
 
     def action_switch_track(self) -> None:
         if isinstance(self.screen, FullMockScreen) and self.screen.locked:
-            self.notify("La selezione del percorso resta chiusa durante il mock sequenziale.", severity="warning")
+            self.notify("La selezione del percorso resta chiusa durante la simulazione completa.", severity="warning")
             return
         self.open_track_selection()
 
@@ -2136,7 +2285,7 @@ class Dev48App(App):
     def next_step_title(self) -> str:
         step = self.next_step()
         if not step:
-            return "Percorso obbligatorio completato: passa a laboratori e simulazioni."
+            return "Hai completato lezioni ed esercizi essenziali. Puoi approfondire il curriculum o provare un laboratorio o una simulazione."
         kind, item = step
         prefix = "Lezione" if kind == "lesson" else "Esercizio"
         return f"{prefix}: {item.title}"
@@ -2166,12 +2315,12 @@ class Dev48App(App):
             else:
                 self.push_screen(SimulationScreen(simulation))
             return
-        self.notify("Non c'è ancora un ultimo punto da riprendere.", severity="warning")
+        self.notify("Non hai ancora attività da riprendere in questo percorso.", severity="warning")
 
     def continue_course(self) -> None:
         step = self.next_step()
         if not step:
-            self.notify("Percorso obbligatorio completato. Ora scegli un laboratorio o una simulazione.", title="Sprint completato")
+            self.notify("Hai completato le lezioni e gli esercizi essenziali. Scegli un laboratorio, una simulazione o un altro approfondimento.", title="Percorso completato")
             return
         kind, item = step
         if kind == "lesson":
@@ -2181,7 +2330,7 @@ class Dev48App(App):
 
     def action_dashboard(self) -> None:
         if isinstance(self.screen, FullMockScreen) and self.screen.locked:
-            self.notify("Completa la sezione del mock in corso prima di tornare alla Dashboard.", severity="warning")
+            self.notify("Completa entrambe le sezioni della simulazione prima di tornare alla dashboard.", severity="warning")
             return
         # Lo stack contiene sempre la schermata Textual predefinita sotto la
         # dashboard; preserviamo entrambe e chiudiamo soltanto le viste aperte.
@@ -2190,13 +2339,13 @@ class Dev48App(App):
 
     def action_curriculum(self) -> None:
         if isinstance(self.screen, FullMockScreen) and self.screen.locked:
-            self.notify("Il curriculum resta chiuso durante il mock sequenziale.", severity="warning")
+            self.notify("Il programma resta chiuso durante la simulazione completa.", severity="warning")
             return
         self.push_screen(CurriculumScreen())
 
     def action_glossary(self) -> None:
         if isinstance(self.screen, FullMockScreen) and self.screen.locked:
-            self.notify("Il glossario resta chiuso durante il mock sequenziale.", severity="warning")
+            self.notify("Il glossario resta chiuso durante la simulazione completa.", severity="warning")
             return
         self.push_screen(GlossaryScreen())
 

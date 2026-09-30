@@ -14,16 +14,16 @@ CATALOG_FILE = CONTENT / "catalog_amazon_sde.json"
 
 
 MODULES = [
-    {"id": "orientamento", "order": "00", "title": "Orientamento all'OA", "description": "Formato dichiarato, metodo di problem solving e pratica senza dipendere dall'AI."},
-    {"id": "linguaggi", "order": "01", "title": "C++ e Python per il coding interview", "description": "Una prova equivalente per scegliere il linguaggio in base a velocità, memoria e debugging."},
-    {"id": "fondamenti", "order": "02", "title": "Fondamenti DSA", "description": "Complessità, array, stringhe, mappe e insiemi."},
-    {"id": "pattern", "order": "03", "title": "Pattern fondamentali", "description": "Two pointers, finestre mobili, prefissi, ordinamento e intervalli."},
-    {"id": "ricerca", "order": "04", "title": "Ricerca e strutture lineari", "description": "Stack, queue, deque e varianti della ricerca binaria."},
-    {"id": "strutture", "order": "05", "title": "Liste, alberi e grafi", "description": "Puntatori, ricorsione, BFS, DFS e ordinamento topologico."},
-    {"id": "avanzato", "order": "06", "title": "Pattern avanzati da interview", "description": "Heap, greedy, backtracking e dynamic programming essenziale."},
-    {"id": "repository", "order": "07", "title": "Code Repository Question", "description": "Orientamento, test, stack trace, debugging e fix minimi in C++ o Node.js."},
-    {"id": "comportamento", "order": "08", "title": "Componenti comportamentali", "description": "Leadership Principles, Work Simulation e familiarizzazione Work Style."},
-    {"id": "simulazioni", "order": "09", "title": "Prove a tempo", "description": "Simulazioni indipendenti e mock sequenziale 40 + 60 minuti."},
+    {"id": "orientamento", "order": "00", "title": "Formato e metodo di lavoro", "description": "Leggi i requisiti della prova e organizza un metodo per risolvere problemi e verificare il codice."},
+    {"id": "linguaggi", "order": "01", "title": "C++ e Python", "description": "Prova entrambi i linguaggi e scegli in base a familiarità, velocità e capacità di debugging."},
+    {"id": "fondamenti", "order": "02", "title": "Fondamenti di algoritmi e strutture dati", "description": "Lavora con complessità, array, stringhe, mappe e insiemi."},
+    {"id": "pattern", "order": "03", "title": "Tecniche fondamentali", "description": "Applica due puntatori, finestre mobili, prefissi, ordinamento e intervalli."},
+    {"id": "ricerca", "order": "04", "title": "Ricerca e strutture lineari", "description": "Usa stack, queue, deque e varianti della ricerca binaria."},
+    {"id": "strutture", "order": "05", "title": "Liste, alberi e grafi", "description": "Esplora strutture collegate, ricorsione, BFS, DFS e ordinamento topologico."},
+    {"id": "avanzato", "order": "06", "title": "Tecniche avanzate", "description": "Affronta heap, greedy, backtracking e i modelli essenziali di programmazione dinamica."},
+    {"id": "repository", "order": "07", "title": "Debugging di repository esistenti", "description": "Segui test, tracce d'errore e flusso del codice; correggi problemi in progetti C++ o Node.js."},
+    {"id": "comportamento", "order": "08", "title": "Scenari e riflessione sul lavoro", "description": "Ragiona su Leadership Principles, Work Simulation e Work Style senza imitare risposte modello."},
+    {"id": "simulazioni", "order": "09", "title": "Simulazioni a tempo", "description": "Prova esercizi di programmazione e debugging; la simulazione completa divide il tempo tra due attività."},
 ]
 
 
@@ -40,21 +40,24 @@ def lesson(lesson_id, module, title, day, minutes, difficulty, objectives, summa
 LESSONS = [
     lesson("oa-format", "orientamento", "Struttura e obiettivi dell'assessment", 1, 15, "base",
            ["sezioni indipendenti", "coding question", "code repository", "variazioni per ruolo e paese"],
-           "Separare la pratica richiesta per la Coding Question da quella richiesta per il repository debugging.", r'''
-La Coding Question e la Code Repository Question sono due sezioni distinte: la prima presenta un problema circoscritto, in genere su un singolo file; la seconda richiede di comprendere e modificare un progetto articolato in più file. Nel formato di riferimento, le sezioni durano rispettivamente 40 e 60 minuti, con timer indipendenti.
+           "Distinguere le capacità osservate dalle attività usate per esercitarle, senza scambiare una simulazione con il formato universale dell'assessment.", r'''
+Un assessment online è una valutazione composta da una o più attività. La forma concreta dipende dal ruolo, dal paese e dalle istruzioni ricevute: la pagina ufficiale Amazon SDE per studenti e neolaureati invita a controllare l'email dell'assessment, che determina la struttura applicabile. Non dedurre durata, strumenti consentiti o ordine delle prove dal nome del ruolo o da un esempio trovato online.
 
-Questi tempi descrivono un formato specifico, non una struttura universale. La pagina ufficiale Amazon per studenti e neolaureati precisa che struttura e componenti variano in base al paese e rimanda alle istruzioni dell'assessment. Anche la pagina pubblica per i ruoli full-time riporta tempi medi e componenti diversi. Per una prova concreta fanno fede l'invito ricevuto e le indicazioni mostrate dalla piattaforma.
+Le attività possono misurare capacità diverse. In una domanda di coding il candidato riceve un contratto circoscritto: dato un input, deve produrre un output rispettando vincoli e casi limite. In un esercizio su repository il codice esiste già; occorre ricostruire il comportamento fra file, test e componenti prima di correggerlo. Work Style e Work Simulation presentano ancora un altro tipo di ragionamento: familiarità con affermazioni sul proprio modo di lavorare e decisioni in scenari, rispettivamente. Sapere che una di queste prove esiste non significa che sia inclusa in ogni assessment.
 
-La sezione di coding richiede di chiarire il contratto, scegliere una struttura dati, implementare una soluzione e verificarne i casi limite entro il tempo disponibile. La sezione repository richiede invece di orientarsi in un progetto esistente, ricostruendo il flusso dai README e dai test prima di intervenire su controller, funzioni `main` o componenti equivalenti.
+#### Un esempio per distinguere le attività
 
-Le esercitazioni marcate **NO AI · NO INTERNET · TIMED** si svolgono senza assistente e senza accesso a Internet. Questa modalità serve a esercitare il lavoro autonomo, ma non definisce le regole di un assessment reale, che dipendono dalle istruzioni ricevute. I materiali riservati e le domande trapelate non vanno utilizzati.
+| Consegna ricevuta | Prima domanda da porsi | Evidenza di una risposta solida |
+| --- | --- | --- |
+| «Restituisci gli indici di due valori che sommano a `target`» | Che cosa significa “due” e che cosa restituire se non esistono? | La funzione rispetta il contratto anche con duplicati e input senza soluzione. |
+| «Il test di `findOrder` fallisce in un progetto» | Quale test descrive il comportamento atteso e quale file produce il valore? | Una modifica circoscritta fa passare il caso senza rompere gli altri test. |
+| «Scegli un'azione durante un disservizio» | Quale danno continua, quali prove mancano e chi può intervenire? | La motivazione distingue fatti, rischi e assunzioni. |
 
-### Risorse e attività
+Le prime due consegne possono entrambe richiedere programmazione, ma il lavoro non è intercambiabile: la prima parte da un problema e una funzione da costruire; la seconda da un sistema e da un comportamento da rintracciare. Il terzo caso non ha una singola funzione corretta da implementare; si confrontano le conseguenze delle azioni nel contesto dato.
 
-- Il curriculum contiene lezioni brevi con un argomento riconoscibile; ogni lezione è riapribile da sola.
-- Gli esercizi DSA hanno test eseguibili in Python 3 e C++20, con soluzioni e complessità.
-- I sei repository lab sono cartelle modificabili, con test che partono da failure realistiche.
-- Work Simulation e Work Style sono attività distinte: la prima richiede decisioni di lavoro, la seconda familiarizzazione senza ricette per manipolare le risposte.
+Le prove di pratica possono imporre timer o limitare assistenti per allenare una condizione specifica. Quel vincolo appartiene alla simulazione. Per un assessment reale si seguono le istruzioni mostrate nella piattaforma e nell'invito, comprese le regole sull'AI Assistant e sulle risorse esterne.
+
+Per dettagli aggiornati, consulta la [pagina ufficiale Amazon sull'OA SDE](https://www.amazon.jobs/content/en/career-programs/university/sde) e poi verifica il tuo invito: le informazioni pubbliche descrivono il processo generale, non sostituiscono le istruzioni della prova assegnata.
 '''),
     lesson("problem-solving", "orientamento", "Dai primi due minuti a una soluzione verificabile", 1, 20, "base",
            ["contratto input/output", "esempio manuale", "invariante", "complessità"],
@@ -63,7 +66,7 @@ Quando il cronometro parte, la tentazione è digitare subito. Fai invece un esem
 
 Poi scegli la versione più semplice che rispetta il contratto e misurane il costo. Se la prima idea confronta ogni coppia, con `n` elementi esegue circa `n²` confronti. Non è un difetto se `n` è piccolo; diventa un problema quando il vincolo arriva a decine di migliaia. Solo a quel punto cerca l'informazione che manca: una mappa, un ordinamento, una finestra mantenuta tra un passo e il successivo.
 
-Mentre implementi, tieni un'invariante in una frase: «la mappa contiene gli elementi già attraversati». Dopo ogni cambiamento, verifica un caso che avrebbe fatto fallire la versione precedente. Se il codice non va, riduci l'input e formula una causa precisa; cambiare tre righe insieme cancella le prove.
+Mentre implementi, tieni un'invariante in una frase. Durante una scansione può essere: «tutti gli elementi prima dell'indice corrente sono già stati controllati». In un altro pattern potresti dire: «la mappa contiene i dati già attraversati e il valore associato ha questo significato preciso». Dopo ogni cambiamento, verifica un caso che avrebbe fatto fallire la versione precedente. Se il codice non va, riduci l'input e formula una causa precisa; cambiare tre righe insieme cancella le prove.
 
 Un ritmo realistico per 40 minuti è: chiarimento e casi, 4–6 minuti; scelta e implementazione, circa 25; test manuali e rifinitura, il tempo restante. Se una strada è bloccata, conserva la soluzione parziale e prova un'alternativa con costo chiaro.
 '''),
@@ -76,22 +79,22 @@ L'esercizio propone una lista di interi e una dimensione `k`; la funzione deve r
 
 Per ciascun linguaggio si possono confrontare il tempo di scrittura, le consultazioni di sintassi, gli errori introdotti e la rapidità nel verificare lista vuota, un solo elemento e finestre che avanzano. È preferibile la soluzione che lascia più tempo al ragionamento, non quella che appare più elegante sulla carta.
 
-La lingua degli esercizi si seleziona con `L`; DEV//48 conserva risposte e tentativi separatamente per Python e C++. La preferenza può essere aggiornata dopo una prova pratica. Il runner C++ usa C++20 con GCC o Clang; senza un compilatore installato gli esercizi restano leggibili, ma non eseguibili nell'app.
+La scelta può restare provvisoria: aggiornala dopo aver confrontato altri esercizi e il tempo necessario a correggere gli errori. Python e C++ consentono entrambi di implementare gli stessi pattern; la familiarità quotidiana con il compilatore e le librerie conta più della brevità teorica della sintassi.
 '''),
-    lesson("python-toolkit", "linguaggi", "Python 3 essenziale per l'interview", 1, 25, "base",
+    lesson("python-toolkit", "linguaggi", "Python 3 essenziale per gli esercizi DSA", 1, 25, "base",
            ["list, tuple, dict e set", "enumerate e range", "Counter e defaultdict", "deque e heapq"],
            "Recuperare soltanto la sintassi Python che fa risparmiare tempo nei problemi DSA.", r'''
 Per un problema su array, `list[int]` basta quasi sempre. `enumerate(nums)` ti dà indice e valore senza una variabile contatore da aggiornare; `range(left, right)` esclude `right`, dettaglio che vale la pena controllare quando gli indici sono già stanchi. Lo slicing `s[::-1]` crea una copia invertita: comodo per una verifica, costoso se la stringa è enorme e la copia non serve.
 
-`dict` e `set` risolvono membership e conteggi: `counts[x] = counts.get(x, 0) + 1`. Quando il default è una collezione, `defaultdict(list)` evita il ramo «chiave vista per la prima volta». `Counter` è ottimo per frequenze, ma per un colloquio devi comunque saper spiegare cosa costa ogni passaggio.
+`dict` e `set` risolvono membership e conteggi: `counts[x] = counts.get(x, 0) + 1`. Quando il default è una collezione, `defaultdict(list)` evita il ramo «chiave vista per la prima volta». `Counter` è ottimo per frequenze, ma anche sotto timer occorre saper spiegare cosa costa ogni passaggio.
 
 Una lista va bene come stack con `append` e `pop`. Per BFS usa `collections.deque` e `popleft()`: togliere il primo elemento da una lista sposta il resto. `heapq` espone un min-heap; per ottenere un max-heap con numeri interi, spesso basta inserire `-value`.
 
 `sorted(values)` crea una nuova lista; `values.sort()` modifica quella esistente. Preferisci la prima quando l'input fa parte del contratto e non deve cambiare. Comprehension e lambda sono strumenti, non una gara a scrivere la riga più corta.
 '''),
-    lesson("cpp-toolkit", "linguaggi", "C++ moderno e STL senza rumore", 1, 30, "base",
+    lesson("cpp-toolkit", "linguaggi", "C++ moderno e STL per gli esercizi DSA", 1, 30, "base",
            ["vector e string", "hash e contenitori ordinati", "iteratori e confini", "reference e const"],
-           "Riprendere la parte di C++ che compare davvero in una coding interview.", r'''
+           "Riprendere la parte di C++ che compare negli esercizi DSA.", r'''
 Un `vector<int>` è la scelta normale per una sequenza modificabile; `string` è una sequenza di caratteri con indici da zero. Per lookup medio costante scegli `unordered_map` o `unordered_set`; `map` e `set` mantengono l'ordine e costano `O(log n)`. `pair<int,int>` è utile per portare insieme due coordinate senza creare una classe.
 
 `stack`, `queue` e `deque` esprimono LIFO, FIFO e accesso a entrambe le estremità. `priority_queue<int>` è un max-heap; per il min-heap usa `greater<int>`. `sort`, `lower_bound` e `upper_bound` stanno in `<algorithm>`. Una lambda per ordinare intervalli è spesso sufficiente: `[](const auto& a, const auto& b) { return a[0] < b[0]; }`.
@@ -105,67 +108,552 @@ Per alberi e liste, un `struct TreeNode` con puntatori `left/right` e `nullptr` 
            "Stimare il lavoro prima di affidarsi a una soluzione che supera i casi di esempio.", r'''
 Se raddoppi `n`, un passaggio lineare fa circa il doppio del lavoro; due cicli annidati spesso ne fanno quattro volte tanto. Quella differenza diventa visibile quando i vincoli passano da 100 a 100.000. L'esempio non deve essere cronometrato al millisecondo: serve a scartare una famiglia di soluzioni incompatibile con la scala.
 
+Contiamo le coppie di posizioni con lo stesso valore in `[1,2,1,2]`. Consideriamo ogni coppia una volta sola:
+
+| `i` | `j` provati | Confronti uguali |
+| ---: | --- | --- |
+| 0 | 1, 2, 3 | `(0,2)` |
+| 1 | 2, 3 | `(1,3)` |
+| 2 | 3 | nessuno |
+
+Sono sei confronti, cioè `3+2+1`. In generale il ciclo esterno sceglie `n` posizioni e quello interno ne prova `n-1`, poi `n-2` e così via: il totale è `n(n-1)/2`, che cresce come `O(n²)`.
+
+**Versione Python**
+
+```python
+def count_equal_pairs(values):
+    count = 0
+    for i in range(len(values)):
+        for j in range(i + 1, len(values)):
+            if values[i] == values[j]:
+                count += 1
+    return count
+```
+
+**Versione C++**
+
+```cpp
+#include <vector>
+
+int count_equal_pairs(const std::vector<int>& values) {
+    int count = 0;
+    for (std::size_t i = 0; i < values.size(); ++i) {
+        for (std::size_t j = i + 1; j < values.size(); ++j) {
+            if (values[i] == values[j]) {
+                ++count;
+            }
+        }
+    }
+    return count;
+}
+```
+
+Le due implementazioni confrontano `(0,2)` e `(1,3)`, quindi restituiscono 2. Anche se nessun valore coincide, ogni coppia viene comunque controllata: l'input senza match impedisce che un'uscita anticipata nasconda il lavoro peggiore. Lo spazio extra resta `O(1)` perché bastano indici e contatore.
+
 Una ricerca binaria dimezza lo spazio a ogni confronto e richiede `O(log n)`, ma l'array deve essere ordinato o la condizione deve essere monotona. Ordinare prima costa `O(n log n)`. Una mappa può portare lookup medio a `O(1)` pagando spazio `O(n)`; non è «gratis», è uno scambio esplicito.
 
-Quando leggi i constraints, cerca numeri massimi, valori negativi, duplicati e input vuoti. Se `n` arriva a 200.000, `O(n²)` è quasi sempre un segnale d'allarme. Un esercizio del catalogo include un caso grande costruito proprio per separare una scansione lineare da un doppio ciclo.
+Quando leggi i constraints, cerca numeri massimi, valori negativi, duplicati e input vuoti. Se `n` arriva a 200.000, `O(n²)` è quasi sempre un segnale d'allarme. Per distinguere una scansione lineare da un doppio ciclo, prova anche un input grande senza risposta che consenta di interrompere subito.
 
 La complessità spaziale conta quanto quella temporale: una soluzione che copia una matrice può passare i test piccoli e superare la memoria. Specifica se lo spazio ausiliario cresce con l'input o se stai modificando la struttura ricevuta.
 '''),
     lesson("arrays-strings", "fondamenti", "Array e stringhe: scansione, indici e mutazioni", 1, 20, "base",
            ["traversal", "indici inclusivi ed esclusivi", "in-place", "copie e memoria extra"],
            "Ridurre off-by-one e mutazioni accidentali durante una scansione lineare.", r'''
-Una scansione ha tre domande concrete: da dove parto, quando mi fermo, cosa significa l'indice corrente? Scrivi l'intervallo `[left, right)` quando il bordo destro non è incluso. La sua lunghezza è `right - left`; l'ultimo elemento è `right - 1`. Questa convenzione si incastra bene con slicing Python e iteratori C++.
+Un array offre accesso diretto alla posizione `i`: leggere `nums[i]` costa `O(1)`, ma inserire nel mezzo sposta in genere gli elementi successivi e costa `O(n)`. Prima di scorrere, dichiara quale intervallo stai visitando. `[left,right)` include `left` ed esclude `right`, quindi ha lunghezza `right-left`; se è vuoto, i due estremi coincidono. Questa convenzione si incastra bene con gli slicing Python e con l'intervallo di iteratori C++.
 
-Se devi invertire un array senza spazio extra, scambia gli estremi e avvicinali. Se devi soltanto restituire una versione ordinata, una copia chiarisce il contratto. `sort` in-place è un'altra scelta: utile quando il prompt permette di modificare l'input, rischiosa quando un test successivo riusa i dati.
+Per capire la scansione in-place, teniamo solo i valori pari in `[3,4,7,2,5]`, conservandone l'ordine. Una soluzione con un array nuovo è semplice, ma usa spazio proporzionale all'input. Con due indici possiamo invece leggere ogni posizione e scrivere i valori che ci interessano nel prefisso già elaborato.
 
-Per le stringhe, distinguere una sequenza di byte da un carattere Unicode completo può essere importante fuori dai problemi standard di interview. Gli esercizi considerano caratteri ASCII dichiarati nel prompt, così l'attenzione resta sull'algoritmo. Gli indici restano comunque facili da sbagliare: vanno verificati il primo, l'ultimo e la lunghezza zero.
+Su `[3,4,7,2,5]`, la traccia è:
+
+| `read` | Valore letto | Azione | Array dopo l'azione |
+| ---: | ---: | --- | --- |
+| 0 | 3 | salta; `write` resta 0 | `[3,4,7,2,5]` |
+| 1 | 4 | scrivi in posizione 0; `write` diventa 1 | `[4,4,7,2,5]` |
+| 2 | 7 | salta | `[4,4,7,2,5]` |
+| 3 | 2 | scrivi in posizione 1; `write` diventa 2 | `[4,2,7,2,5]` |
+| 4 | 5 | salta | `[4,2,7,2,5]` |
+
+Alla fine il risultato è il prefisso di lunghezza 2, `[4,2]`; ciò che resta oltre quel prefisso non fa parte del risultato.
+
+**Versione Python**
+
+```python
+def compact_even_values(nums):
+    write = 0
+    for read in range(len(nums)):
+        if nums[read] % 2 == 0:
+            nums[write] = nums[read]
+            write += 1
+    return write
+```
+
+**Versione C++**
+
+```cpp
+#include <vector>
+using namespace std;
+
+int compact_even_values(vector<int>& nums) {
+    int write = 0;
+    for (int read = 0; read < static_cast<int>(nums.size()); ++read) {
+        if (nums[read] % 2 == 0) {
+            nums[write] = nums[read];
+            ++write;
+        }
+    }
+    return write;
+}
+```
+
+La variabile `write` non supera mai `read`: non sovrascrivi quindi dati che non hai ancora esaminato. Ogni elemento viene letto una volta e gli elementi conservati vengono riscritti al massimo una volta; il tempo è `O(n)` e lo spazio aggiuntivo `O(1)`. La funzione muta l'input e comunica la lunghezza valida: chi la chiama deve usare solo quel prefisso.
+
+Un accumulatore diverso risolve il massimo segmento contiguo. Per ogni posizione, il miglior segmento che termina lì o riparte dal valore corrente, oppure si estende aggiungendo quel valore alla somma precedente. Inizializza dal primo elemento: un array tutto negativo deve restituire il meno negativo, non zero.
+
+**Versione Python**
+
+```python
+def max_subarray(nums):
+    if not nums:
+        raise ValueError("serve almeno un elemento")
+
+    best_ending_here = nums[0]
+    best = nums[0]
+    for i in range(1, len(nums)):
+        value = nums[i]
+        best_ending_here = max(value, best_ending_here + value)
+        best = max(best, best_ending_here)
+    return best
+```
+
+**Versione C++**
+
+```cpp
+#include <algorithm>
+#include <stdexcept>
+#include <vector>
+using namespace std;
+
+long long max_subarray(const vector<int>& nums) {
+    if (nums.empty()) {
+        throw invalid_argument("serve almeno un elemento");
+    }
+
+    long long best_ending_here = nums[0];
+    long long best = nums[0];
+    for (int i = 1; i < static_cast<int>(nums.size()); ++i) {
+        best_ending_here = max(static_cast<long long>(nums[i]), best_ending_here + nums[i]);
+        best = max(best, best_ending_here);
+    }
+    return best;
+}
+```
+
+Per `[-2,3,-1,4,-6]`, la somma migliore che termina in ciascuna posizione diventa `-2, 3, 2, 6, 0`; il massimo osservato è 6. Ogni elemento produce un solo aggiornamento: `O(n)` tempo e `O(1)` spazio. Array e stringhe condividono gli indici, ma le stringhe sono immutabili in Python; quando la risposta è una nuova stringa, anche costruirla richiede spazio proporzionale alla sua lunghezza.
 '''),
     lesson("hashmap-set", "fondamenti", "HashMap e Set: memoria utile, non magia", 1, 30, "base",
            ["lookup e complementi", "frequenze", "duplicati e raggruppamento", "chiavi e spazio"],
            "Usare una struttura per ricordare ciò che serve senza ripassare tutto l'input.", r'''
-La mappa è utile quando puoi nominare la domanda che vuoi fare a ogni elemento: «ho già visto il suo complemento?», «quante volte è comparsa questa lettera?», «a quale gruppo appartiene questa firma?». In Two Sum, per il valore `x` cerchi `target - x` tra gli indici già incontrati. Salvare l'indice solo dopo la ricerca evita di usare lo stesso elemento due volte.
+Prima di scegliere una mappa o un set, chiediti quale informazione vuoi conservare mentre leggi i dati. Considera tre movimenti di magazzino: `("nord", 3)`, `("sud", 2)`, `("nord", 4)`. Vogliamo sommare gli importi per zona. La chiave è il nome della zona e il valore associato è il totale accumulato.
 
-Un set risponde a «esiste già?» senza associarci un conteggio. Una mappa di frequenze conta con `counts[x] += 1`. Per raggruppare parole anagramma, una chiave possibile è la tupla delle 26 frequenze; ordinare ogni parola funziona pure, ma cambia il costo.
+### Esempio svolto: aggiornare una mappa
 
-Le operazioni hash sono in media `O(1)`, non una garanzia matematica per ogni caso. Se serve ordine, usa una struttura ordinata e accetta `O(log n)`. Quando la mappa memorizza prefissi, stati o nodi, dichiara anche quanta memoria può crescere.
+Partiamo da una mappa vuota e aggiorniamola una riga alla volta:
 
-Un errore ricorrente è sovrascrivere una frequenza quando il problema richiede accumularla. Un altro è interrogare una mappa mutandola senza volerlo: in C++ `operator[]` inserisce una chiave mancante; `find` permette un lookup che non cambia il contenitore.
+| Movimento | Chiave letta | Totale prima | Totale dopo |
+| --- | --- | ---: | ---: |
+| `("nord", 3)` | `nord` | 0 | 3 |
+| `("sud", 2)` | `sud` | 0 | 2 |
+| `("nord", 4)` | `nord` | 3 | 7 |
+
+Alla fine la mappa contiene `{"nord": 7, "sud": 2}`. Il terzo movimento non crea una nuova zona: aggiorna il totale già presente. Questo è il passaggio chiave: una mappa collega ogni chiave a un valore utile sul passato.
+
+**Versione Python**
+
+```python
+def totals_by_region(movements):
+    totals = {}
+    for region, amount in movements:
+        totals[region] = totals.get(region, 0) + amount
+    return totals
+
+movements = [("nord", 3), ("sud", 2), ("nord", 4)]
+print(totals_by_region(movements))  # {'nord': 7, 'sud': 2}
+```
+
+`get(region, 0)` legge il totale precedente; se la chiave non esiste ancora, parte da zero. Poi il codice aggiunge l'importo corrente e salva il nuovo totale.
+
+**Versione C++**
+
+```cpp
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+using namespace std;
+
+unordered_map<string, int> totals_by_region(
+    const vector<pair<string, int>>& movements
+) {
+    unordered_map<string, int> totals;
+    for (const auto& movement : movements) {
+        totals[movement.first] += movement.second;
+    }
+    return totals;
+}
+```
+
+In C++, `totals[region]` crea la chiave con valore iniziale zero quando non esiste; l'operatore `+=` aggiunge l'importo. L'ordine con cui una `unordered_map` mostra le chiavi non è garantito: il contenuto è lo stesso, ma la stampa può cambiare ordine.
+
+Usa un `set` quando ti basta sapere se una chiave è già presente; usa una mappa quando a ogni chiave vuoi associare un conteggio, una posizione o un totale. Con una hash table le operazioni costano in media `O(1)`, quindi questa scansione richiede tempo medio `O(n)`. Lo spazio cresce con il numero di zone distinte, non con il numero totale degli importi. La struttura accelera l'accesso conservando informazioni: quel risparmio di tempo richiede memoria.
 '''),
     lesson("two-pointers", "pattern", "Two Pointers: far incontrare due scansioni", 2, 25, "base",
            ["estremi opposti", "fast/slow", "array ordinati", "invariante del movimento"],
            "Eliminare candidati in coppia quando l'ordine consente di motivare ogni spostamento.", r'''
-Con un array ordinato, due indici ai bordi possono cercare una somma senza provare tutte le coppie. Se la somma è troppo piccola, muovere il sinistro verso destra è l'unico modo per aumentarla; se è troppo grande, arretrare il destro la riduce. Ogni passo scarta una famiglia di coppie, non un'ipotesi a caso.
+Per capire perché l'ordine permette di eliminare candidati, cerchiamo due valori in un array crescente la cui differenza sia 5. Il metodo diretto prova ogni coppia, per `O(n²)` confronti. Con due indici che avanzano, possiamo scartare una famiglia di coppie a ogni passo.
 
-Il pattern fast/slow ha un'altra funzione. Un puntatore avanza di uno, l'altro di due; incontrarsi rivela un ciclo, oppure il lento può raggiungere il punto medio mentre il veloce percorre una lista. Non richiede un array ordinato, ma ha bisogno di una relazione tra i passi.
+Su `[1,2,4,7,9]`, partiamo con `left=0` e `right=1`. Se la differenza è minore di 5, il valore a destra è ancora troppo vicino: tenere lo stesso `left` e provare valori maggiori è l'unica possibilità. Se è maggiore di 5, il valore a sinistra è troppo piccolo: qualunque elemento ancora più a sinistra produrrebbe una differenza almeno altrettanto grande, quindi avanziamo `left`.
 
-In-place deduplication usa spesso un indice di scrittura e uno di lettura. L'indice lento indica il prefisso già pulito; quello veloce esplora il resto. Se non riesci a dire cosa garantisce la zona tra i due, fermati prima di codificare.
+| `left` | `right` | Differenza | Decisione giustificata |
+| ---: | ---: | ---: | --- |
+| 0 (`1`) | 1 (`2`) | 1 | troppo piccola → `right += 1` |
+| 0 (`1`) | 2 (`4`) | 3 | troppo piccola → `right += 1` |
+| 0 (`1`) | 3 (`7`) | 6 | troppo grande → `left += 1` |
+| 1 (`2`) | 3 (`7`) | 5 | coppia trovata agli indici `(1,3)` |
+
+**Versione Python**
+
+```python
+def pair_with_difference(nums, target):
+    if target < 0:
+        raise ValueError("target deve essere non negativo")
+    left = 0
+    right = 1
+
+    while right < len(nums):
+        if left == right:
+            right += 1
+            continue
+        difference = nums[right] - nums[left]
+        if difference == target:
+            return (left, right)
+        if difference < target:
+            right += 1
+        else:
+            left += 1
+
+    return None
+```
+
+**Versione C++**
+
+```cpp
+#include <optional>
+#include <stdexcept>
+#include <utility>
+#include <vector>
+using namespace std;
+
+optional<pair<int, int>> pair_with_difference(const vector<int>& nums, long long target) {
+    if (target < 0) {
+        throw invalid_argument("target deve essere non negativo");
+    }
+    int left = 0;
+    int right = 1;
+
+    while (right < static_cast<int>(nums.size())) {
+        if (left == right) {
+            ++right;
+            continue;
+        }
+        const long long difference = static_cast<long long>(nums[right]) - nums[left];
+        if (difference == target) {
+            return pair<int, int>{left, right};
+        }
+        if (difference < target) {
+            ++right;
+        } else {
+            ++left;
+        }
+    }
+
+    return nullopt;
+}
+```
+
+I due indici avanzano al massimo `n` volte ciascuno, quindi il tempo è `O(n)` e lo spazio ausiliario `O(1)`. Il prerequisito è l'ordine crescente: senza di esso, una differenza troppo grande o troppo piccola non giustifica l'eliminazione dei candidati. Se `target=0`, il ciclo può trovare valori uguali in posizioni distinte.
+
+“Due puntatori” descrive anche meccanismi diversi: fast/slow su una lista usa velocità differenti per rilevare un ciclo o raggiungere il centro; read/write mantiene un prefisso già sistemato mentre legge il resto. Non sono varianti automaticamente intercambiabili: prima di spostare un indice, spiega quale invariante rende sicura la mossa.
 '''),
     lesson("sliding-window", "pattern", "Sliding Window: aggiornare una finestra senza rifarla", 2, 30, "intermedio",
            ["finestra fissa", "finestra variabile", "frequenze", "condizione monotona"],
            "Riutilizzare il lavoro tra finestre contigue e riconoscere quando il pattern non vale.", r'''
-Provare ogni substring da capo ripete gli stessi conteggi. Una finestra conserva i dati del tratto `[left, right]`: quando `right` avanza aggiungi un elemento, e quando la condizione non regge sposta `left`, rimuovendo ciò che esce. Il costo scende a `O(n)` perché ciascun bordo attraversa l'array al massimo una volta.
+Una finestra è un intervallo contiguo che si sposta sull'input. Considera tutte le somme di tre elementi consecutivi in `[2, 1, 5, 1, 3, 2]`. Ricalcolarle da zero produce `8, 7, 9, 6`: il lavoro è corretto, ma tra due somme vicine si ripetono due addendi. Quando la finestra avanza, un elemento esce e uno entra; puoi aggiornare la somma precedente invece di ricominciare.
 
-Per una finestra di dimensione fissa, prima accumuli i primi `k` valori, poi aggiungi il nuovo e sottrai quello che lascia. Per una finestra variabile, serve che la proprietà migliori o peggiori in modo prevedibile quando restringi. L'esempio classico usa numeri non negativi: con valori negativi, avanzare `left` non garantisce di diminuire la somma e la logica si rompe.
+| Indici inclusi | Operazione dalla finestra precedente | Somma |
+| --- | --- | ---: |
+| `[0,2]` | somma iniziale `2+1+5` | 8 |
+| `[1,3]` | togli `2`, aggiungi `1` | 7 |
+| `[2,4]` | togli `1`, aggiungi `3` | 9 |
+| `[3,5]` | togli `5`, aggiungi `2` | 6 |
 
-Con frequenze di caratteri, non basta muovere i due indici: aggiorna la mappa alla stessa operazione in cui cambia il bordo. `Longest Substring Without Repeating Characters` restringe finché la frequenza di un carattere supera uno. `Minimum Window` aggiunge invece un contatore dei requisiti ancora mancanti.
+Per una finestra fissa di ampiezza `k`, l'invariante è semplice: `current` è la somma esatta degli ultimi `k` valori entrati. L'inizializzazione richiede `k` addizioni; ogni spostamento ne richiede due, una sottrazione e una addizione. La versione ingenua costa `O((n-k+1)·k)`; dopo l'inizializzazione la scansione costa `O(n)` complessivo.
+
+**Versione Python**
+
+```python
+def max_sum_k(nums, k):
+    if k <= 0 or k > len(nums):
+        raise ValueError("k deve descrivere una finestra non vuota valida")
+
+    current = 0
+    for i in range(k):
+        current += nums[i]
+    best = current
+
+    for right in range(k, len(nums)):
+        outgoing = nums[right - k]
+        incoming = nums[right]
+        current = current - outgoing + incoming
+        best = max(best, current)
+
+    return best
+```
+
+**Versione C++**
+
+```cpp
+#include <algorithm>
+#include <stdexcept>
+#include <vector>
+using namespace std;
+
+long long max_sum_k(const vector<int>& nums, int k) {
+    if (k <= 0 || k > static_cast<int>(nums.size())) {
+        throw invalid_argument("k deve descrivere una finestra non vuota valida");
+    }
+
+    long long current = 0;
+    for (int i = 0; i < k; ++i) {
+        current += nums[i];
+    }
+    long long best = current;
+
+    for (int right = k; right < static_cast<int>(nums.size()); ++right) {
+        const int outgoing = nums[right - k];
+        const int incoming = nums[right];
+        current = current - outgoing + incoming;
+        best = max(best, current);
+    }
+
+    return best;
+}
+```
+
+I due programmi mantengono lo stesso stato. Con `k=3`, il primo ciclo porta `current` a 8; quando `right=3`, `nums[right-k]` è il 2 che lascia la finestra e `nums[right]` è il nuovo 1. `best` parte dalla prima finestra: inizializzarlo a zero sarebbe sbagliato se tutti gli elementi fossero negativi. Ogni valore viene letto un numero costante di volte; il tempo è `O(n)` e lo spazio ausiliario è `O(1)`.
+
+Una finestra variabile risponde a una domanda diversa: non conosci l'ampiezza in anticipo. Il tentativo diretto sceglie ogni inizio e prova tutti i segmenti che seguono, accumulando la somma: può esaminare `O(n²)` intervalli. Se i valori sono positivi, una somma insufficiente può essere aumentata estendendo a destra; quando è sufficiente, restringere da sinistra può trovare un segmento più corto.
+
+Per target 7 in `[2,3,1,2,4,3]`, la traccia registra ogni restringimento:
+
+| `right` | Valore entrato | Finestra valida candidata | Somma | Migliore |
+| ---: | ---: | --- | ---: | ---: |
+| 0 | 2 | — | 2 | — |
+| 1 | 3 | — | 5 | — |
+| 2 | 1 | — | 6 | — |
+| 3 | 2 | `[2,3,1,2]` | 8 | 4 |
+| 4 | 4 | `[3,1,2,4]`, poi `[1,2,4]` | 10, poi 7 | 3 |
+| 5 | 3 | `[2,4,3]`, poi `[4,3]` | 9, poi 7 | 2 |
+
+Quando sottrarre il valore a sinistra fa scendere la somma sotto 7, il `while` termina e il ciclo esterno può aggiungere il prossimo elemento. Per vedere la stessa espansione e contrazione con uno stato diverso, cerchiamo la sottostringa più lunga con al massimo due caratteri distinti in `eceba`:
+
+| Indice | Carattere entrato | Finestra dopo la correzione | Distinti | Migliore |
+| ---: | --- | --- | ---: | ---: |
+| 0 | `e` | `e` | 1 | 1 |
+| 1 | `c` | `ec` | 2 | 2 |
+| 2 | `e` | `ece` | 2 | 3 |
+| 3 | `b` | `eceb → eb` | 2 | 3 |
+| 4 | `a` | `eba → ba` | 2 | 3 |
+
+La condizione da ripristinare è `len(counts) <= k`. Una volta violata, togli caratteri da sinistra finché una frequenza arriva a zero e il numero di chiavi diminuisce. La finestra valida più lunga ha lunghezza 3 (`ece`).
+
+**Versione Python**
+
+```python
+def longest_at_most_k_distinct(text, k):
+    if k < 0:
+        raise ValueError("k deve essere non negativo")
+    counts = {}
+    left = 0
+    best = 0
+
+    for right, char in enumerate(text):
+        counts[char] = counts.get(char, 0) + 1
+        while len(counts) > k:
+            outgoing = text[left]
+            counts[outgoing] -= 1
+            if counts[outgoing] == 0:
+                del counts[outgoing]
+            left += 1
+        best = max(best, right - left + 1)
+
+    return best
+```
+
+**Versione C++**
+
+```cpp
+#include <algorithm>
+#include <stdexcept>
+#include <string>
+#include <unordered_map>
+using namespace std;
+
+int longest_at_most_k_distinct(const string& text, int k) {
+    if (k < 0) {
+        throw invalid_argument("k deve essere non negativo");
+    }
+    unordered_map<char, int> counts;
+    int left = 0;
+    int best = 0;
+
+    for (int right = 0; right < static_cast<int>(text.size()); ++right) {
+        ++counts[text[right]];
+        while (static_cast<int>(counts.size()) > k) {
+            char outgoing = text[left];
+            if (--counts[outgoing] == 0) {
+                counts.erase(outgoing);
+            }
+            ++left;
+        }
+        best = max(best, right - left + 1);
+    }
+    return best;
+}
+```
+
+Gli indici non tornano mai indietro: ciascun carattere entra una volta ed esce al massimo una volta, quindi il tempo atteso è `O(n)` e la mappa usa `O(min(n, alfabeto))` spazio. Il codice illustra il meccanismo delle frequenze; il problema di somma positiva richiede una diversa condizione, anche se i bordi si muovono con lo stesso schema.
+
+La positività non è una nota marginale. Su `[1,-1,5]` con target 5, l'algoritmo può arrivare a somma 5 con tutti e tre gli elementi, registrare lunghezza 3 e fermarsi quando toglie il primo `1`; così non considera il segmento `[5]`, che è la risposta di lunghezza 1. Se i valori possono essere negativi, la monotonia è assente: per contare somme arbitrarie è più adatta la tecnica dei prefissi e della hash map.
+
+Le stringhe usano lo stesso movimento dei bordi, ma lo stato da aggiornare è una mappa di frequenze. Per `abba`, una finestra senza ripetizioni cresce fino a `ab`; al secondo `b`, `left` oltrepassa la prima `b`; poi `ba` torna ad avere lunghezza 2. Per una finestra minima che deve contenere `AA`, una sola `A` non basta: il conteggio delle occorrenze, non la sola presenza, determina la validità. Per `AABABBA` con una sostituzione, la condizione è `lunghezza - massima_frequenza <= 1`. Le finestre fisse, quelle con somma monotona e quelle con requisiti di frequenza condividono i bordi, ma non lo stesso invariante.
 '''),
-    lesson("prefix-sum", "pattern", "Prefix Sum e HashMap per intervalli e sottosequenze", 2, 25, "intermedio",
+    lesson("prefix-sum", "pattern", "Prefissi e HashMap: somme di intervalli e prodotti senza divisione", 2, 25, "intermedio",
            ["somme cumulative", "intervalli", "subarray sum", "prefix map"],
            "Rispondere a domande su segmenti usando la differenza tra due prefissi.", r'''
-Definisci `prefix[i]` come la somma dei primi `i` elementi. La somma dell'intervallo `[left, right)` è `prefix[right] - prefix[left]`. Con un prefisso iniziale pari a zero, anche gli intervalli che partono dal primo elemento seguono la stessa formula.
+Una somma cumulativa trasforma una domanda su un intervallo in una sottrazione. Definisci `prefix[i]` come la somma dei primi `i` valori: il vettore dei prefissi ha un elemento in più dell'input e comincia da zero. Per `[3,-2,4,1]` ottieni `[0,3,1,5,6]`. L'intervallo `[1,4)` vale `prefix[4]-prefix[1] = 6-3 = 3`, cioè `-2+4+1`.
 
-Per contare subarray con somma `k`, mentre avanzi con somma corrente `s`, cerchi quante volte è apparso `s - k`. La mappa dei prefissi si inizializza con `{0: 1}`: senza quella voce perdi i segmenti che cominciano a indice zero. Qui torna la stessa idea di Two Sum: la mappa ricorda un valore già visto che completa quello corrente.
+Per rispondere a molte query di somma, costruisci il vettore dei prefissi una volta (`O(n)` tempo e memoria); ogni query successiva costa `O(1)`. Per contare invece tutti i segmenti con somma `k`, non serve conservare l'intero vettore: basta ricordare quante volte è apparso ciascun prefisso.
 
-La differenza tra due prefissi funziona anche con numeri negativi, mentre la sliding window per somme spesso no. Questo è un buon esempio di pattern riconosciuto dal motivo matematico, non dalla parola “subarray”.
+Con `[1,2,1]` e `k=3`, la mappa parte da `{0:1}` perché lo zero rappresenta il prefisso prima dell'array. Quando la somma corrente è `s`, un segmento precedente vale `s-k` se il tratto tra quel prefisso e la posizione corrente somma `k`.
+
+| Valore letto | `s` | `s-k` cercato | Conteggi precedenti | Segmenti aggiunti | Totale |
+| ---: | ---: | ---: | --- | ---: | ---: |
+| 1 | 1 | -2 | `{0:1}` | 0 | 0 |
+| 2 | 3 | 0 | `{0:1, 1:1}` | 1 | 1 |
+| 1 | 4 | 1 | `{0:1, 1:1, 3:1}` | 1 | 2 |
+
+Dopo aver contato i prefissi che completano `s`, incrementa il conteggio di `s`: così la mappa descrive solo posizioni già passate. La differenza tra prefissi resta valida con numeri negativi; per questo il metodo gestisce casi nei quali restringere una sliding window non è sicuro.
+
+**Versione Python**
+
+```python
+def count_subarrays_sum(nums, target):
+    frequency = {0: 1}
+    prefix = 0
+    count = 0
+
+    for value in nums:
+        prefix += value
+        count += frequency.get(prefix - target, 0)
+        frequency[prefix] = frequency.get(prefix, 0) + 1
+
+    return count
+```
+
+**Versione C++**
+
+```cpp
+#include <unordered_map>
+#include <vector>
+using namespace std;
+
+long long count_subarrays_sum(const vector<int>& nums, long long target) {
+    unordered_map<long long, long long> frequency;
+    frequency[0] = 1;
+    long long prefix = 0;
+    long long count = 0;
+
+    for (int value : nums) {
+        prefix += value;
+        const auto found = frequency.find(prefix - target);
+        if (found != frequency.end()) {
+            count += found->second;
+        }
+        ++frequency[prefix];
+    }
+
+    return count;
+}
+```
+
+Ogni passaggio esegue una lookup e un aggiornamento mediamente `O(1)`, quindi il tempo medio è `O(n)` e la mappa può contenere `O(n)` prefissi. Usa un tipo abbastanza largo per somme e risultato: il numero di segmenti può arrivare a `n(n+1)/2`.
 '''),
     lesson("sorting-intervals", "pattern", "Sorting e intervalli: ordinare per scoprire sovrapposizioni", 2, 25, "intermedio",
            ["comparatore", "merge intervals", "confini aperti e chiusi", "scheduling"],
            "Usare l'ordinamento per rendere locale un problema che altrimenti richiede confronti incrociati.", r'''
-Se ordini gli intervalli per inizio, quando leggi il prossimo sai che nessun intervallo futuro inizierà prima. Puoi quindi confrontarlo con il risultato appena costruito: se si sovrappone, estendi la fine; altrimenti aggiungi un nuovo intervallo. Il costo è dominato dall'ordinamento, `O(n log n)`.
+Per sapere se una lista di riunioni contiene una sovrapposizione, il metodo diretto confronta ogni coppia (`O(n²)`). Ordinando per inizio, basta controllare ogni intervallo contro il termine più lontano raggiunto finora. Usiamo intervalli semiaperti: `[inizio,fine)`, così una riunione che comincia esattamente quando un'altra finisce può usare la stessa sala.
 
-Il dettaglio che decide i test è il confine: `[1, 3]` e `[3, 5]` si toccano. Il requisito può considerarli sovrapposti (`start <= end`) o separati (`start < end`). Non scegliere una delle due convenzioni senza leggerla nell'enunciato.
+Considera l'input non ordinato `[5,8)`, `[1,4)`, `[3,6)`, `[8,9)`. Dopo l'ordinamento:
 
-Un comparatore C++ deve definire un ordinamento coerente; Python `sort(key=...)` spesso basta. L'ordinamento muta l'input: se il contratto vieta la mutation, copia prima oppure costruisci una sequenza ordinata nuova.
+| Intervallo letto | Termine massimo precedente | Decisione |
+| --- | ---: | --- |
+| `[1,4)` | — | inizializza a 4 |
+| `[3,6)` | 4 | `3 < 4`: c'è una sovrapposizione |
+
+Il termine massimo è importante se gli intervalli sono annidati: guardare soltanto il precedente immediato potrebbe dimenticare un intervallo lungo che contiene gli altri.
+
+**Versione Python**
+
+```python
+def has_overlap(intervals):
+    ordered = sorted(intervals)
+    if not ordered:
+        return False
+    furthest_end = ordered[0][1]
+    for start, end in ordered[1:]:
+        if start < furthest_end:
+            return True
+        furthest_end = max(furthest_end, end)
+    return False
+```
+
+**Versione C++**
+
+```cpp
+#include <algorithm>
+#include <utility>
+#include <vector>
+using namespace std;
+
+bool has_overlap(vector<pair<int, int>> intervals) {
+    if (intervals.empty()) {
+        return false;
+    }
+    sort(intervals.begin(), intervals.end());
+    int furthest_end = intervals.front().second;
+    for (int i = 1; i < static_cast<int>(intervals.size()); ++i) {
+        if (intervals[i].first < furthest_end) {
+            return true;
+        }
+        furthest_end = max(furthest_end, intervals[i].second);
+    }
+    return false;
+}
+```
+
+L'ordinamento domina il tempo con `O(n log n)`; il controllo successivo è `O(n)`. Poiché si ordina una copia per mantenere intatto l'input, lo spazio aggiuntivo è `O(n)`. Rilevare una sovrapposizione è più semplice che fondere gli intervalli: la seconda operazione deve anche costruire i nuovi estremi e gestire intervalli contenuti.
+
+La condizione del confine appartiene al contratto: con intervalli chiusi `[1,3]` e `[3,5]` si toccano e qui vengono fusi; con intervalli semiaperti `[1,3)` e `[3,5)` una riunione finita alle 3 libera la sala per quella che inizia alle 3. Merge Intervals e Meeting Rooms si basano entrambi sull'ordine temporale, ma rispondono a domande diverse.
 '''),
     lesson("mixed-patterns", "pattern", "Problemi misti: scegliere il pattern partendo dal vincolo", 2, 25, "intermedio",
            ["brute force", "segnali dei constraints", "test discriminanti", "scelta motivata"],
@@ -179,188 +667,1174 @@ Un test utile distingue due approcci concorrenti. Per una soluzione hash, usa un
     lesson("stack-queue", "ricerca", "Stack, Queue e Deque: scegliere l'ordine delle visite", 3, 25, "base",
            ["LIFO e FIFO", "parentesi", "BFS", "deque"],
            "Rappresentare il prossimo elemento da elaborare con la struttura corretta.", r'''
-Uno stack risponde all'ultimo elemento aggiunto; una queue al primo. Le parentesi sono LIFO: l'ultima parentesi aperta deve chiudersi per prima. La BFS è FIFO: i nodi a distanza `d` entrano in coda prima di quelli a distanza `d+1`, perciò il primo arrivo è un cammino minimo nei grafi non pesati.
+Un editor incontra `(`, poi `[`, poi `]`, poi `)`. Per decidere se ogni chiusura corrisponde, basta ricordare le aperture non ancora chiuse. La più recente va controllata per prima: è la regola LIFO di uno stack. Un semplice conteggio non basta, perché `([)]` ha lo stesso numero di parentesi aperte e chiuse ma un ordine impossibile.
 
-Il tipo di contenitore evita lavoro superfluo. In Python `deque.popleft()` non sposta gli elementi rimasti. In C++ `queue.pop()` rimuove la testa e `front()` la legge; non invertire l'ordine delle due operazioni.
+Scegliamo di salvare nello stack il carattere di chiusura atteso: leggendo `(` inseriamo `)`, leggendo `[` inseriamo `]`. Quando compare una chiusura, deve coincidere con la cima; dopo il controllo la rimuoviamo.
 
-Per parentesi corrette, scarta subito una chiusura senza apertura e alla fine controlla che lo stack sia vuoto. Se verifichi soltanto il conteggio delle parentesi, `)(` passa per errore: il loro ordine è proprio l'informazione che lo stack conserva.
+| Carattere letto | Stack dopo il passo (fondo → cima) | Conseguenza |
+| --- | --- | --- |
+| `(` | `)` | la prossima chiusura deve essere `)` |
+| `[` | `)`, `]` (cima) | la prossima deve essere `]` |
+| `]` | `)` | corrisponde alla cima; rimuovi `]` |
+| `)` | `[]` | corrisponde alla cima; la stringa è valida |
+
+**Versione Python**
+
+```python
+def valid_parentheses(text):
+    closing_for = {"(": ")", "[": "]", "{": "}"}
+    expected = []
+
+    for char in text:
+        if char in closing_for:
+            expected.append(closing_for[char])
+        elif not expected or expected.pop() != char:
+            return False
+
+    return not expected
+```
+
+**Versione C++**
+
+```cpp
+#include <stack>
+#include <string>
+using namespace std;
+
+bool valid_parentheses(const string& text) {
+    stack<char> expected;
+
+    for (char ch : text) {
+        if (ch == '(') {
+            expected.push(')');
+        } else if (ch == '[') {
+            expected.push(']');
+        } else if (ch == '{') {
+            expected.push('}');
+        } else {
+            if (expected.empty() || expected.top() != ch) {
+                return false;
+            }
+            expected.pop();
+        }
+    }
+
+    return expected.empty();
+}
+```
+
+Entrambe le funzioni assumono che l'input contenga soltanto parentesi; l'else tratta quindi ogni carattere rimanente come una chiusura. Ogni carattere entra o viene rimosso dallo stack al massimo una volta: `O(n)` tempo e fino a `O(n)` spazio, per un input composto solo da aperture annidate. Una queue conserva invece l'ordine FIFO: è adatta alla BFS, che completa la distanza `d` prima di espandere i nodi a distanza `d+1`.
 '''),
     lesson("monotonic-stack", "ricerca", "Monotonic Stack: conservare candidati ancora utili", 3, 25, "intermedio",
            ["stack monotono", "prossimo maggiore", "temperatura successiva", "ammortizzato"],
            "Risolvere domande sul prossimo valore maggiore o minore senza riesaminare ogni coppia.", r'''
-Per ogni giorno, vuoi sapere il prossimo giorno più caldo. Il doppio ciclo visita tutte le coppie. Uno stack monotono conserva gli indici ancora in attesa: quando arriva una temperatura più alta, risolve i giorni più freddi in cima. Gli indici che restano non hanno ancora trovato risposta.
+Per ogni valore vogliamo il primo valore strettamente più grande che compare alla sua destra. Provare tutti i successori per ciascuna posizione confronta fino a `O(n²)` coppie. Invece conserviamo nello stack gli indici a cui non abbiamo ancora assegnato una risposta. I valori corrispondenti restano decrescenti: quando arriva un valore maggiore, risolve gli indici più piccoli che attendono in cima.
 
-Ogni indice entra una volta ed esce una volta, quindi il lavoro totale è `O(n)` anche se un singolo elemento può attivare più pop. È un caso in cui “niente cicli annidati” non è la prova della complessità: conta quante volte ogni elemento attraversa lo stack.
+Con `[2,1,3]`, i primi due indici restano in attesa; quando arriva 3, esso è il successore maggiore di entrambi. L'ultimo indice non troverà una risposta:
 
-Prima di partire, decidi se vuoi il successivo strettamente maggiore o maggiore/uguale. Cambia la condizione di pop. Se il testo chiede distanza, salva gli indici; se vuole solo il valore, può bastare salvare i valori.
+| Indice letto | Valore | Indici in attesa dopo il passo | Risposte determinate |
+| ---: | ---: | --- | --- |
+| 0 | 2 | `[0:2]` | nessuna |
+| 1 | 1 | `[0:2,1:1]` | nessuna |
+| 2 | 3 | `[2:3]` | `answer[1]=3`, `answer[0]=3` |
+| fine | — | `[2:3]` | `[3,3,-1]` nell'ordine degli indici |
+
+**Versione Python**
+
+```python
+def next_greater_values(values):
+    answer = [-1] * len(values)
+    waiting = []
+
+    for index, value in enumerate(values):
+        while waiting and value > values[waiting[-1]]:
+            previous = waiting.pop()
+            answer[previous] = value
+        waiting.append(index)
+
+    return answer
+```
+
+**Versione C++**
+
+```cpp
+#include <vector>
+using namespace std;
+
+vector<int> next_greater_values(const vector<int>& values) {
+    vector<int> answer(values.size(), -1);
+    vector<int> waiting;
+
+    for (int index = 0; index < static_cast<int>(values.size()); ++index) {
+        while (!waiting.empty() && values[index] > values[waiting.back()]) {
+            const int previous = waiting.back();
+            waiting.pop_back();
+            answer[previous] = values[index];
+        }
+        waiting.push_back(index);
+    }
+
+    return answer;
+}
+```
+
+Il valore `-1` iniziale significa che non esiste un successore maggiore. Ogni indice entra nello stack una volta e ne esce al massimo una; il ciclo interno può fare più operazioni in un passo, ma il totale dei push e pop resta `O(n)`. Lo spazio ausiliario è `O(n)`. Se la consegna chiedesse “maggiore o uguale”, il confronto stretto `>` andrebbe cambiato; con valori uguali, la scelta cambia il risultato.
 '''),
     lesson("binary-search", "ricerca", "Binary Search classica: dimezzare uno spazio ordinato", 3, 20, "base",
            ["array ordinato", "mid sicuro", "intervallo residuo", "O(log n)"],
            "Mantenere la garanzia che la risposta, se esiste, resti nell'intervallo di ricerca.", r'''
-La ricerca binaria è corta solo dopo avere stabilito l'invariante. Con l'intervallo chiuso `[left, right]`, calcola il medio e conserva la metà che può ancora contenere il valore. Quando `left > right`, non è rimasto alcun candidato.
+Una ricerca lineare può dover controllare tutti gli `n` elementi. Se i valori sono ordinati, ogni confronto al centro dell'intervallo può eliminare circa metà dei candidati. La ricerca binaria usa l'intervallo chiuso `[left,right]`: entrambi gli estremi possono ancora contenere la risposta; quando `left > right`, non è rimasto alcun indice.
 
-Su `[1, 3, 5, 8, 12]`, la ricerca di `8` inizia dal valore medio `5`: i tre valori a sinistra vengono esclusi e resta `[8, 12]`. Il nuovo valore medio è `8`, che individua l'indice cercato. A ogni confronto si elimina metà dei candidati; l'ordinamento dell'array rende valido questo taglio.
+In `[1,3,5,8,12]`, cerca 8. Inizialmente `left=0`, `right=4`, quindi `mid=2`: il valore 5 è minore del target e tutti gli indici fino a 2 possono essere scartati. L'intervallo residuo è `[3,4]`. Il suo medio è 3, dove si trova 8.
 
-In C++ scrivere `left + (right - left) / 2` evita l'overflow della somma quando i bordi sono grandi. Con `vector::size()` fai attenzione ai tipi unsigned e al caso vuoto. In Python gli interi non traboccano, ma l'off-by-one resta.
+| Passo | `left` | `mid` | `right` | `nums[mid]` | Nuovo intervallo |
+| ---: | ---: | ---: | ---: | ---: | --- |
+| 1 | 0 | 2 | 4 | 5 | `[3,4]` |
+| 2 | 3 | 3 | 4 | 8 | trovato all'indice 3 |
 
-L'array ordinato non è un dettaglio decorativo: la decisione «vai a sinistra» scarta elementi perché sai come sono ordinati. Se manca l'ordine, cerca una proprietà monotona diversa o usa un'altra struttura.
+**Versione Python**
+
+```python
+def binary_search(nums, target):
+    left = 0
+    right = len(nums) - 1
+
+    while left <= right:
+        mid = left + (right - left) // 2
+        if nums[mid] == target:
+            return mid
+        if nums[mid] < target:
+            left = mid + 1
+        else:
+            right = mid - 1
+
+    return -1
+```
+
+**Versione C++**
+
+```cpp
+#include <vector>
+using namespace std;
+
+int binary_search_index(const vector<int>& nums, int target) {
+    int left = 0;
+    int right = static_cast<int>(nums.size()) - 1;
+
+    while (left <= right) {
+        const int mid = left + (right - left) / 2;
+        if (nums[mid] == target) {
+            return mid;
+        }
+        if (nums[mid] < target) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+
+    return -1;
+}
+```
+
+Il test `left <= right` include l'intervallo con un solo candidato. Aggiornare a `mid+1` o `mid-1` lo elimina dopo averlo confrontato, quindi il ciclo avanza. Per un target assente, ad esempio 9, i confini diventano prima `[4,4]`, poi `[5,4]` e terminano. Se l'array è vuoto, `right=-1` e non si accede a `nums[0]`.
+
+Ogni iterazione circa dimezza i candidati: dopo `k` passi ne restano al più `n/2^k`; servono quindi `O(log n)` confronti e `O(1)` spazio. In C++ il calcolo `left+(right-left)/2` evita l'overflow che può causare `(left+right)/2`. La condizione decisiva è l'ordine: senza una sequenza ordinata o un predicato monotono non puoi scartare una metà in base al valore centrale.
 '''),
     lesson("binary-boundaries", "ricerca", "Lower Bound e Upper Bound: trovare un confine, non un elemento", 3, 25, "intermedio",
            ["primo valore non minore", "ultimo valore ammesso", "duplicati", "intervallo semiaperto"],
            "Trasformare la ricerca binaria in una ricerca del primo punto che soddisfa una condizione.", r'''
-Con duplicati, `binary_search` conferma che un valore è presente, ma non individua quale copia. `lower_bound` restituisce il primo elemento non minore del target; `upper_bound` il primo strettamente maggiore. La differenza tra gli iteratori è il numero di occorrenze.
+Con duplicati, cercare una qualsiasi occorrenza non basta sempre. In `[1,2,2,2,5]`, il primo `2` è all'indice 1. Lower Bound trova il primo elemento `>= target`; non cerca di “indovinare” una copia, ma restringe il punto in cui cambia una condizione monotona.
 
-Una formulazione pulita è cercare un punto di taglio in `[0, n)`. Se `nums[mid] < target`, il confine è a destra; altrimenti può essere `mid` o prima. Il ciclo termina quando i due bordi coincidono. Questo schema evita di restituire un indice fuori range quando il target è minore del minimo o maggiore del massimo.
+L'intervallo di ricerca è semiaperto `[left,right)`: `right` può valere `n` e non è mai letto come indice. Per target 2, l'evoluzione è:
 
-In C++ le due funzioni sono in `<algorithm>`. In Python `bisect_left` e `bisect_right` fanno lo stesso lavoro. Impara il significato del confine: la libreria non elimina la necessità di verificare che l'indice sia valido.
+| `left` | `mid` | `right` | `nums[mid]` | Decisione |
+| ---: | ---: | ---: | ---: | --- |
+| 0 | 2 | 5 | 2 | il primo `>=2` può essere `mid`: `right=2` |
+| 0 | 1 | 2 | 2 | può essere `mid`: `right=1` |
+| 0 | 0 | 1 | 1 | è troppo piccolo: `left=1` |
+
+Quando `left==right`, hai il confine. Una risposta pari a `n` è valida come punto di inserimento ma non come indice: prima di leggere `nums[left]`, controlla `left < n`.
+
+**Versione Python**
+
+```python
+def lower_bound(nums, target):
+    left = 0
+    right = len(nums)
+    while left < right:
+        mid = left + (right - left) // 2
+        if nums[mid] < target:
+            left = mid + 1
+        else:
+            right = mid
+    return left
+
+
+def upper_bound(nums, target):
+    left = 0
+    right = len(nums)
+    while left < right:
+        mid = left + (right - left) // 2
+        if nums[mid] <= target:
+            left = mid + 1
+        else:
+            right = mid
+    return left
+
+
+def equal_range(nums, target):
+    first = lower_bound(nums, target)
+    if first == len(nums) or nums[first] != target:
+        return (-1, -1)
+    after_last = upper_bound(nums, target)
+    return (first, after_last - 1)
+```
+
+**Versione C++**
+
+```cpp
+#include <vector>
+using namespace std;
+
+int lower_bound_index(const vector<int>& nums, int target) {
+    int left = 0;
+    int right = static_cast<int>(nums.size());
+    while (left < right) {
+        const int mid = left + (right - left) / 2;
+        if (nums[mid] < target) {
+            left = mid + 1;
+        } else {
+            right = mid;
+        }
+    }
+    return left;
+}
+
+int upper_bound_index(const vector<int>& nums, int target) {
+    int left = 0;
+    int right = static_cast<int>(nums.size());
+    while (left < right) {
+        const int mid = left + (right - left) / 2;
+        if (nums[mid] <= target) {
+            left = mid + 1;
+        } else {
+            right = mid;
+        }
+    }
+    return left;
+}
+```
+
+Il ciclo cerca un confine, non un valore specifico: a ogni passo mantiene i valori prima di `left` sotto la soglia e quelli da `right` in poi almeno pari alla soglia. Tempo `O(log n)`, spazio `O(1)`. La differenza tra le funzioni sta nel confronto: Lower Bound conserva il medio quando `nums[mid]` è già almeno il target; Upper Bound lo scarta quando è uguale. La libreria C++ offre entrambe in `<algorithm>` e Python in `bisect`; conoscere il significato degli indici resta necessario per controllare i target assenti.
 '''),
     lesson("binary-variants", "ricerca", "Ricerca binaria in un array ruotato", 3, 20, "intermedio",
            ["metà ordinata", "intervallo candidato", "array vuoto", "duplicati nel contratto"],
            "Adattare la ricerca quando una sola porzione dell'array è ordinata.", r'''
-Una rotazione sposta un prefisso in fondo, ma lascia ordinate le due porzioni risultanti. A ogni passo almeno una metà attorno a `mid` è ordinata: confronta il target con i suoi estremi e scarta l'altra metà soltanto quando puoi dimostrare che lì non c'è.
+Una rotazione sposta un prefisso in fondo: `[1,2,3,4,5,6,7,8]` può diventare `[6,7,8,1,2,3,4,5]`. L'intero array non è ordinato, ma il confronto tra `nums[mid]` e `nums[right]` rivela da quale lato si trova il minimo. Prima impariamo a trovare quel confine; per cercare un target, l'esercizio aggiunge poi il controllo di appartenenza alla metà crescente.
 
-Il caso vuoto termina subito. Gli array distinti permettono di riconoscere sempre la metà ordinata; se il prompt ammette duplicati, valori uguali agli estremi possono nascondere il punto di rotazione e il caso peggiore può richiedere una scansione lineare. Non promettere `O(log n)` senza specificare il contratto.
+Con `[6,7,8,1,2,3,4,5]`, il medio iniziale vale 1 ed è minore di 5: il minimo è nel tratto `[left,mid]`, quindi `right=mid`. Al passo successivo `nums[mid]=7` supera `nums[right]=1`, perciò il minimo deve stare a destra e spostiamo `left` oltre `mid`.
 
-Questo resta binary search su elementi. La lezione seguente usa invece la monotonia di una risposta possibile: sono due motivazioni diverse per dimezzare un intervallo, ed è utile saperle distinguere.
+| Passo | `left` | `mid` | `right` | `nums[mid]` / `nums[right]` | Decisione |
+| ---: | ---: | ---: | ---: | --- | --- |
+| 1 | 0 | 3 | 7 | 1 / 5 | minimo a sinistra o in `mid` → `right=3` |
+| 2 | 0 | 1 | 3 | 7 / 1 | minimo a destra → `left=2` |
+| 3 | 2 | 2 | 3 | 8 / 1 | minimo a destra → `left=3` |
+
+**Versione Python**
+
+```python
+def minimum_rotated(nums):
+    if not nums:
+        raise ValueError("serve almeno un elemento")
+    left = 0
+    right = len(nums) - 1
+
+    while left < right:
+        mid = left + (right - left) // 2
+        if nums[mid] > nums[right]:
+            left = mid + 1
+        else:
+            right = mid
+
+    return nums[left]
+```
+
+**Versione C++**
+
+```cpp
+#include <stdexcept>
+#include <vector>
+using namespace std;
+
+int minimum_rotated(const vector<int>& nums) {
+    if (nums.empty()) {
+        throw invalid_argument("serve almeno un elemento");
+    }
+    int left = 0;
+    int right = static_cast<int>(nums.size()) - 1;
+
+    while (left < right) {
+        const int mid = left + (right - left) / 2;
+        if (nums[mid] > nums[right]) {
+            left = mid + 1;
+        } else {
+            right = mid;
+        }
+    }
+
+    return nums[left];
+}
+```
+
+Con valori distinti, il confronto elimina almeno metà dei candidati; il costo è `O(log n)` tempo e `O(1)` spazio. Un array già ordinato restituisce il primo elemento. I duplicati possono rendere uguali gli estremi e nascondere da quale lato è avvenuta la rotazione; il codice non li ammette.
 '''),
     lesson("binary-answer", "ricerca", "Binary Search on Answer: trovare la soglia fattibile", 3, 25, "intermedio",
            ["dominio delle risposte", "predicato monotono", "estremi fattibili", "costo della verifica"],
            "Cercare il minimo o massimo valore che rende fattibile una soluzione.", r'''
-Qui non cerchi un valore già presente nell'array. Definisci un intervallo di risposte candidate e una funzione `feasible(x)` che dica se il vincolo si può rispettare con `x`. Se tutte le risposte oltre una soglia sono fattibili, il risultato è il primo `true` della sequenza `false false true true`.
+Qui non cerchi un elemento già presente: ordini i valori possibili di una risposta e verifichi quale rispetta il vincolo. Una nave deve trasportare in ordine i pesi `[3,2,2,4,1,4]` entro 3 giorni; non si può dividere un pacco fra giorni diversi. Una capacità maggiore non può richiedere più giorni, quindi le capacità fattibili hanno la forma `no, no, ..., sì, sì`. Questa monotonia permette di cercare la capacità minima.
 
-La parte delicata è giustificare la monotonia e scegliere estremi che contengano davvero la risposta. Nel problema della velocità, per esempio, una velocità più alta non richiede più ore. La verifica simula il lavoro e costa `O(n)`; la ricerca sulle velocità da 1 a `M` porta quindi a `O(n log M)`.
+La capacità non può essere minore del pacco più pesante e quella totale è sicuramente sufficiente: `low=4`, `high=16`. Se `mid` è fattibile, potrebbe essere la risposta o essercene una minore, quindi conserviamo `high=mid`; se non lo è, `mid` e tutte le capacità inferiori sono escluse.
 
-Scrivi e prova il predicato prima del ciclo. Se `feasible(x)` può passare da vero a falso tornando a crescere `x`, la binary search non è applicabile. Puoi usare l'intervallo chiuso `[low, high]`, con una risposta ammissibile dentro: se `feasible(mid)` è vero, poni `high = mid`; altrimenti `low = mid + 1`. Quando `low == high`, quel valore è la prima risposta fattibile. Non mescolare questa convenzione con la variante che mantiene un bordo falso escluso e uno vero incluso.
+| `low` | `mid` | `high` | Giorni necessari | Decisione |
+| ---: | ---: | ---: | ---: | --- |
+| 4 | 10 | 16 | 2 | sì → `high=10` |
+| 4 | 7 | 10 | 3 | sì → `high=7` |
+| 4 | 5 | 7 | 4 | no → `low=6` |
+| 6 | 6 | 7 | 3 | sì → `high=6` |
 
-Con carichi `[3, 6, 7, 11]` e 8 ore, le ore a velocità `v` sono `sum(ceil(carico/v))`. A `v=3` servono 10 ore; a `v=4` ne servono 8. Parti da `[1,11]`: provi 6 (fattibile), poi 3 (non fattibile), poi 5 e 4 (fattibili). Rimane `[4,4]`. In C++ calcola l'arrotondamento con `(carico + v - 1) / v`, usando un tipo abbastanza largo per la somma. Se le ore disponibili sono meno del numero dei carichi non vuoti, neppure la velocità massima è fattibile: chiarisci quel caso nel contratto.
+Quando `low==high`, la capacità minima è 6.
+
+**Versione Python**
+
+```python
+def min_capacity(weights, days):
+    if not weights or days <= 0:
+        raise ValueError("servono pesi e almeno un giorno")
+
+    def days_needed(capacity):
+        required = 1
+        load = 0
+        for weight in weights:
+            if load + weight > capacity:
+                required += 1
+                load = 0
+            load += weight
+        return required
+
+    low = max(weights)
+    high = sum(weights)
+    while low < high:
+        mid = low + (high - low) // 2
+        if days_needed(mid) <= days:
+            high = mid
+        else:
+            low = mid + 1
+    return low
+```
+
+**Versione C++**
+
+```cpp
+#include <algorithm>
+#include <numeric>
+#include <stdexcept>
+#include <vector>
+using namespace std;
+
+long long min_capacity(const vector<int>& weights, int days) {
+    if (weights.empty() || days <= 0) {
+        throw invalid_argument("servono pesi e almeno un giorno");
+    }
+
+    auto days_needed = [&](long long capacity) {
+        int required = 1;
+        long long load = 0;
+        for (int weight : weights) {
+            if (load + weight > capacity) {
+                ++required;
+                load = 0;
+            }
+            load += weight;
+        }
+        return required;
+    };
+
+    long long low = *max_element(weights.begin(), weights.end());
+    long long high = accumulate(weights.begin(), weights.end(), 0LL);
+    while (low < high) {
+        const long long mid = low + (high - low) / 2;
+        if (days_needed(mid) <= days) {
+            high = mid;
+        } else {
+            low = mid + 1;
+        }
+    }
+    return low;
+}
+```
+
+Ogni verifica assegna un pacco a un giorno e visita al massimo `n` pesi; la ricerca dimezza le capacità tra il pacco più pesante e la somma totale, quindi il tempo è `O(n log S)`, con `S` pari alla somma dei pesi, e lo spazio ausiliario `O(1)`. La verifica riempie il giorno corrente finché il prossimo pacco entra; se non entra, apre il successivo. Si assume che ogni peso sia positivo e che almeno un giorno sia disponibile.
 '''),
     lesson("linked-lists", "strutture", "Linked List: cambiare collegamenti senza perdere la lista", 4, 25, "intermedio",
            ["ListNode", "reverse", "merge", "fast/slow", "cycle"],
            "Ragionare su riferimenti e puntatori aggiornando un nodo alla volta.", r'''
-Una lista collegata non offre accesso casuale: per arrivare al nodo `k` devi seguire i collegamenti precedenti. Il vantaggio di certi esercizi non è “la lista è più veloce”, ma che puoi cambiare i link senza spostare un blocco di elementi.
+Una lista collegata è una catena di nodi; ciascun nodo conserva un valore e un riferimento al successivo. Il nodo iniziale è `head`, la fine è indicata da `None` o `nullptr`. A differenza di un array non puoi saltare direttamente al nodo 20: devi seguire i collegamenti, perciò l'accesso all'indice `k` costa `O(k)`. Se hai già il riferimento al nodo giusto, invece, cambiare un link costa `O(1)`.
 
-Per invertire la lista, conserva tre riferimenti: precedente, corrente e prossimo. Salva il prossimo prima di sovrascrivere `current.next`; altrimenti perdi il resto della struttura. In C++ `nullptr` rappresenta la fine; in Python il campo può essere `None`.
+Supponi di avere `A → C` e un nodo nuovo `B` da inserire dopo A. Prima fai puntare B al successore di A, poi aggiorni il link di A:
 
-Per fondere due liste ordinate, confronta le teste e collega la minore, avanzando solo quella lista. Per cercare un ciclo, i puntatori lento e veloce si incontrano se il giro esiste. Disegna due o tre nodi e segui il puntatore prima di scrivere la condizione.
+| Passo | `A.next` | `B.next` | Catena raggiungibile da A |
+| ---: | --- | --- | --- |
+| iniziale | C | `None` | `A → C` |
+| collega B al successore | C | C | `A → C` e `B → C` |
+| collega A a B | B | C | `A → B → C` |
+
+L'ordine evita di perdere C. Se prima sovrascrivessi `A.next` con B, non sapresti più quale nodo assegnare a `B.next`.
+
+**Versione Python**
+
+```python
+class ListNode:
+    def __init__(self, value=0, next_node=None):
+        self.value = value
+        self.next = next_node
+
+
+def insert_after(previous, node):
+    node.next = previous.next
+    previous.next = node
+```
+
+**Versione C++**
+
+```cpp
+struct ListNode {
+    int value;
+    ListNode* next;
+};
+
+void insert_after(ListNode* previous, ListNode* node) {
+    node->next = previous->next;
+    previous->next = node;
+}
+```
+
+La funzione presuppone che `previous` e `node` siano validi e che `node` non faccia già parte della catena. Una volta raggiunto `previous`, l'inserimento costa `O(1)` tempo e spazio: la lista non viene ricopiata.
+
+L'inversione generalizza la stessa cautela: per ogni nodo salvi il collegamento originale al successore prima di riscriverlo verso il predecessore. Nella fusione di due liste ordinate colleghi la testa minore e avanzi solo la lista da cui proviene. Per cercare un ciclo, `slow` avanza di uno e `fast` di due; se la catena termina, `fast` o `fast.next` diventa nullo, altrimenti i due possono incontrarsi.
 '''),
     lesson("recursion", "strutture", "Ricorsione: caso base, progresso e costo dello stack", 4, 20, "intermedio",
            ["caso base", "sottoproblema più piccolo", "stack di chiamate", "memoization"],
            "Scrivere una chiamata ricorsiva che si avvicina davvero alla terminazione.", r'''
-Una funzione ricorsiva è una funzione che delega un problema più piccolo a sé stessa. Per fidarti del risultato, trova il caso base e dimostra che ogni chiamata lo raggiunge. In una lista, per esempio, il passo può spostarsi al nodo successivo finché il riferimento diventa nullo.
+Una funzione ricorsiva delega una parte più piccola del problema a una nuova chiamata. Per iniziare, sommiamo gli interi da 1 a `n`: quando `n=0` la somma restante è zero; quando `n>0`, la risposta è `n` più la somma da 1 a `n-1`. Il numero diminuisce a ogni chiamata, quindi prima o poi raggiunge il caso base.
 
-L'albero delle chiamate rende visibile il costo. Fibonacci ingenuo ricalcola gli stessi numeri molte volte; la memoization conserva il risultato già ottenuto. Così il numero di stati scende da crescita esponenziale a `O(n)`, pagando `O(n)` di memoria.
+Con `sum_to(3)`, le chiamate scendono `3 → 2 → 1 → 0`. La chiamata con 0 restituisce 0; poi i frame sospesi rispondono `1+0=1`, `2+1=3`, `3+3=6`. Ogni frame conserva il proprio `n` mentre aspetta il risultato più piccolo.
 
-Il call stack consuma spazio e ha un limite pratico. Per DFS su un grafo profondo, una versione iterativa con stack può essere più robusta. La ricorsione non è automaticamente più elegante: deve rendere più chiara la struttura del problema.
+**Versione Python**
+
+```python
+def sum_to(n):
+    if n < 0:
+        raise ValueError("n deve essere non negativo")
+    if n == 0:
+        return 0
+    return n + sum_to(n - 1)
+```
+
+**Versione C++**
+
+```cpp
+#include <stdexcept>
+
+long long sum_to(int n) {
+    if (n < 0) {
+        throw std::invalid_argument("n deve essere non negativo");
+    }
+    if (n == 0) {
+        return 0;
+    }
+    return n + sum_to(n - 1);
+}
+```
+
+Il caso `n=0` risponde senza altre chiamate; `n<0` non progredirebbe verso la base, quindi il contratto lo rifiuta. Per un valore non negativo vengono create `n+1` chiamate: tempo e stack sono `O(n)`. La ricorsione non rende il calcolo automaticamente più veloce: per questa somma esiste una formula diretta, ma l'esempio isola la struttura dei casi base e del ritorno.
 '''),
     lesson("tree-traversal", "strutture", "Alberi binari: preorder, inorder, postorder e livelli", 4, 25, "intermedio",
            ["TreeNode", "visite DFS", "BFS per livelli", "visita vuota"],
            "Scegliere l'ordine di visita in base a quando serve il nodo rispetto ai figli.", r'''
-Preorder visita nodo, sinistra, destra; inorder visita sinistra, nodo, destra; postorder visita i figli prima del nodo. Su un BST, inorder restituisce valori in ordine crescente. Il nome è un promemoria dell'istante in cui elabori il nodo rispetto alle chiamate ai figli.
+Preorder elabora il nodo prima dei figli, inorder fra il figlio sinistro e il destro, postorder dopo entrambi. Su un BST, inorder restituisce i valori crescenti perché ogni nodo è maggiore di tutto il sottoalbero sinistro e minore di quello destro.
 
-La visita per livelli usa una queue. Memorizza la dimensione della coda prima di iniziare il livello: così elabori esattamente i nodi già presenti, senza includere quelli appena aggiunti. Un albero vuoto è un input normale, non un'eccezione.
+Per l'albero `1` con figli `2` e `3`, e figli `4` e `5` sotto `2`, le visite differiscono:
 
-In C++ un puntatore `const TreeNode*` rende esplicito che la visita legge l'albero; in Python il nodo può essere una piccola classe con `left` e `right`. Prima di copiare una ricorsione, definisci il valore restituito da ciascun sottoalbero.
+| Ordine | Sequenza |
+| --- | --- |
+| Preorder: nodo, sinistra, destra | `1,2,4,5,3` |
+| Inorder: sinistra, nodo, destra | `4,2,5,1,3` |
+| Postorder: sinistra, destra, nodo | `4,5,2,3,1` |
+| Per livelli, con una queue | `1,2,3,4,5` |
+
+Con una visita postorder puoi anche calcolare una proprietà composta dai figli. Come primo esempio, somma il valore del nodo ai totali dei due sottoalberi. Questa funzione visita entrambi i rami, riceve i loro risultati e combina le risposte soltanto al ritorno.
+
+**Versione Python**
+
+```python
+class TreeNode:
+    def __init__(self, value=0, left=None, right=None):
+        self.value = value
+        self.left = left
+        self.right = right
+
+
+def sum_tree(node):
+    if node is None:
+        return 0
+    left_total = sum_tree(node.left)
+    right_total = sum_tree(node.right)
+    return node.value + left_total + right_total
+```
+
+**Versione C++**
+
+```cpp
+#include <algorithm>
+
+struct TreeNode {
+    int value;
+    TreeNode* left;
+    TreeNode* right;
+};
+
+int sum_tree(const TreeNode* node) {
+    if (node == nullptr) {
+        return 0;
+    }
+
+    const int left_total = sum_tree(node->left);
+    const int right_total = sum_tree(node->right);
+    return node->value + left_total + right_total;
+}
+```
+
+Il valore nullo è l'identità della somma: aggiungerlo non cambia il risultato. La funzione visita ogni nodo una volta (`O(n)` tempo) e conserva `O(h)` chiamate; un albero vuoto restituisce zero. Nelle esercitazioni di diametro e massimo cammino, il risultato restituito dai figli non basta da solo: occorre anche aggiornare un massimo globale con una combinazione che il genitore non può usare direttamente.
 '''),
     lesson("bst-paths", "strutture", "BST, profondità e antenati: usare la struttura dichiarata", 4, 25, "intermedio",
            ["proprietà BST", "min/max ricorsivi", "LCA", "percorso radice-foglia"],
            "Sfruttare l'ordinamento dell'albero senza dare per vera una proprietà non garantita.", r'''
-In un BST, tutti i valori nel sottoalbero sinistro sono minori della radice e quelli a destra maggiori, se il contratto non ammette duplicati. Per validare l'intero albero, controllare soltanto i figli immediati non basta: ogni nodo deve rispettare i limiti ereditati dagli antenati.
+In un BST, ogni valore nel sottoalbero sinistro è minore della radice e ogni valore a destra è maggiore, se il contratto non ammette duplicati. La proprietà globale permette di cercare un elemento seguendo un solo cammino: ogni confronto elimina un sottoalbero intero.
 
-L'antenato comune più basso di due valori in un BST si trova seguendo il confronto con la radice: se entrambi sono a sinistra, scendi a sinistra; se entrambi a destra, vai a destra; quando si separano, sei al punto di incrocio.
+Nell'albero con radice 10, figlio destro 15 e figlio sinistro di 15 pari a 12, cercare 12 porta prima a destra di 10, poi a sinistra di 15. Se cerchi 6, vai a sinistra verso 5 e poi a destra; arrivare a un figlio nullo dimostra che il valore non è presente.
 
-Per profondità o somma di un percorso, decidi cosa restituisce la ricorsione: una misura del sottoalbero, oppure un flag di esistenza. Questa scelta previene condizioni speciali sparse e bug quando manca un figlio.
+**Versione Python**
+
+```python
+class TreeNode:
+    def __init__(self, value=0, left=None, right=None):
+        self.value = value
+        self.left = left
+        self.right = right
+
+
+def contains_bst(root, target):
+    current = root
+    while current is not None:
+        if current.value == target:
+            return True
+        if target < current.value:
+            current = current.left
+        else:
+            current = current.right
+    return False
+```
+
+**Versione C++**
+
+```cpp
+struct TreeNode {
+    int value;
+    TreeNode* left;
+    TreeNode* right;
+};
+
+bool contains_bst(const TreeNode* root, int target) {
+    const TreeNode* current = root;
+    while (current != nullptr) {
+        if (current->value == target) {
+            return true;
+        }
+        if (target < current->value) {
+            current = current->left;
+        } else {
+            current = current->right;
+        }
+    }
+    return false;
+}
+```
+
+La ricerca costa `O(h)` tempo e `O(1)` spazio, con `h` pari alla lunghezza del cammino percorso. Un BST bilanciato ha altezza logaritmica; un albero inclinato può richiedere `O(n)`. L'ordinamento dei valori non garantisce da solo che l'albero sia bilanciato.
 '''),
     lesson("bfs-dfs-grid", "strutture", "BFS e DFS su una griglia: una cella è un nodo", 4, 30, "intermedio",
            ["visited", "quattro direzioni", "componenti", "distanza non pesata"],
            "Trasformare una griglia in un grafo e visitare ogni cella senza ripassarla.", r'''
-Una griglia è un grafo implicito: i vicini di `(r,c)` sono coordinate a distanza uno. Una matrice `visited` evita di aggiungere la stessa cella alla frontiera più volte. Controlla i limiti prima di indicizzare, soprattutto ai quattro bordi.
+Una griglia rettangolare è un grafo implicito: ogni cella libera è un nodo e le mosse consentite definiscono i vicini. Con movimenti su/giù/sinistra/destra, una cella al centro ha al massimo quattro vicini; prima di leggerli bisogna controllare che le coordinate siano dentro la matrice.
 
-DFS esplora una diramazione in profondità; BFS espande in ordine di distanza. Per il numero di isole, entrambe funzionano. Per il numero minimo di mosse in una griglia senza pesi, la BFS è naturale: la prima visita alla destinazione ha il cammino più corto.
+Per contare mosse minime quando ogni passo costa uno, la BFS esplora per distanza. Con `S . # / . . E`, la distanza di S è 0. La prima frontiera è `(0,1)` e `(1,0)` a distanza 1; poi si raggiunge `(1,1)` a distanza 2 e infine E a distanza 3. Una matrice `distance` usa `-1` per le celle non ancora scoperte; impostarla quando accodi la cella impedisce che due genitori la inseriscano entrambi.
 
-In una griglia `S . # / . . E`, partendo da `S` la prima frontiera contiene la cella sotto e quella a destra. Entrambe portano alla cella centrale, ma segnandola `visited` appena la accodi eviti di inserirla due volte. Da lì `E` è a una mossa: la distanza totale è tre.
+**Versione Python**
 
-Se il runner o il servizio riusa la matrice, non mutarla per segnare le celle visitate senza che il contratto lo consenta. Una struttura `visited` separata costa spazio, ma rende visibile la scelta.
+```python
+from collections import deque
+
+
+def shortest_grid_path(grid, start, target):
+    rows = len(grid)
+    if rows == 0 or len(grid[0]) == 0:
+        return -1
+    cols = len(grid[0])
+
+    start_row, start_col = start
+    target_row, target_col = target
+    inside_start = 0 <= start_row < rows and 0 <= start_col < cols
+    inside_target = 0 <= target_row < rows and 0 <= target_col < cols
+    if not inside_start or not inside_target:
+        return -1
+    if grid[start_row][start_col] == "#" or grid[target_row][target_col] == "#":
+        return -1
+    distance = [[-1] * cols for _ in range(rows)]
+    distance[start_row][start_col] = 0
+    queue = deque([start])
+    directions = ((1, 0), (-1, 0), (0, 1), (0, -1))
+
+    while queue:
+        row, col = queue.popleft()
+        if (row, col) == target:
+            return distance[row][col]
+
+        for dr, dc in directions:
+            next_row = row + dr
+            next_col = col + dc
+            inside = 0 <= next_row < rows and 0 <= next_col < cols
+            if inside and grid[next_row][next_col] != "#" and distance[next_row][next_col] == -1:
+                distance[next_row][next_col] = distance[row][col] + 1
+                queue.append((next_row, next_col))
+
+    return -1
+```
+
+**Versione C++**
+
+```cpp
+#include <queue>
+#include <string>
+#include <utility>
+#include <vector>
+using namespace std;
+
+int shortest_grid_path(const vector<string>& grid, pair<int, int> start, pair<int, int> target) {
+    const int rows = static_cast<int>(grid.size());
+    if (rows == 0 || grid[0].empty()) {
+        return -1;
+    }
+    const int cols = static_cast<int>(grid[0].size());
+    auto inside = [&](int row, int col) {
+        return 0 <= row && row < rows && 0 <= col && col < cols;
+    };
+    if (!inside(start.first, start.second) || !inside(target.first, target.second)) {
+        return -1;
+    }
+    if (grid[start.first][start.second] == '#' || grid[target.first][target.second] == '#') {
+        return -1;
+    }
+
+    vector<vector<int>> distance(rows, vector<int>(cols, -1));
+    queue<pair<int, int>> pending;
+    distance[start.first][start.second] = 0;
+    pending.push(start);
+    const int dr[4] = {1, -1, 0, 0};
+    const int dc[4] = {0, 0, 1, -1};
+
+    while (!pending.empty()) {
+        const auto [row, col] = pending.front();
+        pending.pop();
+        if (pair<int, int>{row, col} == target) {
+            return distance[row][col];
+        }
+
+        for (int direction = 0; direction < 4; ++direction) {
+            const int next_row = row + dr[direction];
+            const int next_col = col + dc[direction];
+            if (inside(next_row, next_col) && grid[next_row][next_col] != '#' && distance[next_row][next_col] == -1) {
+                distance[next_row][next_col] = distance[row][col] + 1;
+                pending.push({next_row, next_col});
+            }
+        }
+    }
+
+    return -1;
+}
+```
+
+Le due versioni visitano ogni cella al massimo una volta: `O(R·C)` tempo e `O(R·C)` per distanze e frontiera. Il codice assume una matrice rettangolare e coordinate di partenza e destinazione valide o da rifiutare; non modifica il contenuto ricevuto. La BFS trova il cammino minimo solo con costi uniformi. Per contare isole si può usare una DFS per componente; il primo percorso esplorato non è necessariamente il più corto.
 '''),
     lesson("graphs", "strutture", "Grafi: adjacency list, visited e componenti", 4, 25, "intermedio",
            ["lista di adiacenza", "grafo diretto e non diretto", "componenti connesse", "nodi isolati"],
            "Leggere il modello dei collegamenti prima di scegliere la visita.", r'''
-Una lista di adiacenza conserva, per ogni nodo, i vicini raggiungibili. Se gli archi sono pochi rispetto a `V²`, occupa molto meno di una matrice. In un grafo non diretto, ogni arco appare in entrambe le liste; dimenticare il verso cambia la domanda.
+Un grafo esplicita relazioni fra nodi. Una lista di adiacenza associa a ogni nodo i vicini; in un grafo non diretto `(0,1)` compare sia tra i vicini di 0 sia tra quelli di 1. Con pochi archi questa rappresentazione usa `O(V+E)` spazio invece della matrice `O(V²)`.
 
-DFS o BFS marcano un nodo come visto quando lo mettono in frontiera, non quando lo estraggono. Così un nodo raggiunto da più vicini non viene accodato molte volte. Per contare componenti, avvia una visita da ogni nodo non ancora visto; i nodi isolati contano comunque.
+Costruiamo il grafo con archi `(0,1)`, `(1,2)` e `(0,2)`, più il nodo isolato 3. Per trovare il cammino minimo non pesato da 0 a 2, la BFS parte da `queue=[0]`, visita 0 e accoda 1 e 2 a distanza 1. Il nodo 2 è già stato scoperto quando poi si visita 1, quindi non si accoda una seconda volta.
 
-La stessa mappa che in Two Sum ricordava gli elementi precedenti ora associa un ID alla sua lista di vicini. La struttura si riusa, ma la ragione è diversa: qui non stai cercando un complemento, stai rappresentando connessioni.
+**Versione Python**
+
+```python
+from collections import deque
+
+
+def shortest_distance(node_count, edges, start, target):
+    graph = [[] for _ in range(node_count)]
+    for first, second in edges:
+        graph[first].append(second)
+        graph[second].append(first)
+
+    distance = [-1] * node_count
+    distance[start] = 0
+    queue = deque([start])
+
+    while queue:
+        node = queue.popleft()
+        if node == target:
+            return distance[node]
+        for neighbor in graph[node]:
+            if distance[neighbor] == -1:
+                distance[neighbor] = distance[node] + 1
+                queue.append(neighbor)
+
+    return -1
+```
+
+**Versione C++**
+
+```cpp
+#include <queue>
+#include <utility>
+#include <vector>
+using namespace std;
+
+int shortest_distance(int node_count, const vector<pair<int, int>>& edges, int start, int target) {
+    vector<vector<int>> graph(node_count);
+    for (const auto& [first, second] : edges) {
+        graph[first].push_back(second);
+        graph[second].push_back(first);
+    }
+
+    vector<int> distance(node_count, -1);
+    queue<int> pending;
+    distance[start] = 0;
+    pending.push(start);
+
+    while (!pending.empty()) {
+        const int node = pending.front();
+        pending.pop();
+        if (node == target) {
+            return distance[node];
+        }
+        for (int neighbor : graph[node]) {
+            if (distance[neighbor] == -1) {
+                distance[neighbor] = distance[node] + 1;
+                pending.push(neighbor);
+            }
+        }
+    }
+
+    return -1;
+}
+```
+
+`distance != -1` svolge anche il ruolo di `visited`. Si assegna quando il nodo entra in coda: se due genitori lo scoprono, il secondo lo riconosce già visitato. Una BFS visita ogni nodo e ogni arco al massimo un numero costante di volte, quindi `O(V+E)` tempo; la lista del grafo usa `O(V+E)` e distanze e coda `O(V)`.
 '''),
     lesson("topological-sort", "strutture", "Topological Sort e cicli: dipendenze prima dei dipendenti", 4, 25, "intermedio",
            ["DAG", "indegree", "Kahn", "ciclo"],
            "Verificare se un insieme di prerequisiti ammette un ordine completo.", r'''
-Un ordinamento topologico esiste soltanto in un grafo diretto aciclico. Con l'algoritmo di Kahn si inseriscono in coda i nodi con indegree zero; dopo l'estrazione di un nodo, l'indegree dei vicini diminuisce. Se al termine sono stati estratti meno di `V` nodi, una parte del grafo è bloccata da un ciclo.
+Un ordinamento topologico mette ogni prerequisito prima di ciò che dipende da esso. Gli archi sono diretti e descrivono `prerequisito → attività`; se il grafo contiene un ciclo, non esiste un ordine che possa rispettare tutte le dipendenze.
 
-Con gli archi `A → C`, `B → C`, `C → D`, la coda iniziale contiene `A` e `B`. Dopo averli rimossi, `C` scende a indegree zero; soltanto dopo `C` può entrare `D`. Aggiungere anche `D → A` crea un ciclo: Kahn lascia nodi nella coda d'attesa e l'estrazione finale è incompleta.
+Kahn conta quanti prerequisiti entrano in ogni nodo (`indegree`). I nodi con grado entrante zero possono iniziare; quando ne rimuovi uno, decrementi il grado dei suoi successori. Se la coda si svuota prima di emettere tutti i nodi, quelli rimasti sono bloccati da un ciclo.
 
-L'ordine d'inserimento nella queue può cambiare tra soluzioni valide. Se il test confronta una risposta esatta, il requisito deve chiedere un ordine deterministico; altrimenti controlla le precedenze, non una singola sequenza arbitraria.
+**Versione Python**
 
-Per un task di corsi, rappresenta l'arco come `prerequisito → corso`. Invertire la direzione spesso supera esempi con una sola dipendenza e fallisce su catene di tre nodi.
+```python
+from collections import deque
+
+
+def topological_order(node_count, edges):
+    graph = [[] for _ in range(node_count)]
+    indegree = [0] * node_count
+    for prerequisite, dependent in edges:
+        graph[prerequisite].append(dependent)
+        indegree[dependent] += 1
+
+    ready = deque(node for node in range(node_count) if indegree[node] == 0)
+    order = []
+    while ready:
+        node = ready.popleft()
+        order.append(node)
+        for dependent in graph[node]:
+            indegree[dependent] -= 1
+            if indegree[dependent] == 0:
+                ready.append(dependent)
+
+    return order if len(order) == node_count else None
+```
+
+**Versione C++**
+
+```cpp
+#include <optional>
+#include <queue>
+#include <utility>
+#include <vector>
+using namespace std;
+
+optional<vector<int>> topological_order(int node_count, const vector<pair<int, int>>& edges) {
+    vector<vector<int>> graph(node_count);
+    vector<int> indegree(node_count, 0);
+    for (const auto& [prerequisite, dependent] : edges) {
+        graph[prerequisite].push_back(dependent);
+        ++indegree[dependent];
+    }
+
+    queue<int> ready;
+    for (int node = 0; node < node_count; ++node) {
+        if (indegree[node] == 0) {
+            ready.push(node);
+        }
+    }
+
+    vector<int> order;
+    while (!ready.empty()) {
+        const int node = ready.front();
+        ready.pop();
+        order.push_back(node);
+        for (int dependent : graph[node]) {
+            --indegree[dependent];
+            if (indegree[dependent] == 0) {
+                ready.push(dependent);
+            }
+        }
+    }
+
+    if (static_cast<int>(order.size()) != node_count) {
+        return nullopt;
+    }
+    return order;
+}
+```
+
+Ogni nodo entra ed esce dalla coda una volta e ogni arco decrementa un grado una volta: `O(V+E)` tempo e spazio per il grafo, i gradi e la coda. Più code possibili possono produrre ordinamenti validi diversi; confronta le precedenze se la traccia non impone un ordine specifico.
 '''),
     lesson("heap", "avanzato", "Heap e Priority Queue: tenere in vista il prossimo estremo", 5, 25, "intermedio",
            ["min e max heap", "top K", "k-esimo", "streaming"],
            "Mantenere pochi candidati quando non serve ordinare l'intera collezione.", r'''
-Un heap non mantiene tutti gli elementi ordinati: garantisce soltanto che l'estremo sia in cima. Se ti servono i `k` valori più grandi, un min-heap di dimensione `k` conserva i migliori finora. Ogni nuovo valore entra; se il heap supera `k`, rimuovi il minimo.
+Un heap conserva una sola garanzia: il minimo (o il massimo) è in cima. Gli altri elementi non sono ordinati fra loro. Per trattenere i `k` valori maggiori, un min-heap di capacità `k` mantiene in cima il più piccolo fra i candidati. Ogni volta che la dimensione supera `k`, espelli quell'elemento: se era troppo piccolo, il nuovo insieme conserva i migliori visti finora.
 
-Con `[9, 1, 7, 3, 5]` e `k = 2`, dopo avere inserito `9` e `1` il minimo è `1`. Inserendo `7`, lo elimini e restano `7` e `9`; `3` e `5` vengono poi scartati allo stesso modo. Il valore in cima, `7`, è il secondo più grande: il resto del heap non promette un ordine completo.
+Con `[7,2,9,4,1]` e `k=2`, l'evoluzione è:
 
-Il costo diventa `O(n log k)` e lo spazio `O(k)`, utile quando `k` è piccolo rispetto a `n`. Se ti serve l'ordine completo, ordinare una volta può essere più semplice. Se i dati arrivano in streaming, il heap evita di conservare tutto.
+| Valore entrato | Heap dopo la correzione | Minimo espulso |
+| ---: | --- | ---: |
+| 7 | `[7]` | — |
+| 2 | `[2,7]` | — |
+| 9 | `[7,9]` | 2 |
+| 4 | `[7,9]` | 4 |
+| 1 | `[7,9]` | 1 |
 
-In C++ `priority_queue` è max-heap di default; in Python `heapq` è min-heap. Esplicita i pareggi nel comparatore: il test può aspettarsi una regola deterministica quando due frequenze sono uguali.
+Il min-heap non è una lista crescente; la tabella mostra soltanto la sua proprietà rilevante: la cima è il minimo. Qui la cima finale 7 è il secondo valore più grande.
+
+**Versione Python**
+
+```python
+import heapq
+
+
+def retain_largest(values, k):
+    if k <= 0:
+        raise ValueError("k deve essere positivo")
+
+    heap = []
+    for value in values:
+        heapq.heappush(heap, value)
+        if len(heap) > k:
+            heapq.heappop(heap)
+    return heap
+```
+
+**Versione C++**
+
+```cpp
+#include <functional>
+#include <queue>
+#include <stdexcept>
+#include <vector>
+using namespace std;
+
+using MinHeap = priority_queue<int, vector<int>, greater<int>>;
+
+MinHeap retain_largest(const vector<int>& values, int k) {
+    MinHeap heap;
+    if (k <= 0) {
+        throw invalid_argument("k deve essere positivo");
+    }
+
+    for (int value : values) {
+        heap.push(value);
+        if (static_cast<int>(heap.size()) > k) {
+            heap.pop();
+        }
+    }
+    return heap;
+}
+```
+
+`n` inserimenti e al più `n` rimozioni costano `O(n log k)`; l'heap conserva `O(k)` valori. Ordinare tutto costa `O(n log n)` e mantiene ogni elemento, ma è più semplice se serve l'ordine completo. C++ usa un max-heap per default, quindi `greater<int>` è necessario per avere il minimo in cima; Python `heapq` è già un min-heap.
 '''),
     lesson("greedy", "avanzato", "Greedy e scheduling: dimostrare la scelta locale", 5, 25, "intermedio",
            ["scelta locale", "intervalli", "controesempio", "ordinamento per fine"],
            "Riconoscere un greedy corretto e cercare un caso che lo smentisca.", r'''
-Per selezionare il massimo numero di intervalli compatibili, ordina per orario di fine e prendi il primo che non si sovrappone. Finire prima lascia più spazio alle scelte successive. La motivazione è più forte di «prendo quello che sembra migliore»: puoi trasformare una soluzione ottima qualsiasi sostituendo il suo primo intervallo con quello che finisce prima.
+Per massimizzare il numero di intervalli compatibili, supponiamo intervalli semiaperti `[inizio,fine)`: uno che termina alle 3 può essere seguito da uno che inizia alle 3. La scelta locale è prendere l'intervallo disponibile che finisce prima. Lascia più tempo possibile alle decisioni successive.
 
-Greedy non funziona soltanto perché sembra intuitivo. Per ogni scelta locale, prova a costruire un input piccolo in cui quella scelta brucia una soluzione migliore. Se non riesci a dimostrare l'argomento di scambio o un'altra proprietà, valuta DP o ricerca esaustiva.
+Con `[1,10)`, `[2,3)` e `[3,4)`, ordinando per fine si considera prima `[2,3)`, poi `[3,4)`: entrambi entrano e il lungo `[1,10)` viene scartato. La scelta “inizia prima” avrebbe preso il lungo e ottenuto un solo intervallo invece di due.
 
-Gli intervalli che si toccano dipendono dalla convenzione del prompt. Riusa il criterio già chiarito in Merge Intervals, ma non copiare la stessa condizione se qui «fine uguale a inizio» è consentito.
+La ragione di correttezza è un argomento di scambio. In una soluzione ottima, sia `O` il primo intervallo; il greedy sceglie `G`, il cui termine non è successivo a quello di `O`. Sostituire `O` con `G` non rende incompatibili gli intervalli successivi, quindi esiste una soluzione ottima che comincia con la scelta greedy. Ripetere il ragionamento dopo quell'intervallo dimostra l'intera strategia.
+
+**Versione Python**
+
+```python
+def max_compatible_intervals(intervals):
+    ordered = sorted(intervals, key=lambda interval: interval[1])
+    selected = []
+    last_end = None
+
+    for start, end in ordered:
+        if last_end is None or start >= last_end:
+            selected.append((start, end))
+            last_end = end
+
+    return selected
+```
+
+**Versione C++**
+
+```cpp
+#include <algorithm>
+#include <utility>
+#include <vector>
+using namespace std;
+
+vector<pair<int, int>> max_compatible_intervals(vector<pair<int, int>> intervals) {
+    sort(intervals.begin(), intervals.end(), [](const auto& first, const auto& second) {
+        if (first.second != second.second) {
+            return first.second < second.second;
+        }
+        return first.first < second.first;
+    });
+
+    vector<pair<int, int>> selected;
+    for (const auto& interval : intervals) {
+        if (selected.empty() || interval.first >= selected.back().second) {
+            selected.push_back(interval);
+        }
+    }
+    return selected;
+}
+```
+
+L'ordinamento costa `O(n log n)` e la scansione `O(n)`; la copia ordinata e l'output usano `O(n)` spazio. Greedy non funziona soltanto perché una scelta sembra ragionevole: “prendi l'intervallo più corto” fallisce con `[1,4)`, `[4,7)` e `[3,5)`. Il terzo è più corto ma impedisce di scegliere i primi due, che sono compatibili fra loro. Ogni algoritmo greedy richiede una dimostrazione legata al suo obiettivo e ai suoi vincoli.
 '''),
     lesson("backtracking", "avanzato", "Backtracking: esplorare scelte e annullarle bene", 5, 25, "intermedio",
            ["decision tree", "subsets e permutazioni", "pruning", "stato ripristinato"],
            "Costruire tutte le risposte valide controllando lo stato che ogni ramo lascia dietro di sé.", r'''
-Un backtracking percorre un albero di decisioni: includi o escludi un elemento, scegli il prossimo candidato, oppure chiudi una combinazione quando raggiunge il target. Il costo può crescere esponenzialmente; per questo serve sapere quanti risultati ci si aspetta e quando un ramo non potrà più funzionare.
+Il backtracking visita un albero di decisioni e mantiene il percorso corrente. Ogni scelta aggiunta vale soltanto per il ramo che la sta esplorando: al ritorno dalla ricorsione la rimuovi, così il ramo seguente parte dallo stato giusto.
 
-Il bug più insidioso è condividere la stessa lista risultato tra rami. Quando aggiungi una scelta, dopo la chiamata ricorsiva devi toglierla; altrimenti le combinazioni successive ereditano dati del ramo precedente. In Python `path.copy()` serve quando salvi una risposta finale.
+Per generare stringhe binarie di lunghezza 2, a ogni posizione scegli `0` oppure `1`. Il percorso produce, in ordine, `00`, `01`, `10`, `11`. Dopo aver salvato `00`, la scelta finale `0` viene tolta prima di provare `1`; dopo aver completato entrambi i rami, si torna alla prima posizione.
 
-Per permutazioni, un set `used` o una modifica temporanea dell'array impedisce di riutilizzare lo stesso indice. Per subsets, la chiamata successiva parte dall'indice seguente, evitando permutazioni della stessa combinazione.
+**Versione Python**
 
-Con `[1,2]`, parti da `path=[]`. Scegli 1: salvi `[1]`; scegli 2 nel ramo seguente: salvi `[1,2]`; annulla 2, poi annulla 1. Ora il ramo che parte da 2 salva `[2]`. Includi anche `[]`. Se manca un `pop`, il secondo ramo eredita 1; se salvi il riferimento anziché una copia, tutte le risposte cambiano con l'ultimo ramo.
+```python
+def binary_strings(length):
+    if length < 0:
+        raise ValueError("length deve essere non negativa")
+    results = []
+    current = []
 
-Per Combination Sum con riuso, dopo aver scelto il candidato all'indice `i`, la chiamata ricorsiva riparte da `i`, non da `i+1`. Con candidati positivi puoi fermarti quando il totale supera il target; ordinando, puoi interrompere il ciclo quando anche il più piccolo candidato rimasto è troppo grande. Lo spazio dello stack dipende dalla profondità e l'output può essere esponenziale: il costo non è sempre `O(2^n)` quando puoi riusare una scelta.
+    def build(position):
+        if position == length:
+            results.append("".join(current))
+            return
+
+        for bit in ("0", "1"):
+            current.append(bit)
+            build(position + 1)
+            current.pop()
+
+    build(0)
+    return results
+```
+
+**Versione C++**
+
+```cpp
+#include <stdexcept>
+#include <string>
+#include <vector>
+using namespace std;
+
+void build_binary_strings(int length, int position, string& current, vector<string>& results) {
+    if (position == length) {
+        results.push_back(current);
+        return;
+    }
+
+    const char choices[2] = {'0', '1'};
+    for (char bit : choices) {
+        current.push_back(bit);
+        build_binary_strings(length, position + 1, current, results);
+        current.pop_back();
+    }
+}
+
+vector<string> binary_strings(int length) {
+    vector<string> results;
+    string current;
+    if (length < 0) {
+        throw invalid_argument("length deve essere non negativa");
+    }
+    build_binary_strings(length, 0, current, results);
+    return results;
+}
+```
+
+Il percorso `current` viene passato per riferimento in C++ e mutato sul posto; `results.push_back(current)` ne salva una copia alla foglia. Se `length=0`, il caso base salva una stringa vuota. Ci sono `2^n` foglie e ogni risposta contiene `n` caratteri, quindi materializzare l'output richiede `O(n·2^n)` tempo e memoria; lo stato temporaneo e lo stack usano `O(n)`.
+
+Lo stesso albero include/esclude descrive i sottoinsiemi. Per le permutazioni occorre anche impedire di scegliere di nuovo un indice già usato; per Combination Sum il riuso può invece essere consentito. Il costo può essere esponenziale, quindi cerca una regola sicura per potare un ramo prima di esplorare i suoi discendenti.
 '''),
     lesson("dp-memoization", "avanzato", "Dynamic Programming: recursion, memoization, tabulation", 5, 30, "intermedio",
            ["stato", "sottoproblemi sovrapposti", "memoization", "ordine tabulato"],
            "Trasformare ricorsione ripetuta in un calcolo che risolve ogni stato una volta.", r'''
-Dynamic programming non è una formula da riconoscere a vista. Parti da una decisione ricorsiva: quale stato descrive abbastanza il problema perché il resto non dipenda dalla storia? In Climbing Stairs lo stato è il gradino `i`; per arrivarci puoi fare uno o due passi.
+Dynamic programming nasce quando una ricorsione risolve più volte lo stesso sottoproblema. La prima domanda non è “quale tabella uso?”, ma “quale stato identifica una domanda la cui risposta può essere riutilizzata?”. Per Fibonacci, lo stato è `n`: la risposta dipende solo da `n-1` e `n-2`, non dal percorso di chiamate che ha portato fin lì.
 
-Se più chiamate chiedono lo stesso stato, i sottoproblemi si sovrappongono. Una mappa di memoization registra la risposta alla prima visita. La tabulation calcola quegli stati in un ordine che rende già disponibile ciò che serve; talvolta basta conservare gli ultimi due valori.
+La ricorsione diretta di `fib(5)` calcola `fib(3)` sia nel ramo di `fib(4)` sia come secondo figlio della radice. Una mappa conserva il risultato alla prima visita:
 
-Prima di dichiarare `O(n)`, conta gli stati e il lavoro per stato. Coin Change ha circa `n` importi e prova ogni moneta; Word Break considera posizioni e prefissi possibili. La transizione è il cuore della spiegazione, non il nome “DP”.
+| Stato richiesto | Dipendenze | Risultato memorizzato |
+| ---: | --- | ---: |
+| `fib(2)` | `fib(1)+fib(0)` | 1 |
+| `fib(3)` | `fib(2)+fib(1)` | 2 |
+| `fib(4)` | `fib(3)+fib(2)` | 3 |
+| `fib(5)` | `fib(4)+fib(3)` | 5 |
+
+Alla seconda richiesta di `fib(3)`, si legge il valore 2 dalla cache invece di espandere altre chiamate.
+
+Per mantenere equivalenti i risultati numerici degli esempi, consideriamo `0 <= n <= 92`: la risposta entra in un intero a 64 bit.
+
+**Versione Python**
+
+```python
+def fibonacci(n):
+    if n < 0:
+        raise ValueError("n deve essere non negativo")
+    memo = {0: 0, 1: 1}
+
+    def solve(state):
+        if state not in memo:
+            memo[state] = solve(state - 1) + solve(state - 2)
+        return memo[state]
+
+    return solve(n)
+```
+
+**Versione C++**
+
+```cpp
+#include <stdexcept>
+#include <vector>
+using namespace std;
+
+long long fibonacci(int n) {
+    if (n < 0) {
+        throw invalid_argument("n deve essere non negativo");
+    }
+    vector<long long> memo(n + 1, -1);
+    memo[0] = 0;
+    if (n >= 1) {
+        memo[1] = 1;
+    }
+
+    auto solve = [&](auto&& self, int state) -> long long {
+        if (memo[state] == -1) {
+            memo[state] = self(self, state - 1) + self(self, state - 2);
+        }
+        return memo[state];
+    };
+
+    return solve(solve, n);
+}
+```
+
+Gli stati da 0 a `n` vengono calcolati una sola volta; ciascuno fa lavoro costante, quindi il tempo è `O(n)`, la cache `O(n)` e lo stack ricorsivo può raggiungere `O(n)`. La tabulation usa lo stesso stato ma lo calcola dal basso: dopo aver trovato due valori, può conservarne soltanto gli ultimi due. Quale forma è più chiara dipende da quali stati servono davvero.
 '''),
     lesson("dp-models", "avanzato", "DP essenziale: House Robber, Coin Change e Word Break", 5, 30, "intermedio",
            ["massimo con vincolo", "minimo numero di scelte", "segmentazione", "casi impossibili"],
            "Confrontare tre stati DP per vedere come cambia la transizione al cambiare della domanda.", r'''
 House Robber decide se prendere la casa `i`: se la prende, la precedente non può essere scelta; altrimenti conserva il massimo già raggiunto. Due variabili possono bastare perché la transizione legge soltanto gli ultimi stati.
 
-Coin Change chiede il minimo numero di monete. Per ogni importo, provi una moneta e riusi la risposta all'importo più piccolo. Il valore “impossibile” va distinto da zero monete: importo zero richiede zero monete, mentre un importo irraggiungibile non ha soluzione.
+Prima rendiamo visibile tutta la tabella. Per `best[i]` intendiamo il bottino massimo nelle prime `i` case: `best[0]=0`; per la casa corrente confrontiamo saltarla (`best[i-1]`) con prenderla (`valore[i-1]+best[i-2]`). Con `[2,7,9,3,1]` la tabella diventa `[0,2,7,11,11,12]`. Per esempio, davanti al 9 scegliamo fra 7 e 2+9=11; davanti al 3 scegliamo fra 11 e 7+3=10, quindi lo saltiamo.
+
+**Versione Python**
+
+```python
+def max_non_adjacent(values):
+    best = [0] * (len(values) + 1)
+    for i, value in enumerate(values, start=1):
+        take = value + (best[i - 2] if i >= 2 else 0)
+        skip = best[i - 1]
+        best[i] = max(take, skip)
+    return best[-1]
+```
+
+**Versione C++**
+
+```cpp
+#include <algorithm>
+#include <vector>
+using namespace std;
+
+long long max_non_adjacent(const vector<int>& values) {
+    vector<long long> best(values.size() + 1, 0);
+    for (size_t i = 1; i <= values.size(); ++i) {
+        long long take = values[i - 1] + (i >= 2 ? best[i - 2] : 0);
+        long long skip = best[i - 1];
+        best[i] = max(take, skip);
+    }
+    return best.back();
+}
+```
+
+La tabella rende semplice verificare la transizione, ma usa `O(n)` memoria. Poiché ogni riga legge solo le due precedenti, dopo aver capito lo schema si possono conservare due variabili e ridurre lo spazio a `O(1)`.
+
+Coin Change chiede il minimo numero di monete. Per ogni importo `x`, provi una moneta `c` e riusi la risposta per `x-c`. Lo stato zero vale zero; con `[1,3,4]`, la tabella fino a 6 è `[0,1,2,1,1,2,2]`. Per arrivare a 6, usare una moneta da 3 lascia l'importo 3, già componibile con una moneta: `1+dp[3]=2`. Le altre scelte richiedono tre monete. Se un importo non è raggiungibile, il suo valore deve restare distinto da `dp[0]=0`.
 
 Word Break considera se il prefisso fino a `i` può essere segmentato. Una posizione è raggiungibile se esiste un taglio precedente raggiungibile e la parte fra i due tagli è nel dizionario. Il set velocizza il lookup, ma il numero dei tagli provati determina il costo.
 
 Scegli il problema DP in base al verbo del prompt: minimo, massimo, numero di modi o esistenza. Stati simili possono avere output diversi e casi base diversi.
 
-### Costruire lo stato su casi piccoli
+### Tracciare i prefissi
 
-Per House Robber, `best[i]` è il massimo sulle prime `i` case. `best[0]=0`, `best[1]=valore[0]`, poi `best[i]=max(best[i-1], best[i-2]+valore[i-1])`. Con `[2,7,9,3,1]` ottieni `0,2,7,11,11,12`: ogni passaggio confronta saltare e prendere. Non aggiornare la variabile del penultimo stato prima di averla usata.
+In Word Break, `reachable[i]` dice se i primi `i` caratteri sono segmentabili; `reachable[0]=True` rappresenta la stringa vuota. Per `catsand` con parole `cat`, `cats` e `and`:
 
-Per Coin Change, `dp[x]` è il minimo per raggiungere **esattamente** l'importo `x`; `dp[0]=0`. Da ogni moneta `c <= x` ottieni il candidato `1+dp[x-c]`, se il precedente è raggiungibile. Con monete `[1,3,4]` e importo 6, il greedy prende 4+1+1, mentre lo stato trova 3+3. Questo controesempio spiega perché serve esplorare le scelte, anche senza generare tutte le combinazioni.
+| `i` | Prefisso | Raggiungibile? | Motivo |
+| ---: | --- | --- | --- |
+| 0 | `''` | sì | caso base |
+| 3 | `cat` | sì | `reachable[0]` e `cat` nel dizionario |
+| 4 | `cats` | sì | `reachable[0]` e `cats` nel dizionario |
+| 7 | `catsand` | sì | `reachable[4]` e `and` nel dizionario |
 
-Per Word Break, `reachable[i]` riguarda il prefisso `s[:i]`; `reachable[0]=True`. Con `s='catsand'` e parole `{'cat','cats','and'}`, il taglio dopo `cat` lascia `sand`, che non funziona; il taglio dopo `cats` lascia `and`. Non impegnarti nel primo prefisso valido: conserva tutte le posizioni raggiungibili. Per ciascuno stato scrivi significato, caso base, transizione e ordine di calcolo prima del codice.
+Il taglio dopo `cat` non basta: da lì a 7 si ottiene `sand`, che non è una parola ammessa. Si conservano tutti i prefissi raggiungibili finché non si trova una segmentazione completa; fermarsi al primo prefisso valido perderebbe la soluzione che inizia con `cats`.
 '''),
     lesson("timed-dsa", "simulazioni", "Un problema Medium in 40 minuti", 5, 35, "intermedio",
            ["strategia sotto timer", "test essenziali", "gestire un blocco", "consegna chiara"],
@@ -446,11 +1920,7 @@ La scelta finale considera leggibilità e correzione, oltre alla sintassi. Un re
     lesson("leadership-principles", "comportamento", "Leadership Principles attraverso decisioni concrete", 6, 30, "intermedio",
            ["customer impact", "ownership", "evidenza", "principi collegati"],
            "Ragionare sui principi Amazon come criteri che entrano in tensione nei casi reali.", r'''
-Un Leadership Principle non è uno slogan da inserire in ogni risposta. In un incidente, Customer Obsession porta a capire chi è colpito; Dive Deep chiede dati che distinguano un sintomo da una causa; Bias for Action può giustificare un rollback reversibile mentre la diagnosi continua. La scelta dipende dal rischio e da ciò che sai davvero.
-
-Ownership significa seguire il problema fino a un esito e coinvolgere chi ha il controllo tecnico, anche se il servizio appartiene a un altro team. Earn Trust richiede comunicare l'incertezza e aggiornare gli stakeholder; Insist on the Highest Standards impedisce di dichiarare “risolto” soltanto perché il grafico è tornato normale per cinque minuti.
-
-Amazon elenca oggi sedici Leadership Principles: Customer Obsession, Ownership, Invent and Simplify, Are Right, A Lot, Learn and Be Curious, Hire and Develop the Best, Insist on the Highest Standards, Think Big, Bias for Action, Frugality, Earn Trust, Dive Deep, Have Backbone; Disagree and Commit, Deliver Results, Strive to be Earth's Best Employer e Success and Scale Bring Broad Responsibility. La pagina ufficiale può cambiare; controllala prima di usare i nomi in un colloquio.
+Un Leadership Principle non è uno slogan da citare: aiuta a spiegare quale risultato cerchi e quale compromesso accetti. Una decisione può coinvolgere più principi; il caso concreto e le prove disponibili determinano come pesarli.
 
 Nel lavoro quotidiano entrano in tensione in modi diversi: Frugality chiede di usare bene le risorse, ma non giustifica tagliare una verifica che protegge i clienti; Hire and Develop the Best si vede quando condividi contesto e feedback utili; Strive to be Earth's Best Employer e Success and Scale Bring Broad Responsibility allargano lo sguardo a persone e impatti oltre il team immediato. Non serve forzare ogni principio in ogni decisione.
 
@@ -461,7 +1931,7 @@ Negli scenari, valuta ogni azione per impatto sul cliente, qualità delle prove,
            "Allenarsi su decisioni di lavoro SDE senza ridurre gli scenari a risposte ovvie.", r'''
 Ogni scenario propone azioni che potrebbero sembrare ragionevoli a prima vista. Prima di ordinarle, chiediti quale informazione manca, quale danno potrebbe continuare mentre indaghi e chi deve sapere cosa. A volte la risposta forte unisce una misura immediata reversibile e una verifica più profonda.
 
-Ordina le opzioni dalla più alla meno efficace; DEV//48 non assegna un punteggio né pretende di conoscere la chiave Amazon. Il debrief spiega quale rischio ogni scelta riduce e quale lascia aperto. Se la tua classifica differisce, cerca l'assunzione diversa: gravità, tempo, autorità, impatto o qualità dei dati.
+Ordina le opzioni dalla più alla meno efficace; una classifica formativa confronta i rischi descritti, non pretende di conoscere una chiave ufficiale Amazon. Il debrief spiega quale rischio ogni scelta riduce e quale lascia aperto. Se la tua classifica differisce, cerca l'assunzione diversa: gravità, tempo, autorità, impatto o qualità dei dati.
 
 Gli scenari sono originali e ispirati a decisioni quotidiane SDE: release, incidenti, review, requisiti incompleti, colleghi, test instabili, rollback e debito tecnico. Non sono domande reali né materiali riservati.
 '''),
@@ -470,7 +1940,7 @@ Gli scenari sono originali e ispirati a decisioni quotidiane SDE: release, incid
            "Prendersi il tempo di leggere e rispondere con coerenza, senza ottimizzare un profilo inventato.", r'''
 Gli item Work Style possono presentare affermazioni o scelte ripetute. Leggi ogni frase per intero, inclusi avverbi come “sempre” e “raramente”; una parola cambia il significato. Se una risposta richiede un episodio, pensa a un fatto concreto invece di scegliere il tratto che sembra più apprezzato.
 
-La familiarizzazione serve a ridurre errori di fretta e risposte che si contraddicono per distrazione. Non costruire un sistema per manipolare il personality assessment e non memorizzare un profilo ideale. Le note di questa schermata restano private nel database locale e non ricevono punteggio.
+La familiarizzazione serve a ridurre errori di fretta e risposte che si contraddicono per distrazione. Non costruire un sistema per manipolare il personality assessment e non memorizzare un profilo ideale.
 
 Se un item sembra ambiguo, rileggilo e rispondi secondo il tuo modo abituale di lavorare. Il contesto culturale dei Leadership Principles aiuta a capire il linguaggio della prova; non rende autentica una risposta inventata.
 '''),
@@ -495,11 +1965,11 @@ componente conserva una mappa `originale -> copia`. Crea e registra la copia app
 scopri un nodo, prima di seguire i vicini. In un ciclo A -> B -> A, la seconda visita
 ad A riusa la copia già registrata: non ricomincia a clonare per sempre. Per ciascun
 arco aggiungi alla copia del nodo il riferimento alla copia del vicino, preservando
-anche ordine e archi ripetuti. L'esercizio Clone Graph è Extra dopo il Core BFS/DFS.
+anche ordine e archi ripetuti. Clone Graph combina la mappa per identità con la visita in profondità o in ampiezza.
 """
 next(item for item in LESSONS if item["id"] == "sde-l-heap")["body"] += """
 
-### Extra: distanze con pesi positivi
+### Distanze con pesi positivi: Dijkstra
 
 La BFS minimizza il numero di archi; con pesi diversi quel numero non è il costo.
 Dijkstra mantiene distanze provvisorie e un min-heap `(distanza,nodo)`. Dal nodo
@@ -508,8 +1978,7 @@ la nuova coppia. Una vecchia coppia può restare nel heap: scartala se la distan
 non coincide più con quella registrata. Con A->C di costo 10 e A->B->C di costi
 1 e 2, C viene prima proposto a 10, poi migliorato a 3. Non segnare C definitivamente
 quando lo inserisci. La correttezza della scelta minima richiede pesi non negativi;
-il lab Network Delay usa pesi positivi. È un challenge dopo il Core, non una nuova
-priorità da inserire nell'ultimo giorno.
+il lab Network Delay usa pesi positivi e applica la stessa logica a un grafo completo.
 """
 
 
@@ -575,39 +2044,571 @@ for day in STUDY_PLAN:
 
 
 
-LESSONS[0]["body"] += """
-### Core e Extra nei sei giorni
+LESSON_DIDACTIC = {
+    "sde-l-oa-format": {
+        "notes": r'''### Esempio svolto: riconoscere che tipo di lavoro ti viene chiesto
 
-Il Core è il piano essenziale mostrato nella dashboard: un solo linguaggio DSA,
-uno stack repository dopo le due demo iniziali e le attività elencate per ciascun
-giorno. Nel Giorno 1 prova la stessa mini-finestra per 8 minuti in entrambe le lingue,
-poi scegli con L e studia il toolkit della lingua principale. Non rifare tutta la banca
-nell'altra lingua. Nei lab demo premi **USA QUESTO STACK** dopo il confronto.
+Immagina di ricevere una di queste due richieste.
 
-Giorno 1: orientamento, metodo, scelta, Big-O, array/mappe; mini-prova, Two Sum,
-Contains Duplicate, Valid Anagram e le due demo. Giorno 2: pattern lineari e primo
-sprint da 25 minuti; poi il lab intermedio dello stack scelto. Giorno 3: stack e
-ricerca, un secondo lab Node oppure rifacimento C++ da starter senza suggerimenti.
-Giorno 4: liste, alberi, BST, grafi e dipendenze. Giorno 5: heap, greedy,
-backtracking e DP, poi Coding Question da 40 minuti. Giorno 6: debugging,
-AI Assistant, behavioral, full mock 40+60 ed error review: nessun nuovo pattern DSA.
+**Richiesta A — costruire una funzione.** «Dato un elenco di temperature, restituisci l'indice della prima temperatura almeno pari a 30.» Con `[18, 30, 27]`, controlli l'indice 0: `18` non basta; controlli l'indice 1: `30` soddisfa la condizione, quindi il risultato è 1. Qui il comportamento atteso viene dalla frase della consegna. Prima di scrivere codice, chiediti anche cosa restituire se nessuna temperatura raggiunge 30.
 
-Riserva ogni giorno 15 minuti al recall delle flashcard e 20 al registro degli errori.
-Prova prima le carte del giorno precedente, poi quelle del modulo nuovo; non leggere
-subito il retro. Il giorno 6 include altri 30 minuti per scenari e riflessione Work Style.
-Le stime sono circa 5h56–6h01, 6h10–6h30, 6h05–6h10, 6h50, 6h40 e 5h35,
-secondo lingua e stack, senza pause. Con pause pianifica una giornata di 7–8 ore;
-se un argomento richiede più tempo, conserva il Core e rinuncia agli Extra.
+**Richiesta B — correggere un progetto.** Un test dice che `getTemperature("Milano")` dovrebbe restituire 30, ma riceve `null`. Il test dà il risultato atteso; il codice esistente mostra invece quello osservato. Il passo successivo è riprodurre il test e seguire il dato dalla route alla funzione che legge le temperature. Riscrivere una nuova ricerca prima di trovare dove il dato si perde rischia di correggere il posto sbagliato.
 
-Extra sono gli esercizi fuori dal piano, il toolkit non scelto, i lab dell'altro stack,
-lo sprint repository standalone prima di ripetere il full mock, e gli altri scenari.
-LRU, Dijkstra, Word Ladder, istogramma e DP bidimensionale sono challenge utili dopo
-il Core; non devono sottrarre la prima implementazione autonoma dei pattern principali.
-Dopo ogni tentativo descrivi brute force, costo, collo di bottiglia, miglioramento e
-un caso che smentisce l'implementazione. Il giorno 6 riserva il full mock come prova
-chiusa: non studiare prima la soluzione di Three Sum o la repository Parcel.
-"""
+| Passo | Funzione nuova | Progetto esistente |
+| --- | --- | --- |
+| Prima fonte | Contratto scritto nella richiesta | Test, README e chiamanti |
+| Prova piccola | `[18, 30, 27]` deve dare l'indice 1 | Il test nominato deve riprodurre `null` |
+| Obiettivo | Implementare tutti i casi del contratto | Localizzare la causa e cambiare il punto responsabile |
 
+Entrambi i lavori possono richiedere di programmare, ma il primo parte da una specifica e il secondo da un comportamento già presente. Durante una Work Simulation, invece, non c'è una funzione da implementare: devi motivare una decisione usando impatto, prove disponibili e persone da coinvolgere. Le istruzioni del tuo invito stabiliscono quali attività siano davvero previste.''',
+        "recap": "Prima identifica quale capacità e quale comportamento osservabile vengono richiesti; poi applica le regole della prova specifica.",
+        "practice": [("simulation", "sde-full-mock"), ("scenario", "sde-ws-01")],
+    },
+    "sde-l-problem-solving": {
+        "notes": r'''### Esempio svolto: trasformare una frase in una scansione
+
+Richiesta: «Restituisci l'indice del primo valore strettamente maggiore di `limite`; se non esiste, restituisci `-1`.» Usiamo `values = [2, 7, 1, 9]` e `limite = 5`.
+
+| Indice | Valore | Domanda | Decisione |
+| ---: | ---: | --- | --- |
+| 0 | 2 | `2 > 5`? | No, passa al successivo |
+| 1 | 7 | `7 > 5`? | Sì, restituisci 1 e fermati |
+
+Il risultato è 1: non serve esaminare il 9, perché la parola «primo» impone di fermarsi alla prima corrispondenza. Una scansione possibile è:
+
+```text
+per ogni indice i da sinistra a destra:
+    se values[i] > limite:
+        restituisci i
+restituisci -1
+```
+
+Proviamo ora due casi che possono smentire una soluzione frettolosa: con `[5, 4]` la risposta è `-1` perché la condizione è strettamente maggiore, non maggiore o uguale; con `[]` la scansione non entra nel ciclo e restituisce comunque `-1`. Il ragionamento resta lo stesso anche quando cambi algoritmo: traduci le parole importanti in confronti precisi, poi segui un input fino al risultato.''',
+        "recap": "Un'invariante descrive che cosa è già stato dimostrato dopo ogni passo; i test cercano di falsificarla.",
+        "practice": [("exercise", "sde-e-two-sum"), ("exercise", "sde-e-contains-duplicate")],
+    },
+    "sde-l-language-choice": {
+        "notes": r'''### Esempio svolto a mano: aggiornare una finestra
+
+Prima di confrontare Python e C++, seguiamo un input piccolo che non è quello della mini-prova: `[1, 3, 2, 5]`, con finestre di `k=2` elementi consecutivi. La prima finestra è `[1, 3]`, la somma è 4. Per spostarla a destra non rifacciamo tutta l'addizione: togliamo il valore che esce e aggiungiamo quello che entra.
+
+| Finestra | Calcolo rispetto alla precedente | Somma |
+| --- | --- | ---: |
+| `[1, 3]` | `1 + 3` | 4 |
+| `[3, 2]` | `4 - 1 + 2` | 5 |
+| `[2, 5]` | `5 - 3 + 5` | 7 |
+
+Il massimo dell'esempio è 7. Nota il controllo manuale: le finestre sono tre, quindi devono comparire esattamente tre somme. Se il tuo programma ne producesse due o quattro, sospetteresti subito un errore nel confine del ciclo.
+
+Ripeti poi la stessa mini-prova in entrambi i linguaggi. Annota non solo il tempo di scrittura, ma anche se hai aggiornato correttamente la finestra e quanto hai impiegato a trovare un eventuale errore. Così confronti la familiarità reale con l'editor, gli indici e gli strumenti, non la quantità di caratteri digitati.''',
+        "recap": "Scegli sulla base della soluzione corretta e del tempo rimasto per verificarla, non della brevità del codice.",
+        "practice": [("exercise", "sde-e-language-trial")],
+    },
+    "sde-l-python-toolkit": {
+        "notes": r'''### Esempio svolto: costruire un dizionario passo dopo passo
+
+Vogliamo sommare punti per squadra. Partiamo da `events = [("blu", 2), ("oro", 1), ("blu", 3)]` e da un dizionario vuoto. `get(squadra, 0)` restituisce il totale precedente, oppure zero quando la squadra compare per la prima volta.
+
+```python
+def totals_by_team(events):
+    totals = {}
+    for team, points in events:
+        totals[team] = totals.get(team, 0) + points
+    return totals
+
+print(totals_by_team([("blu", 2), ("oro", 1), ("blu", 3)]))
+# {'blu': 5, 'oro': 1}
+```
+
+| Passo | Coppia letta | Dizionario dopo l'aggiornamento |
+| ---: | --- | --- |
+| 1 | `("blu", 2)` | `{"blu": 2}` |
+| 2 | `("oro", 1)` | `{"blu": 2, "oro": 1}` |
+| 3 | `("blu", 3)` | `{"blu": 5, "oro": 1}` |
+
+La lista resta nell'ordine iniziale; il dizionario conserva un totale per chiave. Per esplorare una coda, invece, usa `deque`: da `[A, B]`, `popleft()` restituisce A e lascia `[B]`. Un heap non è una lista completamente ordinata: con `heapq`, `heappop` restituisce il minimo corrente, ma gli altri elementi possono apparire in un ordine diverso.
+
+Infine confronta `sorted(values)`, che crea una nuova lista, con `values.sort()`, che modifica quella esistente. Prima di usare un'API, chiediti sempre quale dato cambia e quale rimane. Questo piccolo controllo evita bug difficili da vedere quando il caso di prova contiene un solo elemento.''',
+        "recap": "Scegli il contenitore in base all'operazione richiesta e ricorda quando un'API modifica o copia i dati.",
+        "practice": [("exercise", "sde-e-language-trial"), ("exercise", "sde-e-two-sum")],
+    },
+    "sde-l-cpp-toolkit": {
+        "notes": r'''### Esempio svolto: leggere una sequenza senza copiarla
+
+Considera tre rilevazioni `[18, 20, 17]`. Vogliamo contare quante superano 18. La funzione riceve il vector per riferimento costante: può leggere i valori, non modificarli e non deve creare una copia dell'intera sequenza.
+
+```cpp
+#include <vector>
+using namespace std;
+
+int count_above(const vector<int>& values, int limit) {
+    int count = 0;
+    for (const auto& value : values) {
+        if (value > limit) {
+            ++count;
+        }
+    }
+    return count;
+}
+```
+
+Seguiamo il ciclo: `18 > 18` è falso, quindi `count` resta 0; `20 > 18` è vero, quindi diventa 1; `17 > 18` è falso. La funzione restituisce 1 e il vector originale resta `[18, 20, 17]`. Il tempo è `O(n)` e la memoria aggiuntiva `O(1)`.
+
+`const vector<int>&` descrive due scelte distinte: `&` evita la copia e `const` vieta la modifica attraverso quel parametro. `const auto&` applica la stessa cautela a ogni elemento del ciclo. Se servisse davvero cambiare la sequenza, la firma non dovrebbe nascondere quella mutazione.
+
+Quando usi `size()`, ricorda che il tipo è unsigned. Per un vector vuoto, `size()-1` non vale -1: il risultato diventa un numero enorme. Controlla `empty()` prima di accedere all'ultimo indice; quando non ti serve l'indice, il range-based `for` evita proprio quel confine.''',
+        "recap": "In C++ il tipo del contenitore e il suo contratto contano quanto l'algoritmo: evita copie, dereferenziazioni invalide e mutazioni implicite.",
+        "practice": [("exercise", "sde-e-language-trial"), ("exercise", "sde-e-binary-search")],
+    },
+    "sde-l-complexity": {
+        "notes": r'''### Esempio svolto: da un ciclo al suo costo
+
+Un doppio ciclo che confronta ogni coppia distinta non esegue `n × n` confronti, perché non confronta un elemento con sé stesso e non ripete le coppie al contrario. Con quattro elementi, il primo indice ha 3 valori successivi da provare, il secondo ne ha 2, il terzo ne ha 1 e l'ultimo ne ha 0: `3 + 2 + 1 + 0 = 6` confronti.
+
+| Elementi `n` | Confronti | Formula |
+| ---: | ---: | --- |
+| 4 | 6 | `3 + 2 + 1 + 0` |
+| 8 | 28 | `7 + 6 + ... + 1 + 0` |
+| 100 | 4.950 | `100 × 99 / 2` |
+
+La formula generale è `n(n-1)/2`. Il termine dominante è `n²`, perciò la classe di crescita è `O(n²)`. Una singola scansione che visita ogni elemento una volta fa invece 4, 8 e 100 visite: è `O(n)`. Non abbiamo cronometrato il computer; abbiamo contato operazioni che crescono con l'input.
+
+Per stimare lo spazio, fai una domanda separata: «che cosa resta allocato mentre elaboro tutti gli elementi?». Due indici e un contatore occupano `O(1)` spazio aggiuntivo; un dizionario con una voce per ogni valore distinto cresce fino a `O(n)`. La lista restituita fa parte dell'output e va distinta dalla memoria ausiliaria. Big-O descrive questa crescita, non i millisecondi esatti.''',
+        "recap": "Descrivi quante volte vengono visitati gli elementi e quale memoria cresce con n; poi confronta la stima coi vincoli.",
+        "practice": [("exercise", "sde-e-two-sum"), ("exercise", "sde-e-contains-duplicate")],
+    },
+    "sde-l-arrays-strings": {
+        "notes": r'''### Esempio svolto: leggere un intervallo senza sbagliare il confine
+
+Molte API rappresentano una porzione con `[left, right)`: l'indice `left` è incluso e `right` è escluso. Con `values = [10, 20, 30, 40]`, scegliendo `left = 1` e `right = 3` leggi gli elementi agli indici 1 e 2, cioè `[20, 30]`. La lunghezza è `right - left = 2`.
+
+| Valori di `left` e `right` | Indici letti | Risultato |
+| --- | --- | --- |
+| `0, 4` | `0, 1, 2, 3` | `[10, 20, 30, 40]` |
+| `1, 3` | `1, 2` | `[20, 30]` |
+| `2, 2` | nessuno | intervallo vuoto `[]` |
+
+Il caso `left == right` è valido e vuoto; non devi leggere `values[right]`. Per questo la condizione tipica di un ciclo è `i < right`, non `i <= right`. La stessa convenzione rende più semplice calcolare la lunghezza e concatenare porzioni adiacenti senza contare due volte il confine.
+
+Nel compattamento in-place della lezione, `read` indica il prossimo elemento da esaminare e `write` la prossima posizione del prefisso valido. Se nessun elemento supera il filtro, `write` rimane 0: il risultato è un prefisso vuoto anche se la vecchia memoria dell'array contiene ancora valori oltre il confine. Chi usa il risultato deve rispettare la lunghezza restituita.''',
+        "recap": "Gli indici di lettura e scrittura rendono esplicito il prefisso già valido; inizializza gli accumuli in base ai casi ammessi.",
+        "practice": [("exercise", "sde-e-move-zeroes"), ("exercise", "sde-e-max-subarray"), ("exercise", "sde-e-stock-profit")],
+    },
+    "sde-l-hashmap-set": {
+        "notes": r'''### Come decidere che cosa conservare
+
+Rileggi la domanda che la struttura deve rendere veloce: «questa chiave esiste?», «quante volte è comparsa?», «qual era l'indice?». Un `set` conserva le chiavi e basta; una mappa conserva una coppia chiave-valore. Nell'esempio dei movimenti, la chiave era una zona e il valore era il totale. Per frequenze il valore diventa un conteggio; per un indice, diventa la posizione.
+
+Un controllo manuale utile è seguire la stessa chiave due volte. Alla prima occorrenza deve partire dal valore iniziale del problema (spesso zero); alla seconda deve leggere lo stato precedente e aggiornarlo. Se l'aggiornamento dimentica il passato o lo salva con una chiave diversa, la tabella dei passaggi lo rende visibile prima di eseguire il programma.
+
+Gli esercizi successivi useranno mappe per domande differenti. Prima di scegliere il pattern, scrivi in una frase che cosa rappresenta il valore associato a ciascuna chiave: così eviti di trattare tutte le mappe come se fossero semplici contenitori di numeri.''',
+        "recap": "Prima di creare una mappa, formula la domanda che ogni chiave deve rendere veloce e annota cosa viene memorizzato.",
+        "practice": [("exercise", "sde-e-two-sum"), ("exercise", "sde-e-valid-anagram"), ("exercise", "sde-e-group-anagrams")],
+    },
+    "sde-l-two-pointers": {
+        "notes": r'''### Gli altri modi in cui si incontrano due indici
+
+Per verificare se `sub` è sottosequenza di `text`, scorri `text` sempre in avanti e fai avanzare l'indice di `sub` soltanto dopo una corrispondenza. Non servono due puntatori agli estremi: la relazione importante è l'ordine delle corrispondenze. Se i caratteri di `sub` non finiscono, non è una sottosequenza.
+
+Per un palindromo, invece, confronti gli estremi. Se il contratto ignora spazi e punteggiatura, salta quei caratteri prima del confronto e normalizza le lettere. La stringa vuota è palindroma per definizione perché non esiste una coppia che la contraddica.
+
+In `Container With Most Water`, l'area dipende dalla parete più bassa. Spostare la parete più alta restringe il contenitore senza poter superare l'altezza già limitante; ha senso provare a muovere quella più bassa. In `Trapping Rain Water`, i massimi osservati da sinistra e destra determinano un limite affidabile dal lato con il massimo minore. Con le altezze `[2,0,2]`, sopra la barra centrale restano 2 unità.
+
+Per `Three Sum`, ordina una copia, fissa un valore e usa la ricerca agli estremi per il complemento. Dopo aver trovato una tripletta, salta i valori uguali per non produrre lo stesso risultato più volte: l'ordinamento aiuta sia la decisione sia il controllo dei duplicati. Il tempo è `O(n²)` dopo l'ordinamento; se ordini una copia, essa richiede `O(n)` spazio.''',
+        "recap": "Due puntatori funzionano quando una proprietà consente di motivare quale parte dei candidati eliminare a ogni passo.",
+        "practice": [("exercise", "sde-e-two-sum-sorted"), ("exercise", "sde-e-three-sum"), ("exercise", "sde-e-trapping-rainwater")],
+    },
+    "sde-l-sliding-window": {
+        "notes": r'''### Aggiornare frequenze e molteplicità
+
+Per la sottostringa senza ripetizioni in `abba`, una mappa ricorda l'ultimo indice di ogni carattere. Dopo aver letto `a` e `b`, la finestra valida è `ab` e la lunghezza migliore è 2. Al secondo `b`, la sua ultima posizione era 1: porta `left` a 2. La `a` finale era stata vista prima dell'intervallo corrente, quindi `left` resta 2 e `ba` mantiene il massimo 2.
+
+| Indice | Carattere | Ultima posizione nota | `left` dopo l'aggiornamento | Finestra valida | Migliore |
+| ---: | --- | ---: | ---: | --- | ---: |
+| 0 | `a` | nessuna | 0 | `a` | 1 |
+| 1 | `b` | nessuna | 0 | `ab` | 2 |
+| 2 | `b` | 1 | 2 | `b` | 2 |
+| 3 | `a` | 0 | 2 | `ba` | 2 |
+
+Per `s="ABAAC"` e `t="AA"`, la finestra deve contenere due occorrenze di `A`, non semplicemente la lettera `A`. Un contatore `missing` parte da 2: entrando nella finestra una `A` lo porta a 1, la seconda a 0; solo allora la finestra è valida e si può provare ad accorciarla. Quando una `A` richiesta esce, `missing` torna a 1. Le frequenze rendono verificabile la molteplicità.
+
+Partendo da `left=0`, quando la finestra `ABA` ha già due A, è valida e lunga 3. Togliere la prima A la rende incompleta. Più avanti la finestra `BAA` torna valida; si può togliere la B senza perdere una A, ottenendo `AA` di lunghezza 2. Togliere una delle due A la rende di nuovo invalida, perciò la scansione ha trovato il minimo.
+
+Per `AABABBA` con `k=1`, `AABA` è una finestra valida: lunghezza 4, tre A, una sostituzione. `AABAB` ha lunghezza 5 ma solo tre A, quindi servirebbero due sostituzioni. La condizione è `lunghezza - frequenza_massima <= k`. Il calcolo della frequenza massima e il momento in cui si restringe fanno parte dell'invariante: non riusare alla cieca il criterio della somma positiva.''',
+        "recap": "La finestra risparmia lavoro perché ogni elemento entra ed esce un numero limitato di volte; la monotonia della condizione va dimostrata.",
+        "practice": [("exercise", "sde-e-min-subarray-len"), ("exercise", "sde-e-longest-substring"), ("exercise", "sde-e-min-window")],
+    },
+    "sde-l-prefix-sum": {
+        "notes": r'''### Dalla somma all'indice
+
+Per `Product Except Self` non si divide: nel primo passaggio il risultato all'indice i riceve il prodotto a sinistra; nel secondo si moltiplica per il prodotto a destra. Con `[2,3,4]`, i prefissi esclusivi sono `[1,2,6]`, poi si combinano coi suffissi `[12,4,1]` ottenendo `[12,8,6]`. Anche gli zeri funzionano senza un ramo dedicato.
+
+Per un pivot in `[1,7,3,6,5,6]`, al valore 6 i prefissi sinistro e destro sommano entrambi 11. Mantenendo `left_sum` e il totale, il lato destro si calcola come `total-left_sum-current`; così si visita ogni elemento una volta senza costruire due array di prefissi. Il vettore risultato non si conta come spazio ausiliario quando il contratto richiede proprio quell'output.''',
+        "recap": "I prefissi trasformano un intervallo in una differenza; la mappa conta i prefissi precedenti che completano il valore richiesto.",
+        "practice": [("exercise", "sde-e-subarray-sum"), ("exercise", "sde-e-pivot-index"), ("exercise", "sde-e-product-except-self")],
+    },
+    "sde-l-sorting-intervals": {
+        "notes": r'''### Casi da chiarire prima di fondere
+
+Considera un intervallo contenuto in un altro: fondere `[2,8]` con `[3,5]` deve lasciare `[2,8]`, non accorciare la fine. Per questo si usa `max(fine_corrente, fine_nuova)`.
+
+Per `Meeting Rooms`, in `[1,3)` e `[3,5)` la seconda riunione riusa la sala: il primo intervallo termina prima che il successivo cominci. Non confondere il conteggio di sovrapposizioni simultanee con la produzione di intervalli uniti. In entrambi i problemi ordini i confini, ma la variabile che mantieni e la risposta richiesta cambiano.''',
+        "recap": "Ordinare rende locale il confronto, mentre la convenzione sugli estremi resta parte del contratto e va mantenuta nei test.",
+        "practice": [("exercise", "sde-e-merge-intervals"), ("exercise", "sde-e-meeting-rooms"), ("exercise", "sde-e-insert-interval")],
+    },
+    "sde-l-mixed-patterns": {
+        "notes": r'''### Stesso lessico, invarianti diverse
+
+Considera tre richieste di coppia: «trova una coppia in un array crescente» suggerisce due puntatori perché l'ordine elimina candidati; «restituisci due indici nell'array originale non ordinato» può usare una mappa senza perdere l'identità degli indici; «trova tutte le triple uniche» richiede gestire duplicati oltre a trovare somme. La parola “coppia” da sola non seleziona il pattern.
+
+Un modo rapido per decidere è annotare input, output, vincolo di ordine e dimensione: se l'input è piccolo, il doppio ciclo può essere chiaro e sufficiente; se n=100.000 e il prompt richiede tempo lineare atteso, memorizzare gli elementi visti cambia la scala. Prova poi a rompere la tua ipotesi: un duplicato, nessuna soluzione, valori negativi oppure molti dati senza risposta.
+
+Le esercitazioni più utili per il confronto sono due con requisiti vicini ma invarianti diverse: **Two Sum** e **Two Sum Sorted**, poi **Subarray Sum** e **Merge Intervals**. Prima spiega perché il movimento o la memoria è valido; solo dopo scrivi il ciclo.''',
+        "recap": "Il pattern deriva da un invariante e dal contratto, non da una parola chiave isolata.",
+        "practice": [("exercise", "sde-e-two-sum"), ("exercise", "sde-e-two-sum-sorted"), ("exercise", "sde-e-subarray-sum")],
+    },
+    "sde-l-stack-queue": {
+        "notes": r'''### Dalla FIFO alle visite per livelli
+
+Immagina gli archi `A→B`, `A→C`, `B→D`. Una BFS parte dalla coda `[A]`, visita A e accoda B e C: `[B,C]`. Estrae B e accoda D: `[C,D]`. Prima di D visita C, così tutte le distanze 1 sono trattate prima della distanza 2. In Python usa `collections.deque` e `popleft()`; in C++ `queue.front()` legge la testa e `queue.pop()` la rimuove.
+
+Questa proprietà dà un cammino minimo solo se ogni arco costa lo stesso. Con pesi diversi, una coda FIFO non ordina per costo: occorre un algoritmo come Dijkstra.''',
+        "recap": "Stack = ultimo entrato, primo uscito; queue = primo entrato, primo uscito. La scelta codifica l'ordine corretto.",
+        "practice": [("exercise", "sde-e-valid-parentheses")],
+    },
+    "sde-l-monotonic-stack": {
+        "notes": r'''### Un rettangolo che aspetta il proprio confine
+
+Nell'istogramma `[2,1,2]`, l'indice 0 di altezza 2 non può estendersi oltre l'indice 1: lì compare una barra più bassa. Quando l'indice 1 viene rimosso, la barra di altezza 1 ha trovato il proprio confine destro; il nuovo indice in cima allo stack determina il confine sinistro. La larghezza è `right-left`, quindi la barra bassa forma un rettangolo di area `1·3=3`.
+
+Una sentinella finale di altezza 0 forza a chiudere le barre rimaste. Le altezze uguali richiedono una condizione coerente: usando `<` o `<=` cambia quale copia resta come candidato, perciò prova anche istogrammi piatti e una singola barra.''',
+        "recap": "Lo stack monotono elimina un candidato solo quando il nuovo elemento ne determina la risposta o lo rende inutile.",
+        "practice": [("exercise", "sde-e-daily-temperatures"), ("exercise", "sde-e-largest-rectangle")],
+    },
+    "sde-l-binary-search": {
+        "notes": r'''### Un errore plausibile: conservare il medio
+
+Con l'intervallo chiuso, dopo aver confrontato `mid` quel valore è già stato escluso, quindi gli aggiornamenti usano `mid+1` o `mid-1`. Se al posto di `right = mid-1` scrivi `right = mid`, e il target è minore del valore al centro di un intervallo di due elementi, `mid` può restare uguale: il ciclo non termina. Un invariante scritto prima del codice rende visibile il problema.
+
+Questo schema trova una qualsiasi occorrenza. Con duplicati non promette la prima: Lower Bound e Upper Bound cercano un confine e adottano un intervallo semiaperto, con aggiornamenti leggermente diversi.''',
+        "recap": "La binary search è una prova ripetuta che una metà non può contenere la risposta; l'invariante decide gli aggiornamenti.",
+        "practice": [("exercise", "sde-e-binary-search")],
+    },
+    "sde-l-binary-boundaries": {
+        "notes": r'''### Intervallo degli indici uguali
+
+Il range di un target usa Lower Bound per il primo indice con valore almeno pari e Upper Bound per il primo indice strettamente maggiore. Se il primo confine è `n` o punta a un valore diverso, l'elemento non c'è; altrimenti l'ultimo indice è `upper-1`. Su `[1,2,2,2,5]`, i confini sono 1 e 4 e il range è `[1,3]`.
+
+Se cerchi una proprietà booleana invece di un numero, lo schema è lo stesso: individua il primo punto in cui il predicato passa da falso a vero. Binary Search on Answer fa questa ricerca sul dominio delle soluzioni e richiede una dimostrazione di monotonia.''',
+        "recap": "La ricerca di confine restituisce un punto fra elementi, che può coincidere con n; definisci il predicato prima del ciclo.",
+        "practice": [("exercise", "sde-e-lower-bound"), ("exercise", "sde-e-search-range"), ("exercise", "sde-e-first-true")],
+    },
+    "sde-l-binary-variants": {
+        "notes": r'''### Quando i duplicati nascondono la rotazione
+
+Se `nums[left]`, `nums[mid]` e `nums[right]` sono uguali, il confronto non rivela quale metà contenga il taglio. Puoi ridurre un estremo di un elemento senza perdere una soluzione, ma in un array di molti valori uguali ciò richiede `O(n)` passi. L'esercizio dichiara valori distinti, quindi il codice può garantire `O(log n)`.
+
+Questa ricerca cerca un elemento in una sequenza ruotata. Binary Search on Answer non confronta i valori dell'array: ordina il dominio di una possibile risposta e cerca dove un predicato passa da falso a vero.''',
+        "recap": "La rotazione conserva una metà ordinata; restringi l'intervallo in base ai suoi estremi e alle ipotesi sui duplicati.",
+        "practice": [("exercise", "sde-e-search-rotated")],
+    },
+    "sde-l-binary-answer": {
+        "notes": r'''### Prima dimostra gli estremi
+
+Non basta che il predicato sia monotono: almeno una risposta valida deve stare in `[low,high]`. Per il problema delle pile, `low=1` è la velocità minima positiva; `high=max(piles)` svuota ogni pila in un'ora, quindi è una soluzione se `hours >= len(piles)`. Se quest'ultima condizione manca, non c'è risposta nel dominio.
+
+Il codice usa un intervallo chiuso che contiene un valore fattibile. È diverso dalla convenzione che conserva esplicitamente un punto falso e uno vero escluso: entrambe funzionano, ma non vanno mischiate nello stesso aggiornamento.''',
+        "recap": "Binary Search on Answer richiede una risposta ordinabile, un predicato monotono e limiti che racchiudono una risposta valida.",
+        "practice": [("exercise", "sde-e-min-eating-speed")],
+    },
+    "sde-l-linked-lists": {
+        "notes": r'''### Come ragionare su un ciclo e su una fusione
+
+In `1→2→3→4→2`, il nodo 4 torna al 2. Partendo entrambi da 1, dopo un passo `slow=2, fast=3`; dopo il successivo `slow=3, fast=2`; al terzo `slow=4, fast=4`. La visita incontra un nodo già attraversato senza memorizzare l'intera catena. Se la lista finisse, il controllo di `fast` e `fast.next` impedirebbe di oltrepassare `None`/`nullptr`.
+
+Per fondere `k` liste ordinate, un min-heap conserva una sola testa per lista: estrai la più piccola, collegala al risultato e inserisci il suo successore. Con `N` nodi, il tempo è `O(N log k)` e lo heap usa `O(k)` spazio. Una LRU aggiunge invece una mappa chiave→nodo e due link per spostare un nodo noto in testa in `O(1)`; le sentinelle semplificano le operazioni ai bordi.''',
+        "recap": "I collegamenti sono riferimenti modificabili: conserva il prossimo nodo prima di riscriverli e usa una mappa solo quando serve accesso diretto.",
+        "practice": [("exercise", "sde-e-reverse-list"), ("exercise", "sde-e-linked-list-cycle"), ("exercise", "sde-e-lru-cache")],
+    },
+    "sde-l-recursion": {
+        "notes": r'''### Profondità delle chiamate e lavoro ripetuto
+
+La profondità dello stack misura quante chiamate restano sospese contemporaneamente; il numero totale di chiamate può essere molto più grande. Fibonacci ingenuo crea un albero di chiamate: `F(5)` chiede `F(4)` e `F(3)`, mentre `F(4)` chiede ancora `F(3)`. Il valore dello stesso stato viene ricalcolato. Una memoization può salvare i risultati soltanto quando le chiamate condividono sottoproblemi; la lezione seguente separa stato, transizione e cache.
+
+Per un albero, il caso base `None → 0` si combina con i risultati dei figli: la profondità è uno più la maggiore profondità dei sottoalberi. Questa forma postorder generalizza la somma ricorsiva del capitolo. La visita fa `O(n)` chiamate, ma la memoria resta `O(h)`; una catena di `n` nodi può raggiungere profondità `n` anche se il lavoro totale è lineare.''',
+        "recap": "Definisci prima che cosa restituisce ogni chiamata, qual è la base e come il problema diventa più piccolo.",
+        "practice": [("exercise", "sde-e-max-depth")],
+    },
+    "sde-l-tree-traversal": {
+        "notes": r'''### Separare i livelli durante la BFS
+
+Per visita per livelli, la coda iniziale contiene la radice 1. Dopo averla estratta, accoda 2 e 3. Salva `level_size=2`, poi processa esattamente questi due nodi e accoda 4 e 5. Senza quel limite, i nodi appena accodati finirebbero nel risultato dello stesso livello.
+
+Maximum Path Sum usa un'altra combinazione postorder. Con radice `-10`, figlio sinistro `9` e ramo destro `20` con figli `15` e `7`, il nodo 20 riceve guadagni 15 e 7: il cammino che lo attraversa vale 42, mentre verso il genitore può restituire un solo ramo, `20+15=35`. Alla radice il cammino che passa da lì vale `-10+9+35=34`, quindi il massimo globale resta 42.
+
+I guadagni negativi si sostituiscono con zero quando li si aggiunge a un cammino più grande. Il massimo globale va però inizializzato dal primo nodo, non da zero: con soli valori negativi la risposta è il nodo meno negativo, non il cammino vuoto.''',
+        "recap": "Preorder, inorder, postorder e BFS differiscono per il momento in cui elaborano un nodo; il dato richiesto decide l'ordine.",
+        "practice": [("exercise", "sde-e-tree-diameter"), ("exercise", "sde-e-max-path-sum")],
+    },
+    "sde-l-bst-paths": {
+        "notes": r'''### I limiti arrivano dagli antenati
+
+La radice 10 ha figlio destro 15 e il nodo 6 come figlio sinistro di 15. Ogni coppia padre-figlio sembra ordinata localmente, ma 6 viola il limite ereditato dalla radice: tutto il sottoalbero destro di 10 deve contenere valori maggiori di 10. Una visita porta quindi due limiti: per 15 il limite inferiore diventa 10; 6 non è strettamente maggiore di quel limite.
+
+Con duplicati, il contratto deve stabilire dove possano stare; la validazione corrente richiede valori strettamente compresi e non ammette duplicati. Per LCA dei valori 4 e 7 in un BST con radice 5, uno va a sinistra e l'altro a destra: 5 è il primo punto in cui i percorsi si separano. Se entrambi fossero 4 e 7 a sinistra, si proseguirebbe a sinistra.
+
+Entrambi gli algoritmi seguono al massimo un cammino di altezza h: O(h) tempo. La validazione visita ogni nodo, O(n), con O(h) stack. Un albero sbilanciato può avere h=n; non assumere automaticamente h=log n.''',
+        "recap": "Usa la proprietà globale del BST passando limiti e non soltanto confrontando un nodo coi figli immediati.",
+        "practice": [("exercise", "sde-e-validate-bst"), ("exercise", "sde-e-lca-bst")],
+    },
+    "sde-l-bfs-dfs-grid": {
+        "notes": r'''### Lo stack di una DFS conta componenti
+
+Nella griglia `1 1 0 / 0 1 0 / 1 0 1`, una DFS avviata da `(0,0)` aggiunge `(0,1)` allo stack; da lì scopre `(1,1)`. Quando lo stack si svuota, tutte e tre quelle celle appartengono alla prima isola. Le celle `(2,0)` e `(2,2)` avviano due visite indipendenti, quindi le isole sono tre. Marcale quando le aggiungi allo stack, non quando le estrai, così una cella non viene accodata dai due vicini.
+
+Una cella marcata sul posto risparmia la matrice `visited`, ma cambia l'input. Se il chiamante deve conservarlo, tieni una struttura separata: nel caso peggiore occupa `O(R·C)` spazio, come la coda della BFS.''',
+        "recap": "Tratta ogni cella accessibile come nodo, controlla i limiti prima di leggerla e marca la visita prima di accodare.",
+        "practice": [("exercise", "sde-e-number-islands"), ("exercise", "sde-e-oranges-rotting")],
+    },
+    "sde-l-graphs": {
+        "notes": r'''### Componenti, livelli e altri tipi di grafo
+
+Con nodi `{0,1,2,3}` e archi non diretti `(0,1)` e `(1,2)`, una DFS da 0 visita `0,1,2`; il nodo 3 non è raggiunto e avvia una seconda visita. Ci sono quindi due componenti, incluso il nodo isolato. Per contarle, scorri ogni nodo e avvia DFS soltanto se non è ancora stato marcato.
+
+In Word Ladder i nodi non vengono elencati come archi: sono parole e due parole sono collegate se differiscono per una lettera. Da `hit`, i livelli BFS possono essere `hot`, poi `dot` e `lot`, poi `dog` e `log`, infine `cog`. La visita per livelli trova il cammino minimo nel numero di trasformazioni; segnare parole usate evita cicli e ripetizioni.
+
+Qui gli archi hanno costo unitario. Se hanno pesi positivi, BFS non confronta i costi: usa Dijkstra con priorità, spiegato nella lezione Heap. Per copiare un grafo conserva una mappa per identità del nodo, non per valore: due nodi con `val=5` possono essere distinti e avere vicini diversi.''',
+        "recap": "Prima definisci nodi, direzione e peso degli archi; questi tre dettagli determinano rappresentazione e visita corretta.",
+        "practice": [("exercise", "sde-e-connected-components"), ("exercise", "sde-e-word-ladder"), ("exercise", "sde-e-clone-graph")],
+    },
+    "sde-l-topological-sort": {
+        "notes": r'''### La coda di Kahn passo per passo
+
+Per `A→C`, `B→C`, `C→D`, i gradi entranti iniziali sono `A:0, B:0, C:2, D:1`; la coda parte con `[A,B]`. Togli A e il grado di C scende a 1. Togli B: C scende a 0 e viene accodato. Togli C: D scende a 0 e viene accodato. Togli D: sono stati emessi tutti e quattro i nodi, quindi il grafo è aciclico. Ogni nodo e arco viene elaborato una volta: O(V+E) tempo e spazio.
+
+Se aggiungi `D→A`, nessuno dei nodi nel ciclo potrà raggiungere grado entrante zero; restano elementi non emessi. Kahn rileva così il ciclo anche se la coda si svuota senza un errore esplicito. L'ordine fra A e B può variare ed entrambe le sequenze sono valide: verifica le precedenze, a meno che il prompt richieda un ordine deterministico.''',
+        "recap": "Un ordinamento topologico esiste solo se tutte le dipendenze possono essere rimosse; i nodi residui segnalano un ciclo.",
+        "practice": [("exercise", "sde-e-course-schedule")],
+    },
+    "sde-l-heap": {
+        "notes": r'''### Proprietà dell'heap e scelta top-k
+
+In un min-heap l'elemento in cima è minore o uguale ai figli, ma due nodi fratelli non sono completamente ordinati. Per esempio l'array `[2,5,3,9]` è un heap valido: 2 precede 5 e 3, e 5 precede 9. Per inserire 1, aggiungilo in fondo e scambialo col genitore finché l'ordine è ripristinato; per estrarre il minimo, sposta in cima l'ultimo elemento e fallo scendere. Le operazioni costano O(log n), la lettura dell'estremo O(1).
+
+Per i due più grandi valori di `[9,1,7,3,5]`, il min-heap limitato a k evolve: `[9]`, `[1,9]`, inserisci 7 ed elimina 1 (`[7,9]`); 3 non supera la cima 7, 5 non la supera. La cima è 7, il secondo più grande. Tempo O(n log k), spazio O(k); se serve l'ordine completo, sort può essere più semplice.
+
+Per Dijkstra, il min-heap ordina distanze provvisorie, non nodi per numero di archi. Un costo 10 per A→C può essere sostituito da A→B→C di costo 1+2=3. Aggiorna C a 3 e ignora l'entrata obsoleta 10 quando verrà estratta. La prova richiede pesi non negativi. Il grafo pesato di Network Delay usa questa variante; la queue FIFO della BFS non basta.''',
+        "recap": "Un heap conserva in cima un estremo, non ordina tutto; usalo quando devi ripetere estrazioni di priorità o mantenere pochi candidati.",
+        "practice": [("exercise", "sde-e-kth-largest"), ("exercise", "sde-e-top-k-frequent"), ("exercise", "sde-e-network-delay")],
+    },
+    "sde-l-greedy": {
+        "notes": r'''### Quando lo scheduling richiede DP
+
+Se ogni intervallo ha un profitto, massimizzare il numero di intervalli non equivale a massimizzare il profitto. Due intervalli brevi compatibili possono valere 2 ciascuno mentre un intervallo lungo incompatibile vale 100: la regola del primo termine non risponde più alla domanda. Serve confrontare il profitto con la migliore soluzione prima dell'intervallo compatibile più vicino, una transizione da dynamic programming.
+
+Anche i confini fanno parte dell'input: per `[start,end)` il contatto è compatibile con `start >= last_end`; se gli estremi sono inclusivi, serve una regola diversa. Cambiare una sola convenzione può modificare il numero di intervalli selezionati.''',
+        "recap": "Una scelta greedy richiede una dimostrazione che le decisioni locali possano essere estese a una soluzione ottima.",
+        "practice": [("exercise", "sde-e-interval-scheduling")],
+    },
+    "sde-l-backtracking": {
+        "notes": r'''### Un albero di scelte con stato ripristinato
+
+Per i valori `[1,2]`, ogni livello decide se includere il prossimo valore. Dal percorso vuoto `[]`, includi 1 e salva `[1]`; includi 2 e salva `[1,2]`; togli 2 tornando a `[1]`, poi togli 1 tornando a `[]`. Il ramo che salta 1 e include 2 salva `[2]`; quello che salta entrambi salva `[]`. Se aggiungi una scelta, dopo la chiamata ricorsiva esegui il passo inverso. Quando registri una risposta, copia `path`: salvare sempre lo stesso riferimento fa apparire tutte le risposte uguali all'ultimo stato.
+
+Per n valori distinti ci sono `2^n` sottoinsiemi; materializzarli richiede già O(n·2^n) tempo e memoria di output. Le permutazioni sono n!, e una singola copia costa O(n). La potatura riduce i rami esplorati soltanto se il vincolo lo giustifica: con candidati positivi, un totale oltre il target non può tornare valido; con valori negativi quell'arresto può essere scorretto.
+
+Per Combination Sum il valore scelto può riapparire, quindi la ricorsione riparte dallo stesso indice; per subsets si passa al successivo. Questa differenza evita rispettivamente di vietare un riuso permesso o di generare permutazioni duplicate.''',
+        "recap": "Ogni ramo rappresenta una scelta, il caso base salva una risposta e il ripristino garantisce che i rami restino indipendenti.",
+        "practice": [("exercise", "sde-e-subsets"), ("exercise", "sde-e-permutations"), ("exercise", "sde-e-combination-sum")],
+    },
+    "sde-l-dp-memoization": {
+        "notes": r'''### Stesso schema, basi diverse
+
+Climbing Stairs usa la stessa dipendenza dagli ultimi due stati, ma `ways(0)=1`: esiste un solo modo di restare al punto di partenza senza fare passi. Quindi `ways(1)=1`, `ways(2)=2`, `ways(3)=3`, `ways(4)=5`. Le basi fanno parte del significato del problema e non si copiano automaticamente da Fibonacci.
+
+Coin Change cambia la transizione: per un importo `x` provi ciascuna moneta `c<=x` e confronti `1+dp[x-c]`. Il sentinel per uno stato irraggiungibile deve restare distinto da zero. Prima conta quanti stati esistono, poi quante transizioni prova ciascuno; così ricavi il tempo invece di ricordare una formula.''',
+        "recap": "La DP evita di risolvere più volte lo stesso stato; definizione dello stato, base e transizione vengono prima dell'ottimizzazione dello spazio.",
+        "practice": [("exercise", "sde-e-climbing-stairs"), ("exercise", "sde-e-house-robber")],
+    },
+}
+
+
+LESSON_DIDACTIC.update({
+    "sde-l-dp-models": {
+        "notes": r'''### Tabelle piccole, stati espliciti
+
+In Unique Paths su una griglia 2×3 senza ostacoli, ogni cella interna riceve i modi da sopra e da sinistra:
+
+| riga / colonna | 0 | 1 | 2 |
+| --- | ---: | ---: | ---: |
+| 0 | 1 | 1 | 1 |
+| 1 | 1 | 2 | 3 |
+
+Quindi ci sono 3 percorsi. Si può conservare una sola riga: il valore corrente della riga precedente e quello appena scritto a sinistra sono i due prerequisiti.
+
+Edit Distance usa prefissi: `dp[i][j]` è il minimo costo per trasformare i primi i caratteri di una stringa nei primi j dell'altra. Con `cat` → `cut`, il costo finale è una sostituzione (`a` → `u`):
+
+| prefisso | vuoto | c | cu | cut |
+| --- | ---: | ---: | ---: | ---: |
+| vuoto | 0 | 1 | 2 | 3 |
+| c | 1 | 0 | 1 | 2 |
+| ca | 2 | 1 | 1 | 2 |
+| cat | 3 | 2 | 2 | 1 |
+
+Se l'ultimo carattere coincide, copia `dp[i-1][j-1]`; altrimenti prendi 1 più il minimo fra eliminazione, inserimento e sostituzione. La riga iniziale e la colonna iniziale sono i costi per trasformare una stringa vuota. Il tempo è O(mn); conservando solo due righe lo spazio scende a O(min(m,n)).
+
+Nel trading con cooldown tieni tre stati distinti: `hold` (azione in possesso), `sold` (vendita oggi), `rest` (oggi libero senza vendere). Sui prezzi `[1,2,3,0,2]`, i massimi dopo ogni giorno sono:
+
+| Giorno | Prezzo | `hold` | `sold` | `rest` |
+| ---: | ---: | ---: | ---: | ---: |
+| 0 | 1 | -1 | impossibile | 0 |
+| 1 | 2 | -1 | 1 | 0 |
+| 2 | 3 | -1 | 2 | 1 |
+| 3 | 0 | 1 | -1 | 2 |
+| 4 | 2 | 1 | 3 | 2 |
+
+Il profitto migliore finale è 3. Il giorno successivo `hold` può partire solo dal `rest` del giorno precedente, che forza un giorno d'attesa dopo una vendita. Calcola il nuovo terzetto usando solo i valori del giorno prima: aggiornare `rest` prima di `hold` può far riusare accidentalmente una vendita appena avvenuta. Per tutte queste DP, il tempo deriva da numero di stati × lavoro di transizione; la memoria dipende da quanti stati precedenti servono davvero.''',
+        "recap": "Uno stato descrive una sottodomanda precisa: cambiare il significato cambia base, transizione, risposta e casi impossibili.",
+        "practice": [("exercise", "sde-e-house-robber"), ("exercise", "sde-e-coin-change"), ("exercise", "sde-e-unique-paths"), ("exercise", "sde-e-word-break"), ("exercise", "sde-e-edit-distance"), ("exercise", "sde-e-stock-cooldown")],
+    },
+    "sde-l-timed-dsa": {
+        "notes": r'''### Provare il flusso prima del timer
+
+Immagina di ricevere un array crescente di 100.000 elementi e una richiesta di primo indice con valore almeno `x`. La scansione lineare è facile da verificare a mano ma può leggere tutti i 100.000 elementi; il confine binario mantiene `[lo,hi)` e dimezza i candidati. Durante una prova, annotare questo invariante prima di digitare fa risparmiare tempo quando i bordi si avvicinano.
+
+Il timer è un vincolo di lavoro, non un algoritmo. Una pianificazione possibile è: chiarire contratto e casi, scegliere l'approccio e stimarne il costo, implementare la parte centrale, poi spendere gli ultimi minuti su compilazione e casi che possono smentire la soluzione. Se l'ottimizzazione non è pronta, una brute force corretta con costo dichiarato conserva un risultato utile. Non promettere un test passato che non hai eseguito: separa ciò che hai ragionato da ciò che hai verificato.''',
+        "recap": "Allena un ciclo completo: contratto, soluzione, costo e verifica; lascia traccia di ciò che è stato eseguito davvero.",
+        "practice": [("simulation", "sde-sim-coding-40"), ("simulation", "sde-sim-coding-25")],
+    },
+    "sde-l-repo-orientation": {
+        "notes": r'''### Seguire un requisito tra file
+
+Supponi che `GET /orders/42` restituisca un ordine archiviato. Parti dal test che dichiara se gli ordini archiviati vadano nascosti; poi segui il simbolo della route al controller, al service e al repository. Un disegno possibile è `routes → controller → orderService → repository`; annota il tipo e il valore a ogni freccia. Se il test riceve l'ordine, controlla se il filtro manca nel service o se la route richiama un servizio diverso. Non leggere tutto il repository per intero: README, manifest, test e ricerca del simbolo riducono lo spazio.
+
+Esegui prima il comando di test indicato dal progetto e conserva l'errore completo. Un README può essere incompleto o non aggiornato; confrontalo con `package.json`, CMake e comandi effettivi. Le cartelle `test`, `src`, `include` o `app` suggeriscono ruoli, ma i riferimenti fra file danno la prova del flusso.''',
+        "recap": "La repository è una rete di contratti e chiamate: parti dal test e segui un simbolo fino alla produzione del valore.",
+        "practice": [("lab", "lab-amazon-cpp-demo"), ("lab", "lab-amazon-node-demo")],
+    },
+    "sde-l-tests-stack-traces": {
+        "notes": r'''### Dal valore inatteso al primo frame utile
+
+Considera un test che chiama `findActive([A attivo, B pending], "B")` e si aspetta `None`, ma riceve B. L'assertion localizza il disaccordo; lo stack trace potrebbe mostrare `test_find_active` → `orderService.findActive` → `filter`. Parti dal primo frame del progetto e verifica il predicato: `status != "archived"` invece di `status == "active"` accetta anche `pending`. Il caso pending distingue le due ipotesi: non è archived, ma non è active.
+
+Expected e actual descrivono l'osservazione, non ancora la causa. Una riga nel trace indica il punto in cui l'errore è emerso, che non sempre coincide con quello in cui è nato. Riproduci il test da solo, leggi il contratto e cambia una sola ipotesi per volta. Se la failure è intermittente, annota ordine, tempo e dipendenze prima di modificare la logica: un test flaky può indicare race o stato condiviso.''',
+        "recap": "Il test mostra il contratto violato; lo stack trace collega la failure ai file. Verifica la causa, non correggere la sola riga segnalata.",
+        "practice": [("lab", "lab-amazon-cpp-demo"), ("lab", "lab-amazon-node-demo")],
+    },
+    "sde-l-cpp-repository": {
+        "notes": r'''### Dichiarazione, definizione e target
+
+In una repository piccola, `Inventory.h` può dichiarare `bool visibleActive(const Item&)`; `Inventory.cpp` definisce la regola e `InventoryTest.cpp` verifica il risultato. Se il test compila ma il linker segnala `undefined reference to visibleActive`, la dichiarazione esiste ma la definizione può mancare dal target CMake o avere una firma diversa. Riscrivere l'header senza controllare `add_executable` e `target_sources` rischia di spostare il problema.
+
+Un percorso diagnostico è: leggi il nome del target nel `CMakeLists.txt`; segui l'include usato dal test; confronta firma, namespace e const qualificatori fra header e source; poi esegui il test mirato. Una modifica alla firma pubblica tocca anche ogni chiamante e amplia il rischio. Per correggere una regola di filtro, mantieni API e dati invariati e cambia solo l'implementazione responsabile.
+
+Le assertion provano osservazioni pubbliche. Non rendere pubblico un campo privato per poterlo testare se esiste già un metodo che espone il contratto.''',
+        "recap": "Header, source, target e test devono concordare; localizza prima il livello del problema (compilazione, link o comportamento).",
+        "practice": [("lab", "lab-amazon-cpp-demo"), ("lab", "lab-amazon-cpp-inventory")],
+    },
+    "sde-l-node-repository": {
+        "notes": r'''### Dal comando al test
+
+Se `package.json` contiene `"type": "module"` e `"test": "node --test"`, il progetto usa moduli ES e il comando della suite è `npm test`. Una route importa il controller, che chiama un service; un test unitario può importare direttamente il service e passargli dati finti. Se `findActive` restituisce un archivio, confronta prima la regola e poi il test che la mostra: non cambiare `import` in `require` per correggere un filtro.
+
+Un `Promise` deve essere atteso dal test: `await findActive(...)` confronta il valore finale, mentre omettere `await` confronta l'oggetto Promise. Quando un test rimane appeso, guarda timer, server e handle aperti; non aggiungere timeout crescenti prima di sapere che cosa resta attivo.
+
+Il runner locale dei laboratori usa Node integrato e non richiede dipendenze di rete. Nei progetti reali controlla però script e versioni effettivi; la stessa cartella può avere comandi diversi.''',
+        "recap": "Segui gli script dichiarati e le convenzioni esistenti; un test diretto sul service isola la logica dal server HTTP.",
+        "practice": [("lab", "lab-amazon-node-demo"), ("lab", "lab-amazon-node-async")],
+    },
+})
+
+
+LESSON_DIDACTIC.update({
+    "sde-l-async-contract": {
+        "notes": r'''### Dalla richiesta HTTP alla risposta
+
+Supponi che `GET /orders/42` passi `"42"` dal parametro di route al servizio. Il servizio restituisce una Promise: con `await`, il controller riceve l'ordine oppure `null`; senza attenderla, può provare a serializzare la Promise invece del dato. Il flusso completo è `parametro → ricerca asincrona → risultato → status e body`.
+
+Per un ordine trovato il contratto potrebbe essere `200` con l'oggetto; per un ID assente, `404` con un corpo coerente. Un errore di connessione è un terzo caso: non equivale né a `null` né a una lista vuota. `undefined` spesso segnala un valore non fornito, `null` può indicare assenza esplicita, `[]` è una collezione presente senza elementi. Usa ciò che il progetto e i test definiscono, non uniformare tutto a 200.
+
+Con `try/catch`, cattura l'errore nel livello che può tradurlo secondo il contratto; non nascondere ogni rifiuto restituendo un oggetto vuoto. Il test deve aspettare la route o il service e controllare valore, status e propagazione dell'errore.''',
+        "recap": "Segui il valore e gli errori fino alla risposta: Promise, assenza e collezione vuota hanno significati differenti.",
+        "practice": [("lab", "lab-amazon-node-async"), ("lab", "lab-amazon-node-contract")],
+    },
+    "sde-l-debugging-loop": {
+        "notes": r'''### Un difetto seguito fino alla causa
+
+Il test segnala che `GET /orders` include righe archiviate. Il controller inoltra correttamente la richiesta; il service riceve tutte le righe dal repository; il filtro confronta `row.status !== "deleted"`, quindi lascia passare anche `archived`. L'ipotesi più precisa è che il predicato non corrisponda al requisito “solo attive”. Un test con `active`, `archived` e `deleted` discrimina i casi; correggere il filtro nel service risolve anche gli altri chiamanti.
+
+Un fallback nella route che nasconde l'archived farebbe passare solo quel percorso, lasciando il service errato. Per questo si modifica il livello più vicino alla causa, poi si esegue prima il test mirato e quindi la suite. Confronta il diff: se sono cambiati contratto, formattazione di molti file e filtro insieme, hai perso la possibilità di attribuire il risultato a una causa.
+
+Registra fatto osservato, ipotesi, prova e risultato. Se la prova smentisce l'ipotesi, torna al flusso invece di aggiungere un altro ramo condizionale.''',
+        "recap": "Riproduci, segui il dato, formula una causa falsificabile, correggi un punto e verifica la regressione.",
+        "practice": [("lab", "lab-amazon-node-contract"), ("lab", "lab-amazon-cpp-inventory")],
+    },
+    "sde-l-ai-assistant": {
+        "notes": r'''### Chiedere un aiuto che si possa controllare
+
+Prima di usare un assistente, verifica se è abilitato e quali modalità mostra l'interfaccia: HackerRank descrive modalità Guarded e Unguarded, ma il test setter configura le funzioni disponibili. Per esempio, con un test che riceve una Promise invece di un array, una domanda circoscritta è: «Indica il percorso fra questa route e il service e spiega quale valore viene restituito in ciascun punto; non modificare file». La risposta propone una pista, non dimostra che la causa sia quella.
+
+Controlla la pista leggendo i file e rilanciando il test. Se l'assistente suggerisce `await`, verifica se il chiamante e il service condividono davvero il contratto asincrono; applicare una modifica senza capirla può spostare l'errore. Le indicazioni HackerRank attuali dicono che le interazioni sono visibili al valutatore e che l'assistente non è presente in ogni prova; seguono comunque le istruzioni specifiche del test. Consulta la [guida ufficiale sull'AI Assistant in tests](https://candidatesupport.hackerrank.com/articles/7634558376-ai-assistant-in-tests) perché interfaccia e capacità possono cambiare.''',
+        "recap": "Chiedi contesto o un piano verificabile, poi giudica la risposta con codice, contratto e test indipendenti.",
+        "practice": [("lab", "lab-amazon-node-async"), ("lab", "lab-amazon-mock-repository")],
+    },
+    "sde-l-stack-choice": {
+        "notes": r'''### Una scelta basata su evidenza comparabile
+
+I due repository demo espongono gli stessi comportamenti, ma distribuiscono il codice in modo diverso. Nel C++ segui header, source, target CMake e test; nel Node leggi `package.json`, service, moduli e test. Per confrontarli in modo equo, usa lo stesso difetto e lo stesso set di test, poi annota minuti per localizzare il punto, numero di file letti, passaggi necessari a eseguire la suite e facilità di capire il fallimento.
+
+Se in Node il flusso è più chiaro ma i rifiuti Promise sono difficili da seguire, aggiungi quello al confronto invece di decidere dalla sintassi. Se C++ richiede di correggere una firma condivisa, osserva l'effetto sui chiamanti. Una sola demo non rende uno stack universalmente migliore; indica che cosa ti è sembrato più leggibile e quali prove vuoi fare ancora.
+
+La mini-prova confronta il lavoro sulle repository: la preferenza per un linguaggio negli esercizi algoritmici è una domanda diversa e va valutata con prove diverse.''',
+        "recap": "Confronta repository equivalenti usando lo stesso comportamento e osservazioni concrete, non preferenze astratte.",
+        "practice": [("lab", "lab-amazon-cpp-demo"), ("lab", "lab-amazon-node-demo")],
+    },
+    "sde-l-leadership-principles": {
+        "notes": r'''### Un incidente, criteri che entrano in tensione
+
+Una nuova versione fa aumentare gli errori per una parte delle richieste. `Customer Obsession` chiede di misurare chi è impattato; `Dive Deep` distingue correlazione e causa; `Bias for Action` può sostenere una mitigazione rapida e reversibile; `Earn Trust` richiede comunicare ciò che si sa e ciò che resta ipotesi. Un feature flag può ridurre l'impatto mentre si confrontano richieste riuscite e fallite; un rollback può essere migliore se la flag non è sicura o non esiste. Il contesto decide il compromesso.
+
+Ownership non significa assumersi un'autorità che non si ha: significa seguire il problema, coinvolgere chi controlla il servizio e condividere responsabilità e prove. Insist on the Highest Standards chiede di verificare che la regressione non torni, non soltanto che una metrica migliori per pochi minuti.
+
+La pagina Amazon attualmente elenca 16 principi: Customer Obsession, Ownership, Invent and Simplify, Are Right, A Lot, Learn and Be Curious, Hire and Develop the Best, Insist on the Highest Standards, Think Big, Bias for Action, Frugality, Earn Trust, Dive Deep, Have Backbone; Disagree and Commit, Deliver Results, Strive to be Earth's Best Employer e Success and Scale Bring Broad Responsibility. I nomi e le descrizioni vanno ricontrollati nella [fonte ufficiale](https://www.amazon.jobs/content/en/our-workplace/leadership-principles). I principi aiutano a esaminare una decisione: non forniscono una formula o una risposta ufficiale per ogni scenario.''',
+        "recap": "Usa i principi come lenti per motivare effetti, prove, responsabilità e compromessi; evita di citarli come slogan.",
+        "practice": [("scenario", "sde-ws-01"), ("scenario", "sde-ws-09")],
+    },
+    "sde-l-work-simulation": {
+        "notes": r'''### Confrontare azioni plausibili
+
+Scenario di esempio: dopo un rilascio, un webhook consegna alcuni eventi duplicati. Un rollback immediato può fermare i duplicati ma annullare anche una correzione indipendente; esaminare due payload identici può isolare la causa ma lascia aperto l'impatto; disattivare temporaneamente soltanto il consumer coinvolto può contenere il danno, ma richiede sapere come recuperare gli eventi sospesi. La scelta dipende da volume, reversibilità, dati persi e responsabilità disponibili.
+
+Per ogni opzione chiediti: quale effetto immediato produce, quale informazione raccoglie, che rischio crea e chi deve essere coinvolto? Un'azione può essere utile dopo una mitigazione anche se non è la prima mossa. Esplicita le assunzioni che potrebbero cambiare l'ordine.
+
+Le classifiche e i debrief di questo materiale sono giudizi formativi sulle conseguenze descritte, non chiavi ufficiali Amazon. Se una scelta diversa presuppone gravità o vincoli differenti, nomina quel dato invece di cercare una lettera da memorizzare.''',
+        "recap": "Valuta prima l'impatto che continua, poi reversibilità, qualità delle prove e coordinamento; il contesto può cambiare l'ordine delle azioni.",
+        "practice": [("scenario", "sde-ws-01"), ("scenario", "sde-ws-09")],
+    },
+    "sde-l-work-style": {
+        "notes": r'''### Leggere le sfumature senza costruire un personaggio
+
+Confronta le frasi «concludo sempre dopo aver raccolto ogni dato» e «a volte agisco con informazioni incomplete». L'avverbio “sempre” rende la prima assoluta; la seconda ammette contesti diversi. Prima di rispondere, pensa a un episodio reale: quali dati avevi, quanto costava aspettare e quale rischio hai accettato? L'obiettivo della familiarizzazione è leggere con attenzione e rispondere in modo autentico, non trovare la combinazione che sembra più desiderabile.
+
+Se due affermazioni sembrano in tensione, non presumere che descrivano lo stesso momento o rischio: rileggi il testo e considera il comportamento abituale. Una risposta personale può essere coerente e riconoscere eccezioni; non serve inventare una biografia o un profilo ideale.
+
+Gli esercizi di riflessione aiutano a notare le sfumature. Il formato e le istruzioni di una prova reale possono differire; questa attività non deduce come venga valutato un questionario né insegna a manipolarlo.''',
+        "recap": "La familiarizzazione riduce fretta e letture superficiali; le risposte descrivono esperienze e comportamenti reali, non un profilo da imitare.",
+        "practice": [("work_style", "sde-style-01"), ("work_style", "sde-style-08")],
+    },
+    "sde-l-full-mock": {
+        "notes": r'''### Separare l'esecuzione dalla revisione
+
+Durante la prova annota le evidenze, non soltanto le attività: «ho eseguito test A e B» è diverso da «ho creduto che tutti i casi fossero coperti». Nel debrief puoi usare una tabella semplice: osservazione, ipotesi, verifica, esito, prossimo passo. Esempio: “il test del not-found fallisce; ipotesi: il service confonde null con lista vuota; prova: aggiungo un record assente e uno con lista vuota; esito: solo il primo deve generare 404”. Questo separa una diagnosi verificata da un'impressione.
+
+Il formato 40+60 appartiene a questa simulazione. Il processo effettivo dipende dall'invito e dal ruolo; i risultati del mock misurano pratica svolta, non predicono l'esito di un assessment reale.''',
+        "recap": "Esegui ogni fase con il proprio tempo e poi valuta le prove raccolte, distinguendo completamento, ipotesi e verifiche.",
+        "practice": [("simulation", "sde-full-mock"), ("simulation", "sde-sim-repository-60")],
+    },
+})
 
 
 def code_exercise(
@@ -1347,19 +3348,19 @@ def build_flashcards():
             cards.append({"id":f"sde-fc-{len(cards)+1:03d}","module":module,"question":question,"answer":answer})
     return cards
 LABS = [
- {"id":"lab-amazon-cpp-demo","module":"repository","title":"Demo repository · C++","minutes":25,"difficulty":"base","description":"Progetto CMake minimo con header, source e test di accettazione. Segui la firma pubblica fino al comportamento osservato.","requirements":["Leggi README, header e test prima del source.","Esegui o ricostruisci expected e actual.","Correggi il filtro degli elementi attivi e il lookup per ID esatto.","Mantieni optional quando l'ID non esiste."],"rubric":["Fix nel source corretto","Attivi/inattivi e ID assente coperti","Nessun cambio non richiesto all'API"],"workspace_template":"amazon_cpp"},
- {"id":"lab-amazon-node-demo","module":"repository","title":"Demo repository · Node.js","minutes":25,"difficulty":"base","description":"Esercizio equivalente al demo C++ in moduli ES: filtro di record, lookup e test senza dipendenze esterne.","requirements":["Individua package.json, export e test.","Usa npm test prima di modificare.","Correggi predicate e confronto dell'identificativo.","Mantieni la funzione di lettura senza mutazioni."],"rubric":["Input preservato","ID esatto e null esplicito","Suite verde"],"workspace_template":"amazon_node"},
- {"id":"lab-amazon-node-async","module":"repository","title":"Repository asincrona · Promise e controller","minutes":35,"difficulty":"intermedio","description":"Una route dipende da un repository asincrono. Segui il valore fra controller, service e test; distingui Promise, null e status HTTP.","requirements":["Disegna il flusso route → service → repository.","Attendi il risultato asincrono prima del controllo not-found.","Restituisci 404 soltanto per un profilo assente e 200 per quello trovato.","Restituisci il valore risolto nel body."],"rubric":["Failure async riprodotta","Branch 200/404 distinti","Fix limitato al contratto"],"workspace_template":"amazon_node"},
- {"id":"lab-amazon-cpp-inventory","module":"repository","title":"Inventario · indice, reference e test","minutes":40,"difficulty":"intermedio","description":"Due source e due header condividono un vector di articoli e un servizio di conteggio stock.","requirements":["Controlla l'indice prima di erase: size è esclusivo.","Cerca l'ID esatto, non il primo maggiore.","Traccia total_units tra dichiarazione e definizione.","Se la rimozione è rifiutata, lascia l'input invariato."],"rubric":["Nessun accesso fuori indice","Header/source coerenti","Test sull'ultimo indice e index == size"],"workspace_template":"amazon_cpp"},
- {"id":"lab-amazon-node-contract","module":"repository","title":"Ordini · filtro e contratto API","minutes":45,"difficulty":"intermedio","description":"Service e controller condividono righe ordine, stato, ordinamento e risposta not-found. I test controllano anche mutazioni.","requirements":["Confronta test, service e controller.","Calcola totale prezzo × quantità e numero righe secondo il contratto.","Includi soltanto lo status richiesto senza riordinare l'input.","Distingui ordine assente da oggetto vuoto e restituisci status coerente."],"rubric":["Nessun side effect su input","Status e JSON coerenti","Test coprono boundary e ordine"],"workspace_template":"amazon_node"},
- {"id":"lab-amazon-mock-repository","module":"repository","title":"Mock repository · Parcel status service","minutes":60,"difficulty":"hard","description":"Prova finale multi-file su route, service e repository. README e test definiscono il comportamento; la cartella non segnala quali file contengono i difetti.","requirements":["Esegui npm test prima di intervenire.","Per ogni failure annota expected, actual e il percorso seguito dal dato.","Formula un'ipotesi verificabile, modifica il minimo indispensabile e conserva i contratti.","Riesegui la suite e controlla i comportamenti adiacenti."],"rubric":["Suite di accettazione completa","Regressioni coperte da test","Diff circoscritto e comprensibile","Nessuna perdita di isolamento o side effect"],"workspace_template":"amazon_node","repository_variants":{"node":"amazon_node","cpp":"amazon_cpp"}},
+ {"id":"lab-amazon-cpp-demo","module":"repository","title":"Repository di esempio · C++","minutes":25,"difficulty":"base","description":"Progetto CMake essenziale con header, sorgente e test. Segui la firma della funzione fino al risultato osservato.","requirements":["Leggi README, header e test prima di aprire il sorgente.","Confronta il risultato atteso con quello ottenuto.","Correggi il filtro degli elementi attivi e la ricerca per ID esatto.","Restituisci `optional` quando l'ID non esiste."],"rubric":["Correzione nel file sorgente appropriato","Casi attivo, inattivo e ID assente coperti","API invariata oltre le modifiche richieste"],"workspace_template":"amazon_cpp"},
+ {"id":"lab-amazon-node-demo","module":"repository","title":"Repository di esempio · Node.js","minutes":25,"difficulty":"base","description":"Progetto equivalente a quello C++ in moduli JavaScript: filtro, ricerca e test, senza pacchetti esterni.","requirements":["Individua `package.json`, esportazioni e test.","Esegui `npm test` prima di modificare i file.","Correggi il predicato e il confronto dell'identificativo.","Mantieni la funzione di lettura senza modificare i dati."],"rubric":["Dati iniziali preservati","ID confrontato esattamente e assenza gestita","Tutti i test previsti superati"],"workspace_template":"amazon_node"},
+ {"id":"lab-amazon-node-async","module":"repository","title":"Repository asincrona · Promise e controller","minutes":35,"difficulty":"intermedio","description":"Una route usa un repository asincrono. Segui il dato tra controller, servizio e test; distingui una `Promise`, un risultato assente (`null`) e lo status HTTP.","requirements":["Traccia il flusso route → servizio → repository.","Attendi il risultato prima di controllare se il profilo esiste.","Restituisci 404 per un profilo assente e 200 per uno trovato.","Inserisci nel body il valore restituito dal repository."],"rubric":["Errore asincrono riprodotto","Risposte 200 e 404 distinte","Modifica limitata al contratto richiesto"],"workspace_template":"amazon_node"},
+ {"id":"lab-amazon-cpp-inventory","module":"repository","title":"Inventario · indici e riferimenti in C++","minutes":40,"difficulty":"intermedio","description":"Due file sorgente e due header condividono un vettore di articoli e un servizio che ne conta le unità.","requirements":["Controlla l'indice prima di chiamare `erase`: `size` indica il numero di elementi.","Cerca l'ID esatto, non il primo ID maggiore.","Segui `total_units` dalla dichiarazione alla definizione.","Se la rimozione viene rifiutata, lascia invariati i dati."],"rubric":["Nessun accesso oltre i limiti del vettore","Header e sorgente coerenti","Test sull'ultimo indice e su `index == size`"],"workspace_template":"amazon_cpp"},
+ {"id":"lab-amazon-node-contract","module":"repository","title":"Ordini · filtro e contratto API","minutes":45,"difficulty":"intermedio","description":"Servizio e controller condividono righe d'ordine, stato, ordinamento e risposta 404. I test controllano anche che i dati non vengano modificati.","requirements":["Confronta test, servizio e controller.","Calcola totale e numero di righe secondo il contratto.","Includi soltanto lo stato richiesto e conserva l'ordine iniziale.","Distingui un ordine assente da uno vuoto e restituisci lo status corretto."],"rubric":["Dati in ingresso invariati","Status HTTP e JSON coerenti","Test sui casi limite e sull'ordine"],"workspace_template":"amazon_node"},
+ {"id":"lab-amazon-mock-repository","module":"repository","title":"Debugging di un progetto · stato delle spedizioni","minutes":60,"difficulty":"hard","description":"Prova multi-file su route, servizio e repository. README e test descrivono il comportamento; dovrai individuare tu i file con i difetti.","requirements":["Esegui `npm test` prima di intervenire.","Per ogni errore annota il risultato atteso, quello ottenuto e il percorso seguito dal dato.","Formula un'ipotesi verificabile, applica una modifica circoscritta e conserva i contratti esistenti.","Ripeti i test e controlla i comportamenti vicini a quello corretto."],"rubric":["Tutti i test di accettazione superati","Regressioni coperte da test","Modifiche circoscritte e comprensibili","Nessun nuovo effetto collaterale"],"workspace_template":"amazon_node","repository_variants":{"node":"amazon_node","cpp":"amazon_cpp"}},
 ]
 
 SIMULATIONS = [
- {"id":"sde-sim-coding-25","title":"Coding Sprint · 25 minuti","minutes":25,"kind":"coding","coding_exercise_id":"sde-e-longest-substring","brief":"Prova single-file breve. Definisci il contratto, scegli una struttura e lascia tempo per un edge case. Hint e soluzione restano chiusi durante il timer.","checklist":["Leggi input, output e vincoli","Prova un esempio a mano","Scrivi una soluzione autonoma","Controlla duplicati e minimo","Dichiara tempo e spazio"]},
- {"id":"sde-sim-coding-40","title":"Coding Question · 40 minuti","minutes":40,"kind":"coding","coding_exercise_id":"sde-e-coin-change","brief":"Un problema DSA in editor single-file e quaranta minuti autonomi. Il runner locale controlla solo il codice; non consultare hint, browsing o soluzione durante la prova.","checklist":["Definisci gli stati o l'invariante","Implementa senza assistenza","Esegui i test locali","Confronta costo e vincoli","Ferma al timer"]},
- {"id":"sde-sim-repository-60","title":"Code Repository · 60 minuti","minutes":60,"kind":"repository","repository_lab_id":"lab-amazon-mock-repository","brief":"Apri la repository sconosciuta. README e test sono il punto di partenza; ricostruisci il flusso fra route, service e repository, poi verifica ogni fix.","checklist":["Leggi README e struttura","Esegui npm test","Raggruppa le failure per contratto","Verifica un'ipotesi alla volta","Rilancia tutta la suite"]},
- {"id":"sde-full-mock","title":"Full Mock · Coding 40 + Repository 60","minutes":100,"kind":"full_mock","coding_exercise_id":"sde-e-three-sum","repository_lab_id":"lab-amazon-mock-repository","brief":"Due sezioni in sequenza: quaranta minuti per un problema DSA, poi stop e sessanta minuti autonomi per una repository multi-file. Il tempo inutilizzato non passa alla seconda sezione.","checklist":["Avvia quando sei pronto","Coding single-file senza aiuti","Il primo timer si chiude al cambio","Leggi README e test del repository","Concludi e annota prove e incertezze"]},
+ {"id":"sde-sim-coding-25","title":"Problema di coding · 25 min","minutes":25,"kind":"coding","coding_exercise_id":"sde-e-longest-substring","brief":"Risolvi un problema in un singolo file. Chiarisci il contratto, scegli una struttura dati e lascia tempo per provare almeno un caso limite. Durante il timer non sono disponibili indizi o soluzione.","checklist":["Leggi input, output e vincoli","Prova un esempio a mano","Scrivi una soluzione autonoma","Controlla duplicati e valore minimo","Descrivi tempo e spazio richiesti"]},
+ {"id":"sde-sim-coding-40","title":"Problema di coding · 40 min","minutes":40,"kind":"coding","coding_exercise_id":"sde-e-coin-change","brief":"Risolvi un problema di algoritmi in un singolo file. Il controllo esegue il codice sui casi previsti; durante la prova non consultare gli indizi, la navigazione web o la soluzione.","checklist":["Definisci gli stati o l'invariante","Implementa senza assistenza","Esegui i test disponibili","Confronta costo e vincoli","Fermati al timer"]},
+ {"id":"sde-sim-repository-60","title":"Debugging di una repository · 60 min","minutes":60,"kind":"repository","repository_lab_id":"lab-amazon-mock-repository","brief":"Esamina una repository che non conosci. Parti da README e test, ricostruisci il flusso tra route, servizi e repository, poi verifica ogni correzione con la suite.","checklist":["Leggi README e struttura dei file","Esegui `npm test`","Raggruppa gli errori per contratto","Verifica un'ipotesi alla volta","Esegui di nuovo tutta la suite"]},
+ {"id":"sde-full-mock","title":"Simulazione completa · problema 40 + progetto 60","minutes":100,"kind":"full_mock","coding_exercise_id":"sde-e-three-sum","repository_lab_id":"lab-amazon-mock-repository","brief":"Due sezioni consecutive: 40 minuti per un problema di algoritmi, poi 60 minuti per un progetto multi-file. Il tempo non utilizzato nella prima sezione non si aggiunge alla seconda.","checklist":["Avvia quando sei pronto","Risolvi il problema senza aiuti","Il primo timer si ferma al cambio di sezione","Leggi README e test del progetto","Alla fine annota prove raccolte e dubbi rimasti"]},
 ]
 
 SCENARIO_SEEDS = [
@@ -1632,19 +3633,46 @@ WORK_STYLE = [
 ]
 def build_catalog():
     LESSONS_DIR.mkdir(parents=True, exist_ok=True)
+    exercises = list({item["id"]: item for item in EXERCISES}.values())
+    scenarios = build_scenarios()
+    activity_sources = {
+        "exercise": exercises,
+        "lab": LABS,
+        "simulation": SIMULATIONS,
+        "scenario": scenarios,
+        "work_style": WORK_STYLE,
+    }
+    activity_titles = {
+        kind: {item["id"]: item["title"] for item in entries}
+        for kind, entries in activity_sources.items()
+    }
+    lesson_ids = {item["id"] for item in LESSONS}
+    if set(LESSON_DIDACTIC) != lesson_ids:
+        missing = sorted(lesson_ids - set(LESSON_DIDACTIC))
+        extra = sorted(set(LESSON_DIDACTIC) - lesson_ids)
+        raise ValueError(f"Guide didattiche non allineate alle lezioni; mancanti={missing}, extra={extra}")
+    lesson_bodies = {}
+    for lesson_item in LESSONS:
+        guide = LESSON_DIDACTIC[lesson_item["id"]]
+        practice_titles = []
+        for kind, activity_id in guide["practice"]:
+            if activity_id not in activity_titles[kind]:
+                raise ValueError(f"Attività {kind} {activity_id} non trovata per {lesson_item['id']}")
+            practice_titles.append(activity_titles[kind][activity_id])
+        body_parts = [lesson_item["body"].rstrip(), guide["notes"].strip()]
+        body_parts.append(f"**Da ricordare.** {guide['recap']} **Per praticare:** {'; '.join(practice_titles)}.")
+        lesson_bodies[lesson_item["id"]] = "\n\n".join(body_parts)
     lessons=[]
     for item in LESSONS:
         record={key:value for key,value in item.items() if key!="body"}
         path=CONTENT/record["body_file"]
         path.parent.mkdir(parents=True,exist_ok=True)
-        path.write_text(item["body"],encoding="utf-8")
+        path.write_text(lesson_bodies[item["id"]],encoding="utf-8")
         lessons.append(record)
     referenced_bodies = {CONTENT / item["body_file"] for item in lessons}
     for stale in LESSONS_DIR.glob("sde-l-*.md"):
         if stale not in referenced_bodies:
             stale.unlink()
-    exercise_by_id = {item["id"]: item for item in EXERCISES}
-    exercises = list(exercise_by_id.values())
     # The catalog is study material: expand one-line literals into readable code.
     for exercise in exercises:
         exercise["solution"] = python_solution(exercise["solution"])
@@ -1676,13 +3704,13 @@ def build_catalog():
     )
     raw={
       "meta":{
-        "name":"Amazon SDE-I OA Bootcamp","track_id":"amazon-sde-oa","version":"1.0","language":"it",
+        "name":"Preparazione Amazon SDE-I OA","track_id":"amazon-sde-oa","version":"1.0","language":"it",
         "estimated_hours":round(catalog_minutes/60,1),"estimated_core_hours":round(core_plan_minutes/60,1),"study_plan":STUDY_PLAN,
-        "assessment_note":"Il mock 40+60 è un formato di pratica richiesto; assessment reali variano per ruolo e paese. Fa fede l'invito ricevuto.",
-        "sources":["https://www.amazon.jobs/content/cs/how-we-hire/university/sde-oa","https://www.amazon.jobs/content/en-gb/our-workplace/leadership-principles","https://candidatesupport.hackerrank.com/articles/8606305957-taking-front-end-back-end-full-stack-and-mobile-developer-assessments","https://candidatesupport.hackerrank.com/articles/7634558376-ai-assistant-in-tests","https://docs.python.org/3/tutorial/datastructures.html","https://isocpp.org/wiki/faq/containers"]
+        "assessment_note":"Il formato 40 + 60 è una simulazione di pratica; le prove effettive possono variare per ruolo e paese. Fai riferimento all'invito ricevuto.",
+        "sources":["https://www.amazon.jobs/content/en/career-programs/university/sde","https://www.amazon.jobs/content/en/our-workplace/leadership-principles","https://candidatesupport.hackerrank.com/articles/8606305957-taking-front-end-back-end-full-stack-and-mobile-developer-assessments","https://candidatesupport.hackerrank.com/articles/7634558376-ai-assistant-in-tests","https://docs.python.org/3/tutorial/datastructures.html","https://isocpp.org/wiki/faq/containers"]
       },
       "modules":MODULES,"lessons":lessons,"exercises":exercises,"labs":LABS,"flashcards":build_flashcards(),
-      "simulations":SIMULATIONS,"work_scenarios":build_scenarios(),"work_style":WORK_STYLE
+      "simulations":SIMULATIONS,"work_scenarios":scenarios,"work_style":WORK_STYLE
     }
     CATALOG_FILE.write_text(json.dumps(raw,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(json.dumps({key:len(raw[key]) for key in ("modules","lessons","exercises","labs","flashcards","simulations","work_scenarios","work_style")},ensure_ascii=False))

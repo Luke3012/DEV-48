@@ -1,63 +1,42 @@
 # Scrittura atomica, Transazioni e SaveChangesAsync
 
-## In parole semplici
+Aggiungere un oggetto al contesto cambia prima lo stato in memoria. Il database viene coinvolto quando chiami `SaveChangesAsync`: capire il confine fra queste due fasi aiuta a diagnosticare perché una modifica non è persistita o perché un gruppo di operazioni è stato confermato insieme.
 
-L'obiettivo di questa lezione è inserire, aggiornare ed eliminare record gestendo transazioni atomiche e concorrenza.
+## Dall'oggetto C# alla riga del database
 
-`SaveChangesAsync()` invia le modifiche tracciate. Con un provider relazionale EF Core usa di norma una transazione per la singola chiamata; provider e operazioni distribuite possono avere comportamenti diversi.
-
-## Le parole da riconoscere
-
-- `savechangesasync`
-- `add`
-- `update`
-- `remove`
-- `transazione`
-- `concorrenza`
-
-## Anatomia e Sintassi del Codice
-
-### Flusso di Scrittura Standard con EF Core:
+### Traccia un inserimento
 ```csharp
-// 1. Creazione
-var product = new Product { Title = "Tastiera Meccanica", Price = 89.99m };
-db.Products.Add(product);
-await db.SaveChangesAsync(); // Genera INSERT e popola product.Id con la chiave autoincrementale!
+var measure = new Measure { SubjectId = subjectId, Value = 12.5m };
+db.Measures.Add(measure);
 
-// 2. Modifica
-var existing = await db.Products.FindAsync(id);
-if (existing is not null) {
-    existing.Price = 79.99m;
-    await db.SaveChangesAsync(); // Genera UPDATE solo sulle colonne modificate!
-}
-
-// 3. Rimozione
-db.Products.Remove(existing);
-await db.SaveChangesAsync(); // Genera DELETE
+Console.WriteLine(db.Entry(measure).State); // Added; non è ancora stato inserito
+var recordsAffected = await db.SaveChangesAsync(cancellationToken);
+Console.WriteLine(db.Entry(measure).State); // Unchanged dopo il successo
+Console.WriteLine(measure.Id);              // chiave generata dal provider
 ```
 
-## Un esempio concreto
+`Add` registra l'entità nel Change Tracker; la chiamata a `SaveChangesAsync` invia gli INSERT/UPDATE/DELETE pendenti. Con un provider relazionale, una singola chiamata usa normalmente una transazione, quindi le modifiche di quella chiamata vengono applicate insieme. `recordsAffected` è il numero di voci di stato scritte, non una misura del tempo né un ID.
 
-```text
-db.Orders.Add(order);
-await db.SaveChangesAsync(); // Salva e assegna automaticamente la chiave primaria generata dal DB.
+Se un caso d'uso deve salvare in più chiamate o coordinare operazioni che la chiamata singola non include, apri una transazione esplicita con `Database.BeginTransactionAsync`, esegui il lavoro e conferma con `CommitAsync`; in caso di eccezione, la disposizione della transazione la annulla. Gestisci anche i conflitti di concorrenza: atomicità non significa che nessun altro possa aver modificato i dati.
+
+## Segui il lavoro del DbContext
+
+```csharp
+db.Measures.Add(measure);
+var savedEntries = await db.SaveChangesAsync(cancellationToken);
 ```
 
-### Seguilo passo per passo
+### Osserva che cosa ha fatto il contesto
 
-1. `Add(order)` aggiunge l'ordine al Change Tracker; normalmente non invia ancora la modifica al database.
-2. `await SaveChangesAsync()` invia le modifiche pendenti e, con un provider relazionale, EF Core usa di norma una transazione per rendere atomiche le modifiche di quella chiamata.
-3. Se la chiamata riesce, il provider può valorizzare la chiave generata e il metodo restituisce il numero di entità interessate. La concorrenza può comunque produrre un conflitto.
-4. Aggiungi due modifiche prima di salvare e poi provoca un errore di vincolo. Verifica quali modifiche vengono confermate e quando serve una transazione esplicita più ampia.
+1. `Add(measure)` porta l'entità allo stato `Added` nel contesto; osserva che la riga non è ancora nel database.
+2. `SaveChangesAsync` invia l'INSERT. Il provider può valorizzare `measure.Id` con la chiave generata.
+3. Se la chiamata riesce, il metodo restituisce il numero di entry scritte e il contesto accetta lo stato come `Unchanged`.
+4. Prova un vincolo non valido e osserva l'eccezione. Poi raggruppa le modifiche prima della singola chiamata; usa una transazione esplicita solo quando l'unità di lavoro attraversa più salvataggi.
 
-## Pattern Guida per gli Esercizi
+La pratica breve interpreta il numero restituito da `SaveChangesAsync`; nel laboratorio verifica che il dato esista con una query dopo il commit, non solo che `Add` sia stato chiamato.
 
-La pratica breve isola una regola e non avvia l'applicazione .NET. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
-
-## Dove ci si confonde spesso
+## Che cosa resta responsabilità del database?
 
 - Chiamare `SaveChangesAsync()` all'interno di un ciclo foreach invece di raggruppare le modifiche ed eseguire una singola chiamata finale.
 
-## Domanda di verifica
-
-> Che cosa restituisce il metodo `SaveChangesAsync()` al suo completamento?
+> **Che cosa è stato caricato o salvato davvero?** Che cosa restituisce il metodo `SaveChangesAsync()` al suo completamento?

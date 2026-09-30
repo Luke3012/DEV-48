@@ -1,10 +1,6 @@
 # Introduzione a EF Core e DbContext
 
-## In parole semplici
-
-L'obiettivo di questa lezione è configurare l'ORM standard di .NET, definire la classe DbContext e connettere il database relazionale.
-
-Entity Framework Core mappa entità e relazioni e traduce le parti supportate delle query LINQ in SQL per il provider configurato. La connessione e la durata del contesto restano parte della configurazione dell'app.
+Il database conserva righe e vincoli; il codice C# usa oggetti e proprietà. Entity Framework Core collega i due modelli, ma non nasconde la configurazione del provider, il ciclo di vita della connessione o il momento in cui una modifica viene salvata.
 
 ### Nel percorso
 
@@ -12,61 +8,75 @@ Da conoscere: [LINQ fondamentale: Where, Select e Aggregazioni](net-01-05-linq-f
 
 Il laboratorio Persistenza con EF Core e SQLite usa soggetti e misure: ritroverai lo stesso contesto nel gestionale full-stack. Il contesto segue l'unità di lavoro; non condividerlo tra richieste o operazioni parallele.
 
-## Le parole da riconoscere
+## Dall'oggetto C# alla riga del database
 
-- `ef core`
-- `dbcontext`
-- `dbset`
-- `orm`
-- `sqlite`
-- `connection string`
+### Quattro file raccontano il primo passaggio
+```text
+server/Models/Subject.cs       forma dell'entità
+server/Data/AppDbContext.cs    insieme di entità e unità di lavoro
+server/Program.cs              provider, DI ed endpoint
+server/dev48.db                file SQLite creato dal provider
+```
 
-## Anatomia e Sintassi del Codice
-
-### Struttura Tipica di un DbContext in EF Core:
 ```csharp
+// Models/Subject.cs
+public sealed class Subject
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+}
+
+// Data/AppDbContext.cs
 using Microsoft.EntityFrameworkCore;
 
-public class AppDbContext : DbContext {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) {}
-
-    // Ogni DbSet<T> corrisponde a una tabella nel database
-    public DbSet<Product> Products => Set<Product>();
-    public DbSet<Category> Categories => Set<Category>();
+public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+{
+    public DbSet<Subject> Subjects => Set<Subject>();
 }
 ```
 
-### Registrazione in Program.cs (Minimal API):
+```csharp
+// Program.cs
+using Microsoft.EntityFrameworkCore;
+
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite("Data Source=dev48.db"));
+var app = builder.Build();
+
+app.MapGet("/api/subjects", async (AppDbContext db, CancellationToken ct) =>
+    await db.Subjects.AsNoTracking()
+        .Select(subject => new { subject.Id, subject.Name })
+        .ToListAsync(ct));
+app.Run();
+```
+
+```text
+C# Subject → DbSet / DbContext → provider SQLite → tabella Subjects
+database rows → materializzazione EF Core → oggetti C# → DTO / JSON
+```
+
+`DbSet<Subject>` è l'ingresso tipizzato alla tabella; `DbContext` coordina query e tracking per una unità di lavoro. `AddDbContext` registra normalmente il contesto come Scoped in ASP.NET Core e costruisce le opzioni per richiesta. Il provider esegue SQL sul file SQLite: il contesto non crea né aggiorna lo schema senza una migrazione o un comando esplicito.
+
+## Segui il lavoro del DbContext
+
 ```csharp
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=dev48.db"));
 ```
 
-## Un esempio concreto
+### Osserva che cosa ha fatto il contesto
 
-```csharp
-public class AppDbContext : DbContext {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) {}
-    public DbSet<User> Users => Set<User>();
-}
-```
+1. `Program.cs` registra il provider SQLite e le opzioni di `AppDbContext` nel contenitore.
+2. Alla richiesta GET, ASP.NET Core crea lo scope e inietta il contesto nel gestore.
+3. `db.Subjects` costruisce una query. `ToListAsync` la esegue; EF Core traduce le parti supportate in SQL, legge le righe e le proietta nei valori restituiti.
+4. Osserva la query nel log EF Core o nel laboratorio SQLite. Se cambi `Subject` ma non chiami `SaveChangesAsync`, nessuna istruzione di scrittura viene inviata al database.
 
-### Seguilo passo per passo
+Il mini-esercizio controlla una stringa di connessione. Nel laboratorio EF configura il provider, genera una migrazione e verifica lettura e scrittura contro SQLite isolato nei test.
 
-1. `AppDbContext` eredita da `DbContext` e riceve le opzioni dal contenitore tramite il costruttore.
-2. `DbSet<User> Users => Set<User>()` espone il punto di accesso tipizzato alle righe `User`; non crea da solo il database né sostituisce la configurazione del provider.
-3. ASP.NET Core crea lo scope della richiesta e fornisce il contesto registrato con `AddDbContext`. Al termine dello scope, il contesto viene eliminato.
-4. Segui una query da `db.Users` fino al provider SQLite configurato. Prova a registrare il contesto come singleton e spiega perché condividerlo tra richieste è pericoloso.
-
-## Pattern Guida per gli Esercizi
-
-La pratica breve isola una regola e non avvia l'applicazione .NET. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
-
-## Dove ci si confonde spesso
+## Che cosa resta responsabilità del database?
 
 - Creare istanze manuali con `new AppDbContext()` invece di ottenerle dalla Dependency Injection
 - registrare il DbContext come Singleton.
 
-## Domanda di verifica
-
-> Qual è il ruolo principale della classe DbContext in un'applicazione .NET?
+> **Che cosa è stato caricato o salvato davvero?** Qual è il ruolo principale della classe DbContext in un'applicazione .NET?

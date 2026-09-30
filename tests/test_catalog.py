@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 from dev48.models import Catalog
 from tools.generate_content import PLAIN_EXPLANATIONS
@@ -30,6 +31,29 @@ def test_catalog_rejects_unknown_track_and_missing_track_catalog(tmp_path):
         Catalog(ROOT / "content", track="amazon-oa-typo")
     with pytest.raises(FileNotFoundError, match="non trovato"):
         Catalog(tmp_path, track="amazon-sde-oa")
+
+
+def test_amazon_lesson_examples_follow_the_selected_coding_language():
+    catalog = Catalog(ROOT / "content", track="amazon-sde-oa")
+    lesson = catalog.lesson_by_id["sde-l-sliding-window"]
+    source = (ROOT / "content" / lesson.body_file).read_text(encoding="utf-8")
+
+    python_body = catalog.lesson_body(lesson, "python")
+    cpp_body = catalog.lesson_body(lesson, "cpp")
+
+    assert "**Versione Python**" in source and "**Versione C++**" in source
+    assert "def max_sum_k" in python_body
+    assert "def longest_at_most_k_distinct" in python_body
+    assert "static_cast<int>(nums.size())" not in python_body
+    assert "long long max_sum_k" in cpp_body
+    assert "int longest_at_most_k_distinct" in cpp_body
+    assert "def max_sum_k" not in cpp_body
+    assert "**Esempio in Python**" in python_body
+    assert "**Esempio in C++**" in cpp_body
+
+    for item in catalog.lessons:
+        catalog.lesson_body(item, "python")
+        catalog.lesson_body(item, "cpp")
 
 
 def test_every_lesson_has_two_exercises_and_reviewable_markdown():
@@ -123,30 +147,33 @@ def test_dotnet_angular_course_is_complete_and_explicit_about_its_checks():
     for lesson in catalog.lessons:
         body = catalog.lesson_body(lesson)
         markdown.append(body)
-        # Check useful content, without enforcing filler to reach a word quota.
-        assert len(body.split()) >= 180, lesson.id
-        for heading in (
-            "## In parole semplici", "## Le parole da riconoscere", "## Anatomia e Sintassi del Codice",
-            "## Un esempio concreto", "### Seguilo passo per passo", "## Pattern Guida per gli Esercizi",
-            "## Dove ci si confonde spesso", "## Domanda di verifica",
-        ):
-            assert heading in body, (lesson.id, heading)
+        headings = re.findall(r"(?m)^## .+$", body)
+        assert len(headings) >= 3, lesson.id
+        assert len(headings) == len(set(headings)), lesson.id
+        # Chapters may be short or long; the course should not pad every topic
+        # to the same word count. Keep only a basic guard against empty output.
+        assert len(body.split()) >= 120, lesson.id
         assert len(catalog.exercises_for(lesson.id)) == 2, lesson.id
-        walkthrough = body.split("### Seguilo passo per passo\n", 1)[1].split("\n## Pattern Guida per gli Esercizi", 1)[0]
-        steps = [line for line in walkthrough.splitlines() if line[:1].isdigit() and ". " in line]
+        guided_sections = re.findall(r"(?ms)^### [^\n]+\n(.*?)(?=^### |^## |\Z)", body)
+        walkthroughs_for_lesson = [
+            section for section in guided_sections
+            if len(re.findall(r"(?m)^\d+\. .+$", section)) == 4 and len(section.strip()) >= 250
+        ]
+        assert walkthroughs_for_lesson, lesson.id
+        walkthrough = walkthroughs_for_lesson[-1]
+        steps = re.findall(r"(?m)^\d+\. .+$", walkthrough)
         assert len(steps) == 4, lesson.id
         assert len(set(steps)) == 4, lesson.id
-        assert len(walkthrough) >= 250, lesson.id
-        walkthroughs.append(walkthrough)
+        walkthroughs.append("\n".join(steps))
 
     assert len(set(walkthroughs)) == len(catalog.lessons)
+    assert len({re.findall(r"(?m)^## .+$", body)[0] for body in markdown}) >= 8
     positions = {lesson.title: index for index, lesson in enumerate(catalog.lessons)}
     assert positions["Introduzione a signal() e aggiornamento stato con set() e update()"] < positions["Progetto Angular Standalone e Bootstrap applicazione"]
     assert positions["Valori derivati intelligenti con computed()"] < positions["Nuovo Control Flow: @if, @else, @for e @switch"]
     for body in markdown:
         assert "Non dare per scontato di conoscere i termini" not in body
         assert "## Controllo rapido" not in body
-        import re
         for target in re.findall(r"\]\((net-[^)]+\.md)\)", body):
             assert (ROOT / "content" / "lessons_dotnet" / target).is_file()
     assert all("colloquio" not in item.title.lower() for item in catalog.simulations)
@@ -154,10 +181,14 @@ def test_dotnet_angular_course_is_complete_and_explicit_about_its_checks():
         body for lesson, body in zip(catalog.lessons, markdown, strict=True)
         if lesson.title == "Architettura Pulita: separazione di Domain, Application e API"
     )
-    assert "```csharp\nusing System.Threading;" in clean_architecture
+    assert "Build-time: Infrastructure → Application / Domain" in clean_architecture
+    assert "composition root" in clean_architecture
+    assert "Angular resta un processo separato" in clean_architecture
 
+    lesson_bodies = {lesson.title: body for lesson, body in zip(catalog.lessons, markdown, strict=True)}
     all_lessons = "\n".join(markdown)
-    assert "Signal Forms sono incluse in `@angular/forms/signals`" in all_lessons
+    assert "Signal Forms è stabile e inclusa nel pacchetto `@angular/forms`" in all_lessons
+    assert "from '@angular/forms/signals'" in all_lessons
     jwt_lesson = next(body for lesson, body in zip(catalog.lessons, markdown, strict=True) if lesson.title == "Generazione e convalida token JWT in ASP.NET Core")
     assert 'dotnet user-secrets init' in jwt_lesson
     assert 'new JwtSecurityTokenHandler().WriteToken(token)' in jwt_lesson
@@ -179,11 +210,78 @@ def test_dotnet_angular_course_is_complete_and_explicit_about_its_checks():
     assert "Angular 19" not in all_lessons
     assert ".NET 8/10" not in all_lessons
     assert "eliminando Zone.js" not in all_lessons
-    assert "NgModule resta supportato" in all_lessons
+    assert "`NgModule` resta supportato" in all_lessons
     assert "i decoratori `@Input()` e `@Output()` restano supportati" in all_lessons
-    assert "può ridurre lavoro e memoria" in all_lessons
+    assert "può ridurre il codice iniziale solo se" in all_lessons
     assert "sostituiscono i vecchi decoratori" not in all_lessons
     assert "Glitch-Free" not in all_lessons
+    assert "La pratica breve isola una regola e non avvia l'applicazione" not in all_lessons
+    assert "Nel laboratorio del modulo verifica anche il comportamento del framework" not in all_lessons
+
+    csharp_switch = lesson_bodies["Controllo di flusso, Pattern Matching e Switch Expressions"]
+    assert 'if (status == "open")' in csharp_switch
+    assert "DaysWaiting: >= 3" in csharp_switch and '_ => "Stato non riconosciuto"' in csharp_switch
+    linq = lesson_bodies["LINQ fondamentale: Where, Select e Aggregazioni"]
+    assert "foreach (var user in users)" in linq
+    assert all(token in linq for token in (".Where(", ".OrderBy(", ".Select(", ".ToList()"))
+    async_lesson = lesson_bodies["Programmazione Asincrona: Task, async/await ed Eccezioni"]
+    assert "Task<string>" in async_lesson and "CancellationToken" in async_lesson
+    assert "non significa avviare automaticamente un nuovo thread" in async_lesson
+
+    angular_bootstrap = lesson_bodies["Progetto Angular Standalone e Bootstrap applicazione"]
+    assert all(name in angular_bootstrap for name in ("src/index.html", "src/main.ts", "src/app/app.ts", "src/app/app.config.ts"))
+    assert "NullInjectorError" in angular_bootstrap and "provideHttpClient()" in angular_bootstrap
+    control_flow = lesson_bodies["Nuovo Control Flow: @if, @else, @for e @switch"]
+    assert "@for" in control_flow and "@empty" in control_flow and "track user.id" in control_flow
+    binding = lesson_bodies["Data Binding moderno: interpolazione, property ed event binding"]
+    assert all(token in binding for token in ("{{ username }}", "[value]", "(click)", "[(ngModel)]"))
+    signal_lesson = lesson_bodies["Introduzione a signal() e aggiornamento stato con set() e update()"]
+    assert "count = 0" in signal_lesson and "signal(0)" in signal_lesson
+    assert "asReadonly()" in signal_lesson and "update(value => value + 1)" in signal_lesson
+    computed = lesson_bodies["Valori derivati intelligenti con computed()"]
+    assert "computed(()" in computed and "items" in computed and "duplic" in computed.lower()
+    rxjs = lesson_bodies["Integrazione tra Signals e RxJS: toSignal e toObservable"]
+    assert all(token in rxjs for token in ("toObservable", "switchMap", "HttpClient", "Observable<User[]>", "status: 'loading'", "status: 'error'"))
+    assert "user.model.ts" in rxjs and "UserService" in rxjs
+
+    ef_intro = lesson_bodies["Introduzione a EF Core e DbContext"]
+    assert all(token in ef_intro for token in ("DbSet", "SQLite", "AddDbContext", "DbContext"))
+    ef_tracking = lesson_bodies["Query con LINQ su Database: Tracking e AsNoTracking"]
+    assert all(token in ef_tracking for token in ("Unchanged", "Modified", "DetectChanges()", "SaveChangesAsync", "AsNoTracking"))
+    forms = lesson_bodies["Reactive Forms: FormGroup e FormControl"]
+    assert all(token in forms for token in ("FormControl", "FormGroup", "touched", "dirty", "pending", "Signal Forms"))
+    router = lesson_bodies["Angular Router moderno e Lazy Loading"]
+    assert all(token in router for token in ("router-outlet", "query", "loadComponent", "routerLink"))
+    guard = lesson_bodies["Route Guards funzionali: Proteggere le rotte con canActivate"]
+    assert "UrlTree" in guard and "backend" in guard
+    api_binding = lesson_bodies["Routing, Parametri e Binding di Record DTO"]
+    api_validation = lesson_bodies["Validazione degli input e ProblemDetails standard"]
+    assert "CreateUserRequest" in api_binding and "Results.Created" in api_binding
+    assert "Results.ValidationProblem" not in api_binding
+    assert "Results.ValidationProblem" in api_validation and '"status": 400' in api_validation
+    assert "body malformato" in api_validation
+
+    migrations = lesson_bodies["Migrazioni di Database: Creazione e Applicazione"]
+    assert all(token in migrations for token in ("dotnet tool restore", "dotnet restore", "migrations script --idempotent", "__EFMigrationsHistory"))
+    assert "--global dotnet-ef" not in migrations and "EnsureCreated" in migrations
+    xunit = lesson_bodies["Test unitari in C# con xUnit"]
+    assert "// Arrange" in xunit and "// Act" in xunit and "// Assert" in xunit
+    assert "public partial class Program" in xunit and "WebApplicationFactory<Program>" in xunit
+    openapi = lesson_bodies["Documentazione delle API con OpenAPI"]
+    assert "TypedResults.Ok" in openapi and "MapOpenApi()" in openapi
+    assert "Swagger UI o Scalar" in openapi and "non sostituisce i test" in openapi
+
+    interceptor = lesson_bodies["Consumo API autenticata con HttpClient e HttpInterceptor"]
+    assert "Authorization: `Bearer ${token}`" in interceptor
+    assert "instanceof HttpResponse" in interceptor and "risalgono la stessa catena" in interceptor
+    cors = lesson_bodies["CORS, Same-Origin, XSS e CSRF: scopi distinti"]
+    assert all(token in cors for token in ("schema, host e porta", "non autentica", "CSRF"))
+    jwt_lesson = lesson_bodies["Generazione e convalida token JWT in ASP.NET Core"]
+    assert all(token in jwt_lesson for token in ("401", "403", "AdminOnly", "UseAuthentication()", "UseAuthorization()"))
+
+    monorepo = lesson_bodies["Organizzazione Monorepo: client/ e server/"]
+    assert all(token in monorepo for token in ("UserListComponent", "UserService", "HttpClient GET /api/users", "AddScoped<UserService>", "DbContext", "SQLite", "UserResponse", "JSON HTTP 200"))
+    assert "Observable<UserDto[]>" in monorepo and "role=\"status\"" in monorepo
 
     for lesson, body in zip(catalog.lessons, markdown, strict=True):
         fences = [line for line in body.splitlines() if line.startswith("```")]
@@ -280,7 +378,7 @@ def test_amazon_sde_oa_course_has_independent_mapped_content():
     assert all("64 bit" not in case["name"] for case in stairs.tests)
     assert {simulation.kind for simulation in catalog.simulations} == {"coding", "repository", "full_mock"}
     assert catalog.simulations[-1].minutes == 100
-    assert "variano per ruolo e paese" in catalog.meta["assessment_note"]
+    assert "possono variare per ruolo e paese" in catalog.meta["assessment_note"]
     assert catalog.meta["estimated_core_hours"] < catalog.meta["estimated_hours"]
     assert all("O(" in item.explanation for item in catalog.exercises)
     assert catalog.validate() == []

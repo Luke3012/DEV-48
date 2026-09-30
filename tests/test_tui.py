@@ -357,7 +357,7 @@ def test_all_exercise_editors_and_libraries_mount(tmp_path):
                     assert "Come funziona il controllo" in scope.content
                     if exercise.kind == "angular":
                         assert "mock" in scope.content
-                        assert "non controlla il DOM" in scope.content
+                        assert "non mostra la pagina nel browser" in scope.content
                     assert app.focused.id == "editor"
                     app.pop_screen()
                     await pilot.pause()
@@ -472,7 +472,7 @@ def test_resume_last_and_wide_lesson_layout(tmp_path):
             async with app.run_test(size=(210, 52)) as pilot:
                 await pilot.pause()
                 assert app.focused.id == "continue"
-                assert "ULTIMA" in str(app.screen.query_one("#resume").label)
+                assert "RIPRENDI ATTIVITÀ" in str(app.screen.query_one("#resume").label)
                 await pilot.click("#resume")
                 await pilot.pause()
                 assert isinstance(app.screen, LessonScreen)
@@ -660,7 +660,7 @@ def test_track_selection_screen_interaction(tmp_path):
                 await pilot.pause()
                 assert isinstance(app.screen, DashboardScreen)
                 assert app.catalog.track == "web-js-react"
-                assert "Web Development Academy" in app.title
+                assert "JavaScript & React" in app.title
                 assert "React 19" in app.sub_title
 
                 await pilot.press("ctrl+t")
@@ -782,7 +782,7 @@ def test_amazon_work_screens_and_full_mock_sequence(tmp_path):
                 repository_prompt = screen.repository_prompt_text()
                 assert screen.lab.description not in repository_prompt
                 assert all(requirement not in repository_prompt for requirement in screen.lab.requirements)
-                assert "README" in repository_prompt and "suite di test" in repository_prompt
+                assert "README" in repository_prompt and "Avvia i test" in repository_prompt
                 await pilot.click("#start")
                 await pilot.pause()
                 assert screen.locked and screen.phase == 0
@@ -854,12 +854,13 @@ def test_amazon_exercise_hides_hints_and_saves_language_variants(tmp_path):
                 assert screen.query_one("#editor", TextArea).text == "python attempt"
                 screen.show_solution()
                 await pilot.pause()
-                assert "SOLUZIONE BLOCCATA" in str(screen.query_one("#result", Static).content)
+                assert "SOLUZIONE NON ANCORA DISPONIBILE" in str(screen.query_one("#result", Static).content)
                 for _ in range(2):
                     app.store.record_attempt(screen.progress_id, "exercise", "tentativo", False, 0)
                 screen.show_solution()
                 await pilot.pause()
-                assert "SOLUZIONE COMMENTATA" in str(screen.query_one("#result", Static).content)
+                result = str(screen.query_one("#result", Static).content)
+                assert "SOLUZIONE" in result and "def two_sum" in result
         finally:
             app.shutdown_resources()
 
@@ -898,6 +899,33 @@ def test_amazon_hints_and_theory_answers_are_saved_per_language(tmp_path):
                 await pilot.pause()
                 assert screen.coding_language == "python"
                 assert screen.query_one("#editor", TextArea).text == "python answer"
+        finally:
+            app.shutdown_resources()
+
+    asyncio.run(scenario())
+
+
+def test_amazon_lesson_screen_switches_theory_example_language(tmp_path):
+    async def scenario():
+        app = Dev48App(tmp_path / "data", tmp_path / "workspace", select_track=False)
+        app.catalog = Catalog(Path(__file__).resolve().parents[1] / "content", track="amazon-sde-oa")
+        app.store.set_active_track("amazon-sde-oa")
+        app.coding_language = "python"
+        app.store.set_setting("amazon_coding_language", "python")
+        lesson = app.catalog.lesson_by_id["sde-l-sliding-window"]
+        try:
+            async with app.run_test(size=(150, 44)) as pilot:
+                app.push_screen(LessonScreen(lesson.id))
+                await pilot.pause()
+                screen = app.screen
+                assert "PYTHON" in str(screen.query_one("#language", Button).label)
+
+                screen.action_toggle_language()
+                await pilot.pause()
+                assert app.coding_language == "cpp"
+                assert app.store.get_setting("amazon_coding_language") == "cpp"
+                assert "CPP" in str(screen.query_one("#language", Button).label)
+                assert "long long max_sum_k" in app.catalog.lesson_body(lesson, app.coding_language)
         finally:
             app.shutdown_resources()
 

@@ -1,73 +1,53 @@
 # Collezioni moderne: List, Dictionary e Array
 
-## In parole semplici
+Un elenco di soggetti va attraversato e ordinato; una ricerca ripetuta per ID richiede invece una struttura pensata per le chiavi. `List<T>` e `Dictionary<TKey, TValue>` sono collezioni generiche: il tipo fra parentesi angolari lega la struttura ai dati ammessi e fa controllare accessi e assegnazioni dal compilatore.
 
-L'obiettivo di questa lezione è scegliere e manipolare strutture dati fondamentali in memoria in base alle operazioni richieste.
+## Dal problema alla regola del linguaggio
 
-Un Dictionary usa una chiave per trovare un valore. La ricerca ha costo medio vicino a O(1), mentre cercare in una List richiede in genere di esaminare gli elementi fino alla corrispondenza. Sono stime: la scelta dipende da come userai i dati.
-
-## Le parole da riconoscere
-
-- `list`
-- `dictionary`
-- `array`
-- `lookup`
-- `indice`
-- `capacita`
-- `collezione generica`
-
-## Anatomia e Sintassi del Codice
-
-### Principali Collezioni in C#:
-1. **`T[]` (Array)**: Dimensione fissa allocata in memoria contigua. Minimo overhead, ideale quando il numero di elementi è noto a priori.
-2. **`List<T>`**: Lista a dimensione dinamica. Permette `.Add()`, `.Remove()`, `.Insert()`. Internamente si ridimensiona automaticamente.
-3. **`Dictionary<TKey, TValue>`**: Mappa chiave-valore basata su tabella hash. La ricerca ha costo medio vicino a $O(1)$; non è una garanzia per ogni caso.
-   - Per accedere in sicurezza senza eccezioni si usa `TryGetValue`:
-   ```csharp
-   if (dict.TryGetValue(key, out var val)) { ... }
-   ```
-
-### Collection Expressions (C# 12):
-Da C# 12 puoi inizializzare array, liste e insiemi con la sintassi uniforme a parentesi quadre:
+### Lo stesso dominio, due operazioni diverse
 ```csharp
-List<int> numbers = [1, 2, 3, 4];
-string[] names = ["Anna", "Luca"];
-```
+public sealed record Subject(int Id, string Name);
 
-## Un esempio concreto
+var subjects = new List<Subject>
+{
+    new(1, "Anna"),
+    new(2, "Luca")
+};
 
-```csharp
-var subjects = new List<string> { "Mario", "Anna", "Paolo" };
-var lookup = new Dictionary<int, string> { [1] = "Mario", [2] = "Anna" };
-if (lookup.TryGetValue(1, out var found)) {
-    Console.WriteLine(found);
+var byId = new Dictionary<int, Subject>
+{
+    [1] = subjects[0],
+    [2] = subjects[1]
+};
+
+if (byId.TryGetValue(2, out var selected))
+{
+    Console.WriteLine(selected.Name);
 }
 ```
 
-### Seguilo passo per passo
+`List<Subject>` conserva una sequenza attraversabile e modificabile; `Dictionary<int, Subject>` associa chiavi intere a soggetti. `TryGetValue` rappresenta l'assenza come un risultato booleano, senza usare un'eccezione per il caso normale della chiave mancante.
 
-1. `subjects` conserva tre nomi in ordine: una `List` si adatta quando l'elenco deve crescere o ridursi.
-2. `lookup` associa la chiave intera `1` al valore `"Mario"`; `TryGetValue` prova la ricerca senza lanciare un'eccezione se la chiave manca.
-3. Se la chiave esiste, `found` contiene il nome e il blocco stampa `Mario`; l'`if` non esegue il blocco per una chiave assente.
-4. Cambia `1` in `99` e osserva il ramo non eseguito. Per ricerche ripetute, scegli una struttura in base alle operazioni necessarie, non solo alla complessità media.
+La parte generica `<T>` è un parametro di tipo: `List<Subject>` e `List<string>` riusano la stessa collezione con contratti diversi. Dentro `List<Subject>`, il compilatore sa che ogni elemento ha `Id` e `Name`; non serve convertire da `object` o affidarsi a `dynamic`. Un metodo generico può applicare la stessa operazione a più tipi senza perdere l'informazione sul tipo ricevuto.
 
-## Pattern Guida per gli Esercizi
+## Traccia i valori nel programma
 
-Usa il frammento come riferimento iniziale. Prima di aprire gli indizi, prova a prevedere un caso della consegna; dopo la soluzione, riscrivi il passaggio che ti mancava.
-
-```csharp
-public static class CacheStore {
-    private static readonly Dictionary<string, int> _items = new();
-    public static void Set(string key, int value) => _items[key] = value;
-    public static int GetOrDefault(string key, int fallback = 0) => _items.TryGetValue(key, out var v) ? v : fallback;
-}
+```text
+Dictionary<int, Subject> byId = subjects.ToDictionary(subject => subject.Id);
 ```
 
-## Dove ci si confonde spesso
+### Calcola il risultato prima di eseguirlo
+
+1. `subjects` contiene due record e ne conserva l'ordine di inserimento.
+2. `ToDictionary` estrae ogni `Id` e lo usa come chiave; il valore associato resta un `Subject` completo.
+3. `TryGetValue(2, out var selected)` cerca la chiave. Se esiste, `selected` è un `Subject`; il compilatore controlla l'accesso a `Name`.
+4. Prova l'ID `99`: il metodo restituisce `false` e non entra nel blocco. Scegli List per enumerare una sequenza e Dictionary quando l'operazione centrale è cercare tramite chiave.
+
+Il mini-esercizio usa collezioni C# vere: controlla chiave presente, assente e input vuoto prima di passare al laboratorio CRUD, dove più operazioni condividono lo stesso archivio.
+
+## Casi che cambiano il risultato
 
 - Accedere a una chiave inesistente di un dizionario con l'indicizzatore anziché `TryGetValue`
 - usare array a dimensione fissa quando serve aggiungere elementi dinamicamente.
 
-## Domanda di verifica
-
-> In quale scenario un Dictionary è preferibile rispetto a una List per la ricerca di elementi?
+> **Che cosa succede se cambia l'input?** In quale scenario un Dictionary è preferibile rispetto a una List per la ricerca di elementi?

@@ -1,21 +1,8 @@
 # Classi, Record e Costruttori Primari
 
-## In parole semplici
-
-L'obiettivo di questa lezione è confrontare class e record per uguaglianza e sintassi, senza assumere che ogni record sia immutabile in profondità.
-
 I record generano uguaglianza per valore e una sintassi concisa per i dati. Un record posizionale usa proprietà init-only, ma i record non sono immutabili in profondità: membri mutabili e oggetti annidati possono comunque cambiare.
 
-## Le parole da riconoscere
-
-- `record`
-- `class`
-- `costruttore primario`
-- `immutabilita`
-- `with expression`
-- `uguaglianza per valore`
-
-## Anatomia e Sintassi del Codice
+## Dal problema alla regola del linguaggio
 
 ### Differenze tra `class` e `record`:
 - **`class`**: Uguaglianza per riferimento (due istanze con le stesse proprietà sono diverse in memoria). Pensata per oggetti con stato mutabile e logica di business complessa.
@@ -30,7 +17,7 @@ I record generano uguaglianza per valore e una sintassi concisa per i dati. Un r
 public record ProductDto(int Id, string Title, decimal Price);
 ```
 
-## Un esempio concreto
+## Traccia i valori nel programma
 
 ```csharp
 public record SubjectDto(int Id, string Name, string Zone);
@@ -39,16 +26,14 @@ var s1 = new SubjectDto(1, "Mario", "Centro");
 var s2 = s1 with { Zone = "Nord" }; // Crea copia modificata senza mutare s1
 ```
 
-### Seguilo passo per passo
+### Calcola il risultato prima di eseguirlo
 
 1. `new SubjectDto(1, "Mario", "Centro")` crea un record con tre proprietà inizializzate.
 2. L'espressione `s1 with { Zone = "Nord" }` crea un nuovo record copiando gli altri valori e cambiando solo `Zone`.
 3. `s1` conserva `"Centro"`; `s2` contiene `"Nord"`. I record confrontano i valori dichiarati, ma la copia è superficiale se una proprietà contiene un oggetto mutabile.
 4. Confronta `s1` con un altro record creato con gli stessi tre valori. Poi cambia un valore e prevedi come cambia l'uguaglianza.
 
-## Pattern Guida per gli Esercizi
-
-Usa il frammento come riferimento iniziale. Prima di aprire gli indizi, prova a prevedere un caso della consegna; dopo la soluzione, riscrivi il passaggio che ti mancava.
+## Prova una seconda forma
 
 ```csharp
 public record Customer(int Id, string Name, string Tier) {
@@ -56,11 +41,9 @@ public record Customer(int Id, string Name, string Tier) {
 }
 ```
 
-## Dove ci si confonde spesso
+## Casi che cambiano il risultato
 
 - Confondere l'uguaglianza dei record (basata sui valori) con quella predefinita delle classi (basata sull'identità del riferimento)
 - assumere che un record renda immutabili anche gli oggetti contenuti.
 
-## Domanda di verifica
-
-> Quando preferisci usare un `record` invece di una classica `class` in un'API?
+> **Che cosa succede se cambia l'input?** Quando preferisci usare un `record` invece di una classica `class` in un'API?

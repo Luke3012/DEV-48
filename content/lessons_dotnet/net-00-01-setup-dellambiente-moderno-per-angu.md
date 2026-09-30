@@ -1,25 +1,12 @@
 # Setup dell'ambiente moderno per Angular e .NET
 
-## In parole semplici
-
-L'obiettivo di questa lezione è verificare la presenza di .NET SDK, Node.js, Angular CLI e impostare VS Code con estensioni essenziali.
-
 Installa il .NET SDK 10 per compilare C# e Node.js per usare npm e gli strumenti Angular. Il browser esegue l'app Angular; Node.js serve durante lo sviluppo e i test. L'Angular CLI può essere richiamata con npx, quindi non occorre installarla globalmente.
 
 ### Nel percorso
 
 Il percorso procede da metodi e dati a endpoint HTTP, componenti, stato, database e integrazione. I laboratori sono il punto in cui proverai framework e browser reali. Le sessioni finali servono a consolidare il lavoro; il tempo indicato è una stima, non una soglia di valutazione.
 
-## Le parole da riconoscere
-
-- `dotnet sdk`
-- `node.js`
-- `angular cli`
-- `vs code`
-- `terminale`
-- `toolchain`
-
-## Anatomia e Sintassi del Codice
+## Partiamo da quello che puoi osservare
 
 ### 1. Installa gli strumenti
 1. Scarica il **.NET 10 SDK** dal [sito ufficiale .NET](https://dotnet.microsoft.com/download/dotnet/10.0). Scegli l'SDK, non soltanto il Runtime.
@@ -39,7 +26,7 @@ npm --version
 ### 3. Controlla Angular CLI senza installazione globale
 In un progetto Angular usa `npx ng version`: npm esegue la CLI dichiarata dal progetto. Per verificare il download iniziale senza avere ancora un progetto, puoi eseguire `npx --yes @angular/cli@22.2.0 version`.
 
-## Un esempio concreto
+## Segui un caso dall'inizio alla fine
 
 ```text
 Comandi da provare in PowerShell:
@@ -49,26 +36,24 @@ npm --version
 npx --yes @angular/cli@22.2.0 version
 ```
 
-### Seguilo passo per passo
+### Ricostruisci il caso con i dati iniziali
 
 1. Esegui `dotnet --list-sdks`, `node --version` e `npm --version`: ogni comando controlla uno strumento diverso. Per compilare C# serve l'SDK, non basta il Runtime.
 2. Lancia la CLI con `npx --yes @angular/cli@22.2.0 version`: npm scarica ed esegue la versione richiesta senza installazione globale.
 3. Confronta le versioni stampate con quelle richieste dall'esercizio. Se il comando non viene trovato, riapri PowerShell dopo l'installazione e verifica il `PATH`.
 4. Prova una seconda volta dopo aver aperto una nuova finestra del terminale: così distingui un problema di installazione da un `PATH` non ancora aggiornato.
 
-## Pattern Guida per gli Esercizi
+## Una variante da provare
 
-Annota ciò che osservi sul tuo computer. Il confronto automatico è concettuale: non esegue i comandi al posto tuo.
+L'autoverifica non esegue il terminale: annota i risultati effettivi dei comandi e confrontali con quelli attesi.
 
 ```text
 Gli output devono mostrare .NET SDK 10, una versione Node supportata da Angular 22 e una Angular CLI 22. Se un comando non viene trovato, controlla l'installazione e apri una nuova finestra di PowerShell.
 ```
 
-## Dove ci si confonde spesso
+## Se il risultato non è quello atteso
 
 - Dimenticare di riavviare il terminale dopo l'installazione del SDK
 - confondere Runtime con SDK di .NET.
 
-## Domanda di verifica
-
-> Come verifichi dal terminale che il compilatore .NET e l'interprete Node siano installati e pronti all'uso?
+> **Fermati e ricostruisci il passaggio** Come verifichi dal terminale che il compilatore .NET e l'interprete Node siano installati e pronti all'uso?

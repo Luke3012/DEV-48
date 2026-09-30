@@ -1,79 +1,72 @@
 # Creazione di componenti Standalone con @Component
 
-## In parole semplici
+Un componente nasce quando una parte della schermata ha dati, interazioni o responsabilità visive proprie. La classe contiene stato e metodi; `@Component` dice ad Angular quale selettore, template, stile e dipendenze assemblare.
 
-L'obiettivo di questa lezione è definire componenti Standalone con decoratore @Component, imports espliciti e stili isolati.
+## La vista che vogliamo costruire
 
-Un componente Standalone dichiara nel proprio decoratore quali componenti, pipe o direttive usa. Le dipendenze esplicite rendono più chiari il template e il contesto di test.
+### Un componente e il punto in cui viene usato
+```text
+src/app/user-card/user-card.ts   classe, stato e metodi
+src/app/user-card/user-card.css  stile della scheda
+src/app/app.ts                   componente genitore che importa la scheda
+```
 
-## Le parole da riconoscere
-
-- `standalone: true`
-- `imports`
-- `template`
-- `styles`
-- `selettore`
-- `incapsulamento`
-
-## Anatomia e Sintassi del Codice
-
-### Anatomia del decoratore @Component:
 ```typescript
-import { Component, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+// src/app/user-card/user-card.ts
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-user-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
-    <div class="card">
-      <h3>{{ username() }}</h3>
-    </div>
+    <article class="card">
+      <h2>{{ username }}</h2>
+      <button type="button" (click)="clearName()">Pulisci</button>
+    </article>
   `,
-  styles: [`
-    .card { padding: 1rem; border-radius: 8px; border: 1px solid #ccc; }
-  `]
+  styleUrl: './user-card.css'
 })
 export class UserCardComponent {
-  username = signal('Mario Rossi');
+  username = 'Luca';
+
+  clearName(): void {
+    this.username = '';
+  }
 }
 ```
 
-## Un esempio concreto
-
+Il genitore rende disponibile il figlio nel suo template importandolo:
 ```typescript
 @Component({
-  selector: 'app-card',
-  standalone: true,
-  template: `<h3>{{ title() }}</h3>`
+  selector: 'app-root',
+  imports: [UserCardComponent],
+  template: '<app-user-card />'
 })
-export class CardComponent { title = signal('Titolo'); }
+export class App {}
 ```
 
-### Seguilo passo per passo
+Il selector deve corrispondere al tag usato dal genitore. Ogni direttiva, pipe o componente non nativo usato nel template appartiene a `imports`; `styles` o `styleUrl` definiscono l'aspetto associato. In Angular moderno la classe standalone è il default, mentre `standalone: true` rende esplicita l'intenzione nell'esempio. `NgModule` resta supportato nei progetti esistenti: lì i componenti non standalone si dichiarano nel modulo, mentre un componente standalone si importa. Qui seguiamo la struttura corrente senza cancellare il modello che incontrerai nel codice legacy.
 
-1. `@Component` descrive il selettore e il template che Angular collega alla classe `CardComponent`.
-2. Il template legge `title()` perché `title` è un Signal; le parentesi chiamano il getter del valore corrente.
-3. Quando il genitore usa `<app-card>`, Angular crea il componente e mostra il titolo. Se il template usa altri componenti o pipe, il loro import va dichiarato.
-4. Cambia il valore iniziale del Signal e prevedi il testo. Poi prova a leggere `title` senza parentesi e confronta il risultato col template.
-
-## Pattern Guida per gli Esercizi
-
-La pratica breve isola una regola e non avvia l'applicazione Angular. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
+## Segui il dato fino al DOM
 
 ```typescript
-export class UserProfileComponent {
-    name = signal('Ospite');
-    setName(newName: string) { this.name.set(newName); }
-}
+username = 'Luca';
+clearName(): void { this.username = ''; }
 ```
 
-## Dove ci si confonde spesso
+### Dal modello alla schermata
+
+1. Angular crea `App` come radice e legge `<app-user-card>` nel template.
+2. Poiché `App` dichiara `UserCardComponent` in `imports`, il selettore trova una definizione e Angular crea quell'istanza figlia.
+3. Il template figlio legge `username`; il click chiama `clearName()`, che cambia lo stato della classe.
+4. Angular aggiorna la vista e il titolo diventa vuoto. Se togli il figlio da `imports`, il template non può risolvere il selettore e la compilazione segnala l'elemento sconosciuto.
+
+Il runner controlla il modello TypeScript isolato; nel laboratorio Catalogo Standalone, verifica anche che il componente figlio venga importato e che il DOM reagisca al click.
+
+## Che cosa deve conoscere il template?
 
 - Dimenticare di inserire i componenti figli nell'array `imports` del decoratore `@Component`
 - usare selettori generici che collidono con tag HTML standard.
 
-## Domanda di verifica
-
-> Cosa accade se utilizzi un componente figlio nel template senza averlo aggiunto nell'array `imports`?
+> **Che cosa collega classe e vista?** Cosa accade se utilizzi un componente figlio nel template senza averlo aggiunto nell'array `imports`?

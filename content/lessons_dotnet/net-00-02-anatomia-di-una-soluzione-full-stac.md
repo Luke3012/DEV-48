@@ -1,74 +1,47 @@
 # Anatomia di una soluzione Full-Stack Client-Server
 
-## In parole semplici
+Quando una persona apre un elenco nel browser, la pagina e il server che possiede i dati sono due programmi distinti. L'HTTP è il confine osservabile tra loro: la richiesta porta un metodo, un indirizzo e, quando serve, un body; la risposta porta uno status e un body, spesso JSON.
 
-L'obiettivo di questa lezione è seguire una richiesta tra client Angular nel browser e server ASP.NET Core, distinguendo indirizzi, risposte e configurazione CORS.
+## Il confine tra due programmi
 
-Il frontend Angular mostra l'interfaccia nel browser; il backend ASP.NET Core applica regole e accesso ai dati. Si scambiano richieste e risposte HTTP, spesso con dati JSON. Nel primo esercizio C# si usano metodi e parametri già introdotti nella lezione precedente.
-
-## Le parole da riconoscere
-
-- `architettura client server`
-- `richiesta http`
-- `json`
-- `cors`
-- `porta di ascolto`
-- `stato della sessione`
-
-## Anatomia e Sintassi del Codice
-
-### Flusso della Richiesta Full-Stack:
-1. **Client (Browser/Angular)**:
-   - Utente clicca un pulsante -> Angular invia una richiesta HTTP (GET, POST, PUT, DELETE) serializzando i dati in JSON.
-   - Resta in attesa asincrona della risposta (Promise/Observable/Signal).
-2. **Rete e Porte**:
-   - Client e Server girano su porte differenti (es. Angular su `localhost:4200`, API .NET su `localhost:5001`).
-   - Il server deve abilitare il CORS (Cross-Origin Resource Sharing) per consentire le chiamate dal frontend.
-3. **Backend (.NET Minimal API)**:
-   - Riceve la richiesta HTTP, deserializza il JSON nel relativo DTO C#.
-   - Esegue la logica di business, legge o scrive su SQLite/EF Core.
-   - Restituisce uno Status Code HTTP (200 OK, 201 Created, 400 Bad Request) con payload JSON.
-
-### Unire le parti di un endpoint in C#
-`TrimEnd('/')` rimuove le barre finali dall'indirizzo base; `TrimStart('/')` rimuove quelle iniziali dal percorso. La stringa `$"{baseClean}/{resourceClean}"` inserisce i due valori nel testo.
-
-```csharp
-var baseClean = baseUrl.TrimEnd('/');
-var resourceClean = resource.TrimStart('/');
-var endpoint = $"{baseClean}/{resourceClean}";
+### Una lettura dal browser e il viaggio dei dati
+```text
+Persona seleziona “Soggetti”
+  ↓
+Browser: GET https://localhost:5001/api/subjects?zone=Centro
+  ↓ HTTP attraverso la rete
+ASP.NET Core: trova una route che corrisponde
+  ↓ legge i dati e applica le regole
+Risposta: HTTP 200 + JSON nel body
+  ↓
+Angular: interpreta il dato e aggiorna la vista
 ```
 
-## Un esempio concreto
+Il metodo e il percorso descrivono quale operazione chiedere; il body trasporta i dati della richiesta o della risposta. Il codice HTTP comunica l'esito, per esempio `200` per una lettura riuscita o `404` per una risorsa assente. Il server serializza il proprio oggetto in JSON; il browser riceve testo strutturato, non un oggetto C# condiviso in memoria.
+
+`https://localhost:4200` e `https://localhost:5001` hanno schema e host uguali ma porte diverse: per il browser sono origini diverse. In sviluppo puoi usare un proxy oppure configurare una policy CORS specifica sull'API. CORS regola la lettura cross-origin nel browser, non autentica la persona.
+
+All'inizio seguiamo solo una GET. Nelle lezioni successive il Router e `HttpClient` spiegheranno la parte Angular, mentre Minimal API mostrerà come una route raggiunge il suo gestore. In seguito il percorso continuerà dal gestore a service, `DbContext` e database.
+
+## Dal click alla risposta JSON
 
 ```text
-// Frontend (Angular) invia richiesta GET a https://localhost:5001/api/items
-// Backend (ASP.NET Core) elabora, legge dal DB e risponde con JSON [ { id: 1, name: 'Item' } ]
+GET /api/subjects?zone=Centro → HTTP 200 → { "id": 7, "name": "Centro" }
 ```
 
-### Seguilo passo per passo
+### Ricostruisci il caso con i dati iniziali
 
-1. Leggi l'URL `https://localhost:5001/api/items`: identifica protocollo, host, porta e percorso. Il browser invia la richiesta a quell'indirizzo.
-2. Segui il percorso nel server: ASP.NET Core riceve la richiesta, esegue il gestore e può leggere dati prima di produrre la risposta JSON.
-3. L'oggetto `{ id: 1, name: 'Item' }` è il corpo di risposta; il browser lo riceve e Angular può trasformarlo in una vista.
-4. Nel codice C#, `TrimEnd('/')` e `TrimStart('/')` rimuovono barre nei punti adiacenti; prova `https://localhost:5001/` con `/api/items` e controlla l'URL risultante.
+1. La persona apre la pagina dei soggetti; l'interfaccia decide di chiedere al server i record della zona `Centro`.
+2. Il browser invia il metodo `GET` e il percorso `/api/subjects?zone=Centro` all'host ASP.NET Core. La porta fa parte dell'origine, mentre il percorso identifica la risorsa.
+3. ASP.NET Core trova un endpoint che corrisponde e produce una risposta. Il browser riceve uno status HTTP e un body JSON; non condivide direttamente le classi o gli oggetti in memoria del server.
+4. Angular può interpretare il body secondo il tipo atteso e usarlo per renderizzare l'elenco. Un `404` indica un percorso non trovato; un errore CORS indica una policy del browser/API e va distinto da un errore dell'endpoint.
 
-## Pattern Guida per gli Esercizi
+L'esercizio breve controlla la composizione di un URL, non apre una connessione HTTP. È un primo esercizio di lettura degli indirizzi; il laboratorio Monorepo e quello Minimal API verificheranno poi una richiesta reale da browser a server.
 
-Usa il frammento come riferimento iniziale. Prima di aprire gli indizi, prova a prevedere un caso della consegna; dopo la soluzione, riscrivi il passaggio che ti mancava.
+## Leggi status e origine prima di cercare il bug
 
-```csharp
-public static class EndpointMapper {
-    public static string FormatUrl(string baseUrl, string resource) {
-        return $"{baseUrl.TrimEnd('/')}/{resource.TrimStart('/')}";
-    }
-}
-```
+- Il JSON trasporta dati, non tipi condivisi tra C# e TypeScript
+- una porta diversa cambia l'origine del browser anche quando host e schema coincidono
+- CORS non sostituisce autenticazione o autorizzazione.
 
-## Dove ci si confonde spesso
-
-- Credere che Angular esegua codice C# nel browser
-- ignorare che client e server girano su porte e processi separati.
-
-## Domanda di verifica
-
-> Qual è il ruolo rispettivo del client Angular e del server .NET nel ciclo di vita di una richiesta?
+> **Quale dato attraversa HTTP e quale resta dentro ciascun processo?** Qual è il ruolo rispettivo del client Angular e del server .NET nel ciclo di vita di una richiesta?

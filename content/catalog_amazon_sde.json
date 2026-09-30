@@ -1,6 +1,6 @@
 {
   "meta": {
-    "name": "Amazon SDE-I OA Bootcamp",
+    "name": "Preparazione Amazon SDE-I OA",
     "track_id": "amazon-sde-oa",
     "version": "1.0",
     "language": "it",
@@ -217,10 +217,10 @@
         "review_minutes": 20
       }
     ],
-    "assessment_note": "Il mock 40+60 è un formato di pratica richiesto; assessment reali variano per ruolo e paese. Fa fede l'invito ricevuto.",
+    "assessment_note": "Il formato 40 + 60 è una simulazione di pratica; le prove effettive possono variare per ruolo e paese. Fai riferimento all'invito ricevuto.",
     "sources": [
-      "https://www.amazon.jobs/content/cs/how-we-hire/university/sde-oa",
-      "https://www.amazon.jobs/content/en-gb/our-workplace/leadership-principles",
+      "https://www.amazon.jobs/content/en/career-programs/university/sde",
+      "https://www.amazon.jobs/content/en/our-workplace/leadership-principles",
       "https://candidatesupport.hackerrank.com/articles/8606305957-taking-front-end-back-end-full-stack-and-mobile-developer-assessments",
       "https://candidatesupport.hackerrank.com/articles/7634558376-ai-assistant-in-tests",
       "https://docs.python.org/3/tutorial/datastructures.html",
@@ -231,62 +231,62 @@
     {
       "id": "orientamento",
       "order": "00",
-      "title": "Orientamento all'OA",
-      "description": "Formato dichiarato, metodo di problem solving e pratica senza dipendere dall'AI."
+      "title": "Formato e metodo di lavoro",
+      "description": "Leggi i requisiti della prova e organizza un metodo per risolvere problemi e verificare il codice."
     },
     {
       "id": "linguaggi",
       "order": "01",
-      "title": "C++ e Python per il coding interview",
-      "description": "Una prova equivalente per scegliere il linguaggio in base a velocità, memoria e debugging."
+      "title": "C++ e Python",
+      "description": "Prova entrambi i linguaggi e scegli in base a familiarità, velocità e capacità di debugging."
     },
     {
       "id": "fondamenti",
       "order": "02",
-      "title": "Fondamenti DSA",
-      "description": "Complessità, array, stringhe, mappe e insiemi."
+      "title": "Fondamenti di algoritmi e strutture dati",
+      "description": "Lavora con complessità, array, stringhe, mappe e insiemi."
     },
     {
       "id": "pattern",
       "order": "03",
-      "title": "Pattern fondamentali",
-      "description": "Two pointers, finestre mobili, prefissi, ordinamento e intervalli."
+      "title": "Tecniche fondamentali",
+      "description": "Applica due puntatori, finestre mobili, prefissi, ordinamento e intervalli."
     },
     {
       "id": "ricerca",
       "order": "04",
       "title": "Ricerca e strutture lineari",
-      "description": "Stack, queue, deque e varianti della ricerca binaria."
+      "description": "Usa stack, queue, deque e varianti della ricerca binaria."
     },
     {
       "id": "strutture",
       "order": "05",
       "title": "Liste, alberi e grafi",
-      "description": "Puntatori, ricorsione, BFS, DFS e ordinamento topologico."
+      "description": "Esplora strutture collegate, ricorsione, BFS, DFS e ordinamento topologico."
     },
     {
       "id": "avanzato",
       "order": "06",
-      "title": "Pattern avanzati da interview",
-      "description": "Heap, greedy, backtracking e dynamic programming essenziale."
+      "title": "Tecniche avanzate",
+      "description": "Affronta heap, greedy, backtracking e i modelli essenziali di programmazione dinamica."
     },
     {
       "id": "repository",
       "order": "07",
-      "title": "Code Repository Question",
-      "description": "Orientamento, test, stack trace, debugging e fix minimi in C++ o Node.js."
+      "title": "Debugging di repository esistenti",
+      "description": "Segui test, tracce d'errore e flusso del codice; correggi problemi in progetti C++ o Node.js."
     },
     {
       "id": "comportamento",
       "order": "08",
-      "title": "Componenti comportamentali",
-      "description": "Leadership Principles, Work Simulation e familiarizzazione Work Style."
+      "title": "Scenari e riflessione sul lavoro",
+      "description": "Ragiona su Leadership Principles, Work Simulation e Work Style senza imitare risposte modello."
     },
     {
       "id": "simulazioni",
       "order": "09",
-      "title": "Prove a tempo",
-      "description": "Simulazioni indipendenti e mock sequenziale 40 + 60 minuti."
+      "title": "Simulazioni a tempo",
+      "description": "Prova esercizi di programmazione e debugging; la simulazione completa divide il tempo tra due attività."
     }
   ],
   "lessons": [
@@ -303,7 +303,7 @@
         "code repository",
         "variazioni per ruolo e paese"
       ],
-      "summary": "Separare la pratica richiesta per la Coding Question da quella richiesta per il repository debugging.",
+      "summary": "Distinguere le capacità osservate dalle attività usate per esercitarle, senza scambiare una simulazione con il formato universale dell'assessment.",
       "body_file": "lessons_amazon/sde-l-oa-format.md",
       "recommended_day": 1
     },
@@ -344,7 +344,7 @@
     {
       "id": "sde-l-python-toolkit",
       "module": "linguaggi",
-      "title": "Python 3 essenziale per l'interview",
+      "title": "Python 3 essenziale per gli esercizi DSA",
       "minutes": 25,
       "difficulty": "base",
       "mandatory": true,
@@ -361,7 +361,7 @@
     {
       "id": "sde-l-cpp-toolkit",
       "module": "linguaggi",
-      "title": "C++ moderno e STL senza rumore",
+      "title": "C++ moderno e STL per gli esercizi DSA",
       "minutes": 30,
       "difficulty": "base",
       "mandatory": true,
@@ -371,7 +371,7 @@
         "iteratori e confini",
         "reference e const"
       ],
-      "summary": "Riprendere la parte di C++ che compare davvero in una coding interview.",
+      "summary": "Riprendere la parte di C++ che compare negli esercizi DSA.",
       "body_file": "lessons_amazon/sde-l-cpp-toolkit.md",
       "recommended_day": 1
     },
@@ -463,7 +463,7 @@
     {
       "id": "sde-l-prefix-sum",
       "module": "pattern",
-      "title": "Prefix Sum e HashMap per intervalli e sottosequenze",
+      "title": "Prefissi e HashMap: somme di intervalli e prodotti senza divisione",
       "minutes": 25,
       "difficulty": "intermedio",
       "mandatory": true,
@@ -6303,40 +6303,40 @@
     {
       "id": "lab-amazon-cpp-demo",
       "module": "repository",
-      "title": "Demo repository · C++",
+      "title": "Repository di esempio · C++",
       "minutes": 25,
       "difficulty": "base",
-      "description": "Progetto CMake minimo con header, source e test di accettazione. Segui la firma pubblica fino al comportamento osservato.",
+      "description": "Progetto CMake essenziale con header, sorgente e test. Segui la firma della funzione fino al risultato osservato.",
       "requirements": [
-        "Leggi README, header e test prima del source.",
-        "Esegui o ricostruisci expected e actual.",
-        "Correggi il filtro degli elementi attivi e il lookup per ID esatto.",
-        "Mantieni optional quando l'ID non esiste."
+        "Leggi README, header e test prima di aprire il sorgente.",
+        "Confronta il risultato atteso con quello ottenuto.",
+        "Correggi il filtro degli elementi attivi e la ricerca per ID esatto.",
+        "Restituisci `optional` quando l'ID non esiste."
       ],
       "rubric": [
-        "Fix nel source corretto",
-        "Attivi/inattivi e ID assente coperti",
-        "Nessun cambio non richiesto all'API"
+        "Correzione nel file sorgente appropriato",
+        "Casi attivo, inattivo e ID assente coperti",
+        "API invariata oltre le modifiche richieste"
       ],
       "workspace_template": "amazon_cpp"
     },
     {
       "id": "lab-amazon-node-demo",
       "module": "repository",
-      "title": "Demo repository · Node.js",
+      "title": "Repository di esempio · Node.js",
       "minutes": 25,
       "difficulty": "base",
-      "description": "Esercizio equivalente al demo C++ in moduli ES: filtro di record, lookup e test senza dipendenze esterne.",
+      "description": "Progetto equivalente a quello C++ in moduli JavaScript: filtro, ricerca e test, senza pacchetti esterni.",
       "requirements": [
-        "Individua package.json, export e test.",
-        "Usa npm test prima di modificare.",
-        "Correggi predicate e confronto dell'identificativo.",
-        "Mantieni la funzione di lettura senza mutazioni."
+        "Individua `package.json`, esportazioni e test.",
+        "Esegui `npm test` prima di modificare i file.",
+        "Correggi il predicato e il confronto dell'identificativo.",
+        "Mantieni la funzione di lettura senza modificare i dati."
       ],
       "rubric": [
-        "Input preservato",
-        "ID esatto e null esplicito",
-        "Suite verde"
+        "Dati iniziali preservati",
+        "ID confrontato esattamente e assenza gestita",
+        "Tutti i test previsti superati"
       ],
       "workspace_template": "amazon_node"
     },
@@ -6346,37 +6346,37 @@
       "title": "Repository asincrona · Promise e controller",
       "minutes": 35,
       "difficulty": "intermedio",
-      "description": "Una route dipende da un repository asincrono. Segui il valore fra controller, service e test; distingui Promise, null e status HTTP.",
+      "description": "Una route usa un repository asincrono. Segui il dato tra controller, servizio e test; distingui una `Promise`, un risultato assente (`null`) e lo status HTTP.",
       "requirements": [
-        "Disegna il flusso route → service → repository.",
-        "Attendi il risultato asincrono prima del controllo not-found.",
-        "Restituisci 404 soltanto per un profilo assente e 200 per quello trovato.",
-        "Restituisci il valore risolto nel body."
+        "Traccia il flusso route → servizio → repository.",
+        "Attendi il risultato prima di controllare se il profilo esiste.",
+        "Restituisci 404 per un profilo assente e 200 per uno trovato.",
+        "Inserisci nel body il valore restituito dal repository."
       ],
       "rubric": [
-        "Failure async riprodotta",
-        "Branch 200/404 distinti",
-        "Fix limitato al contratto"
+        "Errore asincrono riprodotto",
+        "Risposte 200 e 404 distinte",
+        "Modifica limitata al contratto richiesto"
       ],
       "workspace_template": "amazon_node"
     },
     {
       "id": "lab-amazon-cpp-inventory",
       "module": "repository",
-      "title": "Inventario · indice, reference e test",
+      "title": "Inventario · indici e riferimenti in C++",
       "minutes": 40,
       "difficulty": "intermedio",
-      "description": "Due source e due header condividono un vector di articoli e un servizio di conteggio stock.",
+      "description": "Due file sorgente e due header condividono un vettore di articoli e un servizio che ne conta le unità.",
       "requirements": [
-        "Controlla l'indice prima di erase: size è esclusivo.",
-        "Cerca l'ID esatto, non il primo maggiore.",
-        "Traccia total_units tra dichiarazione e definizione.",
-        "Se la rimozione è rifiutata, lascia l'input invariato."
+        "Controlla l'indice prima di chiamare `erase`: `size` indica il numero di elementi.",
+        "Cerca l'ID esatto, non il primo ID maggiore.",
+        "Segui `total_units` dalla dichiarazione alla definizione.",
+        "Se la rimozione viene rifiutata, lascia invariati i dati."
       ],
       "rubric": [
-        "Nessun accesso fuori indice",
-        "Header/source coerenti",
-        "Test sull'ultimo indice e index == size"
+        "Nessun accesso oltre i limiti del vettore",
+        "Header e sorgente coerenti",
+        "Test sull'ultimo indice e su `index == size`"
       ],
       "workspace_template": "amazon_cpp"
     },
@@ -6386,38 +6386,38 @@
       "title": "Ordini · filtro e contratto API",
       "minutes": 45,
       "difficulty": "intermedio",
-      "description": "Service e controller condividono righe ordine, stato, ordinamento e risposta not-found. I test controllano anche mutazioni.",
+      "description": "Servizio e controller condividono righe d'ordine, stato, ordinamento e risposta 404. I test controllano anche che i dati non vengano modificati.",
       "requirements": [
-        "Confronta test, service e controller.",
-        "Calcola totale prezzo × quantità e numero righe secondo il contratto.",
-        "Includi soltanto lo status richiesto senza riordinare l'input.",
-        "Distingui ordine assente da oggetto vuoto e restituisci status coerente."
+        "Confronta test, servizio e controller.",
+        "Calcola totale e numero di righe secondo il contratto.",
+        "Includi soltanto lo stato richiesto e conserva l'ordine iniziale.",
+        "Distingui un ordine assente da uno vuoto e restituisci lo status corretto."
       ],
       "rubric": [
-        "Nessun side effect su input",
-        "Status e JSON coerenti",
-        "Test coprono boundary e ordine"
+        "Dati in ingresso invariati",
+        "Status HTTP e JSON coerenti",
+        "Test sui casi limite e sull'ordine"
       ],
       "workspace_template": "amazon_node"
     },
     {
       "id": "lab-amazon-mock-repository",
       "module": "repository",
-      "title": "Mock repository · Parcel status service",
+      "title": "Debugging di un progetto · stato delle spedizioni",
       "minutes": 60,
       "difficulty": "hard",
-      "description": "Prova finale multi-file su route, service e repository. README e test definiscono il comportamento; la cartella non segnala quali file contengono i difetti.",
+      "description": "Prova multi-file su route, servizio e repository. README e test descrivono il comportamento; dovrai individuare tu i file con i difetti.",
       "requirements": [
-        "Esegui npm test prima di intervenire.",
-        "Per ogni failure annota expected, actual e il percorso seguito dal dato.",
-        "Formula un'ipotesi verificabile, modifica il minimo indispensabile e conserva i contratti.",
-        "Riesegui la suite e controlla i comportamenti adiacenti."
+        "Esegui `npm test` prima di intervenire.",
+        "Per ogni errore annota il risultato atteso, quello ottenuto e il percorso seguito dal dato.",
+        "Formula un'ipotesi verificabile, applica una modifica circoscritta e conserva i contratti esistenti.",
+        "Ripeti i test e controlla i comportamenti vicini a quello corretto."
       ],
       "rubric": [
-        "Suite di accettazione completa",
+        "Tutti i test di accettazione superati",
         "Regressioni coperte da test",
-        "Diff circoscritto e comprensibile",
-        "Nessuna perdita di isolamento o side effect"
+        "Modifiche circoscritte e comprensibili",
+        "Nessun nuovo effetto collaterale"
       ],
       "workspace_template": "amazon_node",
       "repository_variants": {
@@ -7391,63 +7391,63 @@
   "simulations": [
     {
       "id": "sde-sim-coding-25",
-      "title": "Coding Sprint · 25 minuti",
+      "title": "Problema di coding · 25 min",
       "minutes": 25,
       "kind": "coding",
       "coding_exercise_id": "sde-e-longest-substring",
-      "brief": "Prova single-file breve. Definisci il contratto, scegli una struttura e lascia tempo per un edge case. Hint e soluzione restano chiusi durante il timer.",
+      "brief": "Risolvi un problema in un singolo file. Chiarisci il contratto, scegli una struttura dati e lascia tempo per provare almeno un caso limite. Durante il timer non sono disponibili indizi o soluzione.",
       "checklist": [
         "Leggi input, output e vincoli",
         "Prova un esempio a mano",
         "Scrivi una soluzione autonoma",
-        "Controlla duplicati e minimo",
-        "Dichiara tempo e spazio"
+        "Controlla duplicati e valore minimo",
+        "Descrivi tempo e spazio richiesti"
       ]
     },
     {
       "id": "sde-sim-coding-40",
-      "title": "Coding Question · 40 minuti",
+      "title": "Problema di coding · 40 min",
       "minutes": 40,
       "kind": "coding",
       "coding_exercise_id": "sde-e-coin-change",
-      "brief": "Un problema DSA in editor single-file e quaranta minuti autonomi. Il runner locale controlla solo il codice; non consultare hint, browsing o soluzione durante la prova.",
+      "brief": "Risolvi un problema di algoritmi in un singolo file. Il controllo esegue il codice sui casi previsti; durante la prova non consultare gli indizi, la navigazione web o la soluzione.",
       "checklist": [
         "Definisci gli stati o l'invariante",
         "Implementa senza assistenza",
-        "Esegui i test locali",
+        "Esegui i test disponibili",
         "Confronta costo e vincoli",
-        "Ferma al timer"
+        "Fermati al timer"
       ]
     },
     {
       "id": "sde-sim-repository-60",
-      "title": "Code Repository · 60 minuti",
+      "title": "Debugging di una repository · 60 min",
       "minutes": 60,
       "kind": "repository",
       "repository_lab_id": "lab-amazon-mock-repository",
-      "brief": "Apri la repository sconosciuta. README e test sono il punto di partenza; ricostruisci il flusso fra route, service e repository, poi verifica ogni fix.",
+      "brief": "Esamina una repository che non conosci. Parti da README e test, ricostruisci il flusso tra route, servizi e repository, poi verifica ogni correzione con la suite.",
       "checklist": [
-        "Leggi README e struttura",
-        "Esegui npm test",
-        "Raggruppa le failure per contratto",
+        "Leggi README e struttura dei file",
+        "Esegui `npm test`",
+        "Raggruppa gli errori per contratto",
         "Verifica un'ipotesi alla volta",
-        "Rilancia tutta la suite"
+        "Esegui di nuovo tutta la suite"
       ]
     },
     {
       "id": "sde-full-mock",
-      "title": "Full Mock · Coding 40 + Repository 60",
+      "title": "Simulazione completa · problema 40 + progetto 60",
       "minutes": 100,
       "kind": "full_mock",
       "coding_exercise_id": "sde-e-three-sum",
       "repository_lab_id": "lab-amazon-mock-repository",
-      "brief": "Due sezioni in sequenza: quaranta minuti per un problema DSA, poi stop e sessanta minuti autonomi per una repository multi-file. Il tempo inutilizzato non passa alla seconda sezione.",
+      "brief": "Due sezioni consecutive: 40 minuti per un problema di algoritmi, poi 60 minuti per un progetto multi-file. Il tempo non utilizzato nella prima sezione non si aggiunge alla seconda.",
       "checklist": [
         "Avvia quando sei pronto",
-        "Coding single-file senza aiuti",
-        "Il primo timer si chiude al cambio",
-        "Leggi README e test del repository",
-        "Concludi e annota prove e incertezze"
+        "Risolvi il problema senza aiuti",
+        "Il primo timer si ferma al cambio di sezione",
+        "Leggi README e test del progetto",
+        "Alla fine annota prove raccolte e dubbi rimasti"
       ]
     }
   ],

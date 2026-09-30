@@ -84,29 +84,29 @@ def main() -> int:
     try:
         from dev48.runners import run_javascript, run_python
         result = run_javascript("function add(a,b){return a+b}", ({"name": "add", "expression": "add(2,3)", "expected": 5},))
-        checks.append(line(result.passed, "Runner JavaScript", result.output.splitlines()[0]))
+        checks.append(line(result.passed, "Esecuzione JavaScript", result.output.splitlines()[0]))
         result_python = run_python("def add(a, b):\n    return a + b", ({"name": "add", "expression": "add(2, 3)", "expected": 5},))
-        checks.append(line(result_python.passed, "Runner Python", result_python.output.splitlines()[0]))
+        checks.append(line(result_python.passed, "Esecuzione Python", result_python.output.splitlines()[0]))
     except Exception as error:
-        checks.append(line(False, "Runner JavaScript/Python", str(error)))
+        checks.append(line(False, "Esecuzione JavaScript/Python", str(error)))
 
     cpp_compiler = next((shutil.which(command) for command in ("g++", "clang++") if shutil.which(command)), None)
     if cpp_compiler:
         try:
             from dev48.runners import run_cpp
             cpp_result = run_cpp("int add(int a, int b) { return a + b; }", ({"name": "add", "assertion": "add(2, 3) == 5"},))
-            checks.append(line(cpp_result.passed, "Runner C++20", cpp_result.output.splitlines()[0]))
+            checks.append(line(cpp_result.passed, "Esecuzione C++20", cpp_result.output.splitlines()[0]))
         except Exception as error:
-            checks.append(line(False, "Runner C++20", str(error)))
+            checks.append(line(False, "Esecuzione C++20", str(error)))
     else:
-        checks.append(line(True, "Runner C++20 (opzionale)", "GCC/Clang non trovato: gli esercizi C++ restano consultabili ma non eseguibili qui"))
+        checks.append(line(True, "Esecuzione C++20 (opzionale)", "GCC/Clang non trovato: gli esercizi C++ restano consultabili ma non eseguibili qui"))
 
     try:
         from dev48.runners import run_csharp
         result_cs = run_csharp("public class S { public static int Add(int a, int b) => a + b; }", ({"name": "add", "expression": "S.Add(2,3)", "expected": 5},))
-        checks.append(line(result_cs.passed, "Runner .NET C#", result_cs.output.splitlines()[0]))
+        checks.append(line(result_cs.passed, "Esecuzione .NET C#", result_cs.output.splitlines()[0]))
     except Exception as error:
-        checks.append(line(False, "Runner .NET C#", str(error)))
+        checks.append(line(False, "Esecuzione .NET C#", str(error)))
 
     passed = all(checks)
     print("\nRISULTATO:", "tutto pronto." if passed else "serve correggere almeno un controllo obbligatorio.")

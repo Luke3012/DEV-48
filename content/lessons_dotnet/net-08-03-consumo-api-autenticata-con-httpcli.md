@@ -1,9 +1,5 @@
 # Consumo API autenticata con HttpClient e HttpInterceptor
 
-## In parole semplici
-
-L'obiettivo di questa lezione è inviare il token Bearer nelle chiamate dirette alla propria API con un HttpInterceptorFn di Angular.
-
 Un HttpInterceptor può aggiungere `Authorization: Bearer <token>` alle richieste verso la propria API. Limitare l'interceptor all'origine attesa evita di inviare il token a server di terze parti. Il servizio d'esempio lo conserva solo in memoria: un ricaricamento lo elimina; non spostarlo in `localStorage` come scorciatoia per renderlo persistente.
 
 ### Nel percorso
@@ -12,22 +8,14 @@ Da conoscere: [Generazione e convalida token JWT in ASP.NET Core](net-08-02-gene
 
 Prima dell'interceptor serve una richiesta reale: `provideHttpClient()` registra il servizio, `inject(HttpClient)` lo ottiene e `http.get<Profile>(url).subscribe(...)` avvia la GET. Il tipo `Profile` descrive il risultato atteso ma non valida il JSON ricevuto. Nel laboratorio Autenticazione JWT Full-Stack collegherai la sessione all'header; nel Gestionale Full-Stack Monorepo seguirai il caricamento dei dati.
 
-## Le parole da riconoscere
-
-- `httpclient`
-- `httpinterceptorfn`
-- `bearer token`
-- `authorization header`
-- `req.clone`
-- `withinterceptors`
-
-## Anatomia e Sintassi del Codice
+## Il confine di fiducia della richiesta
 
 ### Creazione di un HttpInterceptor Funzionale in Angular:
 ```typescript
-import { HttpInterceptorFn } from '@angular/common/http';
+import { HttpInterceptorFn, HttpResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
+import { tap } from 'rxjs';
 import { SessionService } from './session.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
@@ -35,19 +23,24 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   const apiOrigin = 'https://localhost:5001';
   const requestOrigin = new URL(req.url, inject(DOCUMENT).baseURI).origin;
-  if (token && requestOrigin === apiOrigin) {
-    // La richiesta HTTP è immutabile: va clonata aggiungendo gli headers!
-    const clonedReq = req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-    return next(clonedReq);
-  }
+  const outgoingReq = token && requestOrigin === apiOrigin
+    ? req.clone({
+        setHeaders: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+    : req;
 
-    return next(req);
+  return next(outgoingReq).pipe(tap(event => {
+    if (event instanceof HttpResponse) {
+      // La risposta risale la catena: qui puoi osservare status o metadata.
+      // Non registrare token, credenziali o body personali nei log.
+    }
+  }));
 };
 ```
+
+La richiesta scende attraverso gli interceptor verso il backend; gli eventi di risposta risalgono la stessa catena. `tap` osserva senza sostituire il risultato. Filtra `HttpResponse` perché il flusso può includere eventi di invio e progresso oltre alla risposta finale.
 
 ### Servizio della sessione in `session.service.ts`:
 ```typescript
@@ -70,7 +63,7 @@ Il campo privato di `TokenStorageService` vive finché l'applicazione resta cari
 
 Riferimento: [Configure JWT bearer authentication in ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-jwt-bearer-authentication?view=aspnetcore-10.0).
 
-## Un esempio concreto
+## Segui identità, token e decisione del server
 
 ```text
 const cloned = req.clone({
@@ -79,24 +72,20 @@ const cloned = req.clone({
 return next(cloned);
 ```
 
-### Seguilo passo per passo
+### Verifica identità, permessi e risposta
 
 1. L'interceptor legge il token dal servizio in memoria e controlla l'origine della richiesta prima di modificarla.
 2. `req.clone({ setHeaders: ... })` crea una nuova richiesta con `Authorization: Bearer ...`; `HttpRequest` è immutabile.
 3. Per l'API configurata, `next(cloned)` inoltra la richiesta autenticata. Per un'origine diversa o un token assente, il codice inoltra la richiesta originale.
 4. Prova la chiamata alla tua API e una chiamata a un host esterno. Verifica che il token compaia solo nella prima; ricarica la pagina per osservare che questo esercizio in memoria non persiste e non copiarlo in `localStorage` senza valutare il modello di sicurezza.
 
-## Pattern Guida per gli Esercizi
+L'esercizio breve controlla token e origine con funzioni pure; il laboratorio JWT osserva header e risposte attraverso l'HTTP reale.
 
-La pratica breve isola una regola e non avvia l'applicazione Angular. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
-
-## Dove ci si confonde spesso
+## Quale parte può fidarsi di questo dato?
 
 - Modificare direttamente l'oggetto `HttpRequest`
 - aggiungere il token a URL esterni alla propria API
 - trattare una guard Angular come controllo di autorizzazione lato server
 - usare `localStorage` come soluzione automatica per mantenere un token.
 
-## Domanda di verifica
-
-> Perché un interceptor dovrebbe aggiungere il Bearer token solo alle richieste dirette all'API prevista?
+> **Chi prende la decisione finale?** Perché un interceptor dovrebbe aggiungere il Bearer token solo alle richieste dirette all'API prevista?

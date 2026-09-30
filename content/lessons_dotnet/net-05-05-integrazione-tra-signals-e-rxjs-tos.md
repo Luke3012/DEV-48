@@ -1,10 +1,6 @@
 # Integrazione tra Signals e RxJS: toSignal e toObservable
 
-## In parole semplici
-
-L'obiettivo di questa lezione è far convivere la semplicità dei Signals con la potenza degli operatori asincroni di RxJS.
-
-I Signals rappresentano valori correnti dell'interfaccia; RxJS offre operatori per comporre flussi asincroni come debounce, retry e WebSocket. `@angular/core/rxjs-interop` fornisce API per integrarli quando il caso lo richiede.
+Un Signal risponde bene alla domanda «qual è il valore corrente?». Un Observable descrive valori che possono arrivare nel tempo e compone attese, cancellazioni e trasformazioni. Una ricerca remota mostra perché servono entrambi: l'input è stato corrente, mentre le risposte HTTP formano un flusso asincrono.
 
 ### Nel percorso
 
@@ -14,90 +10,131 @@ Da conoscere: [Valori derivati intelligenti con computed()](net-05-02-valori-der
 
 Un Observable descrive emissioni nel tempo; `subscribe` avvia l'ascolto e `unsubscribe` lo interrompe. `pipe` compone operatori; `switchMap` sostituisce l'ascolto della richiesta precedente. Le richieste HttpClient partono alla sottoscrizione. `toSignal` e `toObservable` vanno creati in un contesto di iniezione, per esempio nei campi di un componente. La conversione è utile per ricerca remota e flussi asincroni; per un totale locale basta `computed`.
 
-## Le parole da riconoscere
+## Il valore corrente e gli eventi che arrivano nel tempo
 
-- `rxjs`
-- `observable`
-- `tosignal`
-- `toobservable`
-- `interoperabilita`
-- `debounce`
+### Sposta la responsabilità quando i dati arrivano dalla rete
+Un contratto piccolo può vivere in `user.model.ts` ed essere riusato dai due file che seguono:
+```typescript
+export type User = { id: number; name: string };
+```
 
-## Anatomia e Sintassi del Codice
-
-### Le Due Funzioni di Interoperabilità:
-1. **`toSignal(observable$, options)`**:
-   - Converte un Observable (come una chiamata `httpClient.get()`) in un Signal!
-   - Sottoscrive il flusso e rilascia la sottoscrizione alla distruzione del contesto Angular.
-   ```typescript
-   users = toSignal(this.http.get<User[]>('/api/users'), { initialValue: [] });
-   ```
-2. **`toObservable(signal)`**:
-   - Converte un Signal in un Observable per applicare operatori potenti come `debounceTime`, `switchMap` o `distinctUntilChanged`.
-   ```typescript
-   query$ = toObservable(this.searchQuery).pipe(
-     debounceTime(300),
-     switchMap(q => this.api.search(q))
-   );
-   ```
-
-Nell’esempio il recupero dell’errore è dentro `switchMap`: una richiesta fallita produce una lista vuota ma lascia attive le ricerche successive. È una semplificazione per studiare il flusso; in un’interfaccia completa distingui errore e nessun risultato. `params` codifica il termine senza concatenarlo nell’URL.
-
-## Un esempio concreto
-
+All'inizio una lista locale basta per disegnare il template:
 ```typescript
 import { Component, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import type { User } from './user.model';
+
+@Component({ selector: 'app-user-search', template: '' })
+export class UserSearchComponent {
+  readonly users = signal<User[]>([{ id: 1, name: 'Anna' }]);
+  private readonly http = inject(HttpClient);
+
+  load(): void {
+    this.http.get<User[]>('/api/users').subscribe(users => this.users.set(users));
+  }
+}
+```
+Il flusso è valido, ma il componente ora conosce URL, trasporto e aggiornamento dei dati. Un service possiede la responsabilità HTTP; il componente resta interessato al valore e a ciò che mostra. `provideHttpClient()` deve essere registrato in `app.config.ts`, altrimenti l'iniezione fallisce con `NullInjectorError`.
+
+### La richiesta HTTP vive in un service
+```typescript
+// user.service.ts
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import type { User } from './user.model';
+
+@Injectable({ providedIn: 'root' })
+export class UserService {
+  private readonly http = inject(HttpClient);
+
+  search(query: string): Observable<User[]> {
+    return this.http.get<User[]>('/api/users', { params: { q: query } });
+  }
+}
+```
+
+### Nel componente: valore corrente e flusso delle risposte
+```typescript
+// user-search.component.ts
+import { Component, inject, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { catchError, debounceTime, distinctUntilChanged, of, switchMap } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, map, of, startWith, switchMap } from 'rxjs';
+import { UserService } from './user.service';
+import type { User } from './user.model';
+
+type SearchState =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'success'; users: User[] }
+  | { status: 'error'; message: string };
 
 @Component({
-  selector: 'app-search',
-  template: `<input #field (input)="searchSignal.set(field.value)" aria-label="Ricerca" />
-    @for (name of resultsSignal(); track name) { <p>{{ name }}</p> }`
+  selector: 'app-user-search',
+  template: `
+    <label>Utente <input #search (input)="setQuery(search.value)" /></label>
+    @let current = state();
+    @switch (current.status) {
+      @case ('loading') { <p role="status">Ricerca in corso…</p> }
+      @case ('error') { <p role="alert">{{ current.message }}</p> }
+      @case ('success') {
+        <ul>
+          @for (user of current.users; track user.id) { <li>{{ user.name }}</li> }
+          @empty { <li>Nessun utente trovato.</li> }
+        </ul>
+      }
+      @default { <p>Inserisci un nome per iniziare.</p> }
+    }
+  `
 })
-export class SearchComponent {
-  private readonly http = inject(HttpClient);
-  readonly searchSignal = signal('');
-  readonly resultsSignal = toSignal(
-    toObservable(this.searchSignal).pipe(
-      debounceTime(300),
+export class UserSearchComponent {
+  private readonly users = inject(UserService);
+  readonly query = signal('');
+  readonly state = toSignal(
+    toObservable(this.query).pipe(
+      debounceTime(250),
       distinctUntilChanged(),
-      switchMap(q => this.http.get<string[]>('/api/search', { params: { q } }).pipe(
-        catchError(() => of([] as string[]))
-      ))
+      switchMap(query => query.trim()
+        ? this.users.search(query).pipe(
+            map(users => ({ status: 'success', users }) as const),
+            startWith({ status: 'loading' } as const),
+            catchError(() => of({ status: 'error', message: 'Ricerca non disponibile' } as const))
+          )
+        : of({ status: 'idle' } as const)
+      )
     ),
-    { initialValue: [] as string[] }
+    { initialValue: { status: 'idle' } as SearchState }
   );
-}
-// Registra provideHttpClient() in app.config.ts.
-// L’API GET /api/search?q=... deve restituire un array di nomi univoci.
-// L’URL relativo richiede stesso host o proxy verso il backend.
-```
 
-### Seguilo passo per passo
-
-1. `toObservable(searchSignal)` espone le modifiche della query come un flusso RxJS.
-2. `debounceTime(300)` attende una pausa di 300 ms; `switchMap` avvia la richiesta più recente e si disiscrive dal flusso precedente quando arriva un nuovo termine.
-3. `toSignal(..., { initialValue: [] })` rende i risultati leggibili dal template fin da subito, prima della prima risposta.
-4. Digita rapidamente due termini e poi fermati. La ricerca parte dopo la pausa; controlla inoltre errori HTTP e contesto d'iniezione prima di usare `toSignal`.
-
-## Pattern Guida per gli Esercizi
-
-La pratica breve isola una regola e non avvia l'applicazione Angular. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
-
-```typescript
-export class SearchBridge {
-    query = signal('');
-    setQuery(text: string) { this.query.set(text); }
+  setQuery(query: string): void {
+    this.query.set(query);
+  }
 }
 ```
 
-## Dove ci si confonde spesso
+`HttpClient` è fornito in `app.config.ts` con `provideHttpClient()`. Il componente dipende da `UserService`, che usa `HttpClient`: la UI non costruisce la richiesta né conosce i dettagli del backend. Il tipo `<User[]>` documenta il JSON atteso, ma non valida a runtime il contenuto ricevuto. `toSignal` sottoscrive nel contesto di iniezione e offre lo stato corrente al template; `switchMap` abbandona la richiesta precedente quando cambia la query. Gli Observable di `HttpClient` sono freddi: la richiesta parte quando qualcuno si sottoscrive.
+
+## Dalla digitazione alla risposta JSON
+
+```text
+toObservable(this.query).pipe(
+  debounceTime(250),
+  switchMap(query => this.users.search(query))
+)
+```
+
+### Segui la modifica fino alla vista
+
+1. La persona digita e `query.set(...)` aggiorna lo stato sorgente. `toObservable` rende le variazioni disponibili al flusso RxJS.
+2. `debounceTime(250)` attende una pausa; `distinctUntilChanged` elimina query consecutive uguali.
+3. `switchMap` chiama il service. Il service usa `HttpClient` per `GET /api/users?q=...`; l'Observable HTTP invia la richiesta quando viene sottoscritto.
+4. La risposta JSON diventa `User[]`, poi uno stato `success` leggibile come `state()` nel template. Nel frattempo appare `loading`; se la richiesta fallisce, il flusso emette `error` senza confonderlo con una lista vuota.
+
+Il mini-runner controlla una trasformazione TypeScript e non avvia HTTP. Nel laboratorio Monorepo verifica il confine reale tra service, backend e template; nel laboratorio JWT osserva invece come l'interceptor modifica la richiesta in uscita e lascia risalire la risposta.
+
+## Distingui attesa, risultato vuoto ed errore
 
 - Leggere il valore prima della prima emissione senza gestire `undefined` o fornire un valore iniziale
 - creare una nuova sottoscrizione toSignal a ogni lettura.
 
-## Domanda di verifica
-
-> Quando è preferibile usare RxJS rispetto a un semplice Signal?
+> **Quale valore c'è ora e quale arriverà dopo?** Quando è preferibile usare RxJS rispetto a un semplice Signal?

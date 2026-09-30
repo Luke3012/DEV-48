@@ -284,6 +284,32 @@ class ProgressStore:
         rows = self.connection.execute("SELECT item_id FROM progress WHERE status='completed'").fetchall()
         return {row["item_id"] for row in rows}
 
+    def reset_items(self, item_ids: set[str], setting_keys: set[str] | None = None) -> dict[str, int]:
+        """Remove progress and event history for selected items only."""
+        ids = sorted(item_id for item_id in item_ids if item_id)
+        keys = sorted(key for key in (setting_keys or set()) if key)
+        deleted = {"progress": 0, "events": 0, "settings": 0}
+        if not ids and not keys:
+            return deleted
+
+        with self.transaction() as db:
+            if ids:
+                placeholders = ",".join("?" for _ in ids)
+                deleted["progress"] = db.execute(
+                    f"DELETE FROM progress WHERE item_id IN ({placeholders})", ids
+                ).rowcount
+                deleted["events"] = db.execute(
+                    f"DELETE FROM events WHERE item_id IN ({placeholders})", ids
+                ).rowcount
+            if keys:
+                placeholders = ",".join("?" for _ in keys)
+                deleted["settings"] = db.execute(
+                    f"DELETE FROM settings WHERE key IN ({placeholders})", keys
+                ).rowcount
+
+        self.backup()
+        return deleted
+
     def review_items(self, track_item_ids: set[str]) -> list[dict]:
         """Return unresolved failures and passes made after opening the solution."""
         result = []

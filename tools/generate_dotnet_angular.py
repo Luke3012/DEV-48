@@ -22,18 +22,18 @@ def slugify(value: str) -> str:
 
 
 MODULES = [
-    ("00_orientamento", "00", "Orientamento & Toolchain", "Configura .NET SDK, Node.js, Angular CLI e imposta un metodo di studio ingegneristico."),
-    ("00_fondamenti", "01", "Fondamenti C#, TypeScript, HTML e CSS", "Primi metodi, variabili, funzioni, array e struttura dei template prima dei framework."),
-    ("01_csharp", "02", "C# Moderno", "Tipi primitivi, record, pattern matching, LINQ, async/await ed eccezioni."),
-    ("02_typescript", "03", "TypeScript & Contratti per il Web", "Tipi statici, interfacce, union discriminate e generics."),
-    ("03_aspnet_api", "04", "Web API con ASP.NET Core", "Minimal API, dependency injection, pipeline middleware, DTO e validazione HTTP."),
-    ("04_angular_core", "05", "Angular Moderno: Standalone & Control Flow", "Componenti Standalone, blocchi @if, @for, @switch e data binding."),
-    ("05_angular_signals", "06", "Reattività con Angular Signals & State", "signal(), computed(), effect(), input/output e interoperabilità con RxJS."),
-    ("06_efcore", "07", "Database con Entity Framework Core", "DbContext, migrazioni, mapping delle relazioni, query LINQ e tracking."),
-    ("07_angular_forms_routing", "08", "Form Reattivi & Routing", "Reactive Forms, introduzione a Signal Forms, validatori, Angular Router e guard funzionali."),
-    ("08_security_fullstack", "09", "Autenticazione JWT & Sicurezza Full-Stack", "Token JWT, autorizzazione, HTTP Interceptors e CORS."),
-    ("09_quality_testing", "10", "Testing e Architettura", "Test automatici, principi SOLID e separazione dei layer."),
-    ("10_portfolio_monorepo", "11", "Monorepo & Portfolio", "Architettura client/server, documentazione e progetto finale."),
+    ("00_orientamento", "00", "Orientamento e strumenti", "Prepara .NET, Node.js e Angular CLI per lavorare sui progetti del percorso."),
+    ("00_fondamenti", "01", "Fondamenti per lo sviluppo web", "Parti da metodi, funzioni, dati e markup prima di passare ai framework."),
+    ("01_csharp", "02", "C# moderno", "Usa tipi, record, collezioni, LINQ e operazioni asincrone."),
+    ("02_typescript", "03", "TypeScript e contratti", "Descrivi i dati e gestisci in modo esplicito le varianti delle risposte API."),
+    ("03_aspnet_api", "04", "API con ASP.NET Core", "Definisci endpoint, convalida le richieste e separa le responsabilità del server."),
+    ("04_angular_core", "05", "Angular: componenti e template", "Costruisci interfacce standalone con binding e control flow."),
+    ("05_angular_signals", "06", "Stato con Angular Signals", "Aggiorna lo stato, calcola valori derivati e collega Signals a RxJS."),
+    ("06_efcore", "07", "Database con Entity Framework Core", "Modella dati e relazioni, interroga SQLite e applica migrazioni."),
+    ("07_angular_forms_routing", "08", "Form e navigazione Angular", "Valida i form e organizza il passaggio tra le pagine."),
+    ("08_security_fullstack", "09", "Sicurezza tra client e API", "Collega autenticazione JWT, autorizzazione, interceptor e CORS."),
+    ("09_quality_testing", "10", "Test e struttura del codice", "Verifica il comportamento e separa le responsabilità con SOLID e layer chiari."),
+    ("10_portfolio_monorepo", "11", "Progetti full-stack", "Organizza client e server, documenta le API e completa un progetto integrato."),
 ]
 
 # Preserve generated lesson IDs while making the first coding practice follow a
@@ -2191,12 +2191,13 @@ In `OnModelCreating` si può personalizzare il comportamento di cancellazione (e
         "dotnet ef migrations add;dotnet ef database update;versionamento schema;snapshot",
         "Le migrazioni di EF Core consentono di evolvere lo schema del database nel tempo in modo ripetibile e tracciabile nel repository Git.",
         """### Comandi Fondamentali della CLI `dotnet ef`:
-Prima installa gli strumenti una volta e il pacchetto di design nel progetto. Mantieni la stessa major version di EF Core (10 in questo percorso):
+Nel laboratorio, esegui i comandi dalla cartella `server/`: lo starter include un manifest locale con EF Tools 10.0.12. `dotnet restore` prepara il progetto perché il tool possa costruire il `DbContext` al momento del design:
 ```powershell
-dotnet tool install --global dotnet-ef --version 10.0.12
-dotnet add package Microsoft.EntityFrameworkCore.Design --version 10.0.12
+dotnet tool restore
+dotnet restore
 dotnet ef --version
 ```
+Per un progetto nuovo, crea un manifest locale con `dotnet new tool-manifest`, aggiungi `dotnet tool install dotnet-ef --version 10.0.12` e il pacchetto `Microsoft.EntityFrameworkCore.Design` della stessa major version. Un manifest versionato fa usare a tutto il team lo stesso tool, senza installarlo globalmente.
 
 1. **Aggiunta migrazione**:
    `dotnet ef migrations add InitialCreate`
@@ -2207,6 +2208,14 @@ dotnet ef --version
 3. **Rimozione ultima migrazione non applicata**:
    `dotnet ef migrations remove`
 
+Per controllare il SQL prima di una distribuzione, genera un artefatto revisionabile:
+```powershell
+dotnet ef migrations script --idempotent --output migrations.sql
+```
+Ispeziona sempre le operazioni, soprattutto `DropColumn` o `DropTable`: una migrazione non è un backup. In produzione usa un passaggio controllato con script o bundle invece di far aggiornare lo schema automaticamente da ogni istanza dell'applicazione.
+
+Il laboratorio usa le migrazioni per creare SQLite. Non applicare `Database.EnsureCreated()` allo stesso database: crea lo schema senza la cronologia delle migrazioni e i due flussi non vanno mescolati.
+
 ### Applicazione automatica all'avvio (solo per sviluppo locale):
 ```csharp
 using var scope = app.Services.CreateScope();
@@ -2214,7 +2223,7 @@ var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 db.Database.Migrate();
 ```
 Usala soltanto per sviluppo locale. Per la produzione pianifica e rivedi l'applicazione delle migrazioni come parte della distribuzione, invece di farle partire automaticamente da ogni istanza dell'app.""",
-        "dotnet ef migrations add AddUserTable\ndotnet ef database update\n# Esamina la migrazione: rimozioni di colonne o tabelle possono perdere dati.",
+        "dotnet tool restore\ndotnet restore\ndotnet ef migrations add AddUserTable\ndotnet ef migrations script --idempotent --output migrations.sql\ndotnet ef database update\n# Esamina la migrazione e lo script prima di applicarli.",
         """public static class MigrationNameHelper {
     public static string FormatMigrationName(string name) {
         var clean = System.Text.RegularExpressions.Regex.Replace(name ?? "", "[^a-zA-Z0-9]", "");
@@ -2922,9 +2931,10 @@ POST /api/login con userName `admin` e password `demo`, poi GET /api/admin -> 20
         "Un HttpInterceptor può aggiungere `Authorization: Bearer <token>` alle richieste verso la propria API. Limitare l'interceptor all'origine attesa evita di inviare il token a server di terze parti. Il servizio d'esempio lo conserva solo in memoria: un ricaricamento lo elimina; non spostarlo in `localStorage` come scorciatoia per renderlo persistente.",
         """### Creazione di un HttpInterceptor Funzionale in Angular:
 ```typescript
-import { HttpInterceptorFn } from '@angular/common/http';
+import { HttpInterceptorFn, HttpResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
+import { tap } from 'rxjs';
 import { SessionService } from './session.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
@@ -2932,19 +2942,24 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   const apiOrigin = 'https://localhost:5001';
   const requestOrigin = new URL(req.url, inject(DOCUMENT).baseURI).origin;
-  if (token && requestOrigin === apiOrigin) {
-    // La richiesta HTTP è immutabile: va clonata aggiungendo gli headers!
-    const clonedReq = req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-    return next(clonedReq);
-  }
+  const outgoingReq = token && requestOrigin === apiOrigin
+    ? req.clone({
+        setHeaders: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+    : req;
 
-    return next(req);
+  return next(outgoingReq).pipe(tap(event => {
+    if (event instanceof HttpResponse) {
+      // La risposta risale la catena: qui puoi osservare status o metadata.
+      // Non registrare token, credenziali o body personali nei log.
+    }
+  }));
 };
 ```
+
+La richiesta scende attraverso gli interceptor verso il backend; gli eventi di risposta risalgono la stessa catena. `tap` osserva senza sostituire il risultato. Filtra `HttpResponse` perché il flusso può includere eventi di invio e progresso oltre alla risposta finale.
 
 ### Servizio della sessione in `session.service.ts`:
 ```typescript
@@ -3480,32 +3495,33 @@ mio-progetto/
         "Esporre un documento OpenAPI generato da ASP.NET Core e aggiungere metadati alle rotte.",
         "openapi;documento json;addopenapi;mapopenapi;documentazione api;route metadata",
         "OpenAPI descrive in modo leggibile da strumenti il contratto di un'API. In .NET 10 `AddOpenApi()` registra il generatore e `MapOpenApi()` espone il documento JSON; un'interfaccia web come Swagger UI o Scalar è un pacchetto aggiuntivo.",
-        """### Generare il documento OpenAPI in una Minimal API .NET 10:
-Nel progetto aggiungi il pacchetto di generazione:
+        """### Il documento JSON nasce dal contratto delle route
+In `Server.csproj` aggiungi il generatore della stessa major di ASP.NET Core:
 ```powershell
 dotnet add package Microsoft.AspNetCore.OpenApi --version 10.0.12
+dotnet restore
 ```
 
 ```csharp
+var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
-
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment()) {
-    app.MapOpenApi(); // In .NET 10 espone /openapi/v1.json
-}
+app.MapGet("/api/health", () => TypedResults.Ok(new HealthResponse("Healthy")))
+   .WithName("Health")
+   .WithTags("Sistema")
+   .WithSummary("Controlla che l'API sia disponibile");
+
+if (app.Environment.IsDevelopment()) app.MapOpenApi();
+app.Run();
+
+public sealed record HealthResponse(string Status);
 ```
 
-Gli endpoint possono essere arricchiti con nome, descrizione e tag:
-```csharp
-app.MapGet("/api/users", () => Results.Ok(new[] { "Ada", "Luca" }))
-   .WithName("ListUsers")
-   .WithTags("Utenti")
-   .WithSummary("Restituisce l'elenco di tutti gli utenti registrati");
-```
+Il route restituisce un `TypedResults.Ok<HealthResponse>`: ASP.NET Core conosce il tipo e può descrivere la risposta `200` nello schema. `WithName`, `WithTags` e `WithSummary` aggiungono metadati leggibili. Avvia in Development e visita `/openapi/v1.json`: il browser mostra il contratto generato, non una prova che ogni risposta futura del server lo rispetti.
 
-Per provare il documento con un'interfaccia web, scegli e installa una UI separata. La UI legge lo stesso documento OpenAPI e non sostituisce i test degli endpoint.""",
-        "app.MapGet(\"/api/items\", () => Results.Ok())\n   .WithTags(\"Catalogo\")\n   .WithSummary(\"Recupera tutti gli articoli\");",
+`AddOpenApi()` registra il generatore e `MapOpenApi()` rende raggiungibile il documento JSON. Per esplorarlo con una UI installa Swagger UI o Scalar separatamente: una UI legge il documento, non lo crea e non sostituisce i test degli endpoint. [Documentazione ufficiale ASP.NET Core](https://learn.microsoft.com/aspnet/core/fundamentals/openapi/overview?view=aspnetcore-10.0).""",
+        "app.MapGet(\"/api/health\", () => TypedResults.Ok(new HealthResponse(\"Healthy\")));",
         """public static class OpenApiDocHelper {
     public static string FormatEndpointTitle(string tag, string summary) => $"[{tag.Trim()}] {summary.Trim()}";
 }""",
@@ -3606,7 +3622,8 @@ def infer_code_language(source: str) -> str:
     if re.search(r"(?:^|\n)\s*[.#:]?[\w-]+\s*\{[^}]*[\w-]+\s*:\s*[^}]+;", code, re.DOTALL):
         return "css"
     if re.search(
-        r"\b(?:CancellationToken|IResult|Results\.|Task(?:<|\b)|ValueTask(?:<|\b))|"
+        r"\b(?:CancellationToken|IResult|Results\.|Task(?:<|\b)|ValueTask(?:<|\b)|"
+        r"modelBuilder|HasMany|WithOne|HasForeignKey|DbContext|DbSet<)|"
         r"\bpublic\s+(?:sealed\s+|static\s+|abstract\s+)*(?:class|interface|record)\b",
         code,
     ):
@@ -3620,6 +3637,1539 @@ def infer_code_language(source: str) -> str:
     if code.startswith("{") and re.search(r'^\s*"[^\"]+"\s*:', code, re.MULTILINE):
         return "json"
     return "text"
+
+
+# Headings follow the kind of reasoning a module asks from the reader. Keeping
+# these frames in data (rather than hard-coding one worksheet outline) lets the
+# generated lessons read as chapters while retaining a predictable course flow.
+EDITORIAL_FRAMES = {
+    "00": {
+        "model": "Partiamo da quello che puoi osservare",
+        "trace": "Segui un caso dall'inizio alla fine",
+        "walkthrough": "Ricostruisci il caso con i dati iniziali",
+        "pattern": "Una variante da provare",
+        "diagnosis": "Se il risultato non è quello atteso",
+        "recall": "Fermati e ricostruisci il passaggio",
+    },
+    "01": {
+        "model": "Dal problema alla regola del linguaggio",
+        "trace": "Traccia i valori nel programma",
+        "walkthrough": "Calcola il risultato prima di eseguirlo",
+        "pattern": "Prova una seconda forma",
+        "diagnosis": "Casi che cambiano il risultato",
+        "recall": "Che cosa succede se cambia l'input?",
+    },
+    "02": {
+        "model": "Che cosa sa il compilatore del dato",
+        "trace": "Segui il tipo mentre il dato cambia forma",
+        "walkthrough": "Controlla il contratto su un dato reale",
+        "pattern": "Estendi il contratto",
+        "diagnosis": "Dove il controllo statico si ferma",
+        "recall": "Quale garanzia hai davvero?",
+    },
+    "03": {
+        "model": "La richiesta che dobbiamo servire",
+        "trace": "Segui la richiesta attraverso il server",
+        "walkthrough": "Segui la richiesta con valori concreti",
+        "pattern": "Prova un input diverso",
+        "diagnosis": "Leggi il sintomo prima di cambiare codice",
+        "recall": "Racconta il percorso fino alla risposta",
+    },
+    "04": {
+        "model": "La vista che vogliamo costruire",
+        "trace": "Segui il dato fino al DOM",
+        "walkthrough": "Dal modello alla schermata",
+        "pattern": "Modifica lo stesso componente",
+        "diagnosis": "Che cosa deve conoscere il template?",
+        "recall": "Che cosa collega classe e vista?",
+    },
+    "05": {
+        "model": "Quale dato è sorgente e quale è derivato?",
+        "trace": "Osserva come si propaga un aggiornamento",
+        "walkthrough": "Segui la modifica fino alla vista",
+        "pattern": "Prova una modifica senza mutare i dati",
+        "diagnosis": "Quando usare un calcolo o un effetto",
+        "recall": "Quali dipendenze vengono lette?",
+    },
+    "06": {
+        "model": "Dall'oggetto C# alla riga del database",
+        "trace": "Segui il lavoro del DbContext",
+        "walkthrough": "Osserva che cosa ha fatto il contesto",
+        "pattern": "Confronta lettura e scrittura",
+        "diagnosis": "Che cosa resta responsabilità del database?",
+        "recall": "Che cosa è stato caricato o salvato davvero?",
+    },
+    "07": {
+        "model": "Lo stato che l'utente sta costruendo",
+        "trace": "Segui un campo o una navigazione",
+        "walkthrough": "Segui la persona mentre completa il flusso",
+        "pattern": "Prova il caso valido e quello incompleto",
+        "diagnosis": "Rendi visibile lo stato che blocca il flusso",
+        "recall": "Quale stato decide che cosa accade dopo?",
+    },
+    "08": {
+        "model": "Il confine di fiducia della richiesta",
+        "trace": "Segui identità, token e decisione del server",
+        "walkthrough": "Verifica identità, permessi e risposta",
+        "pattern": "Confronta richiesta anonima e autenticata",
+        "diagnosis": "Quale parte può fidarsi di questo dato?",
+        "recall": "Chi prende la decisione finale?",
+    },
+    "09": {
+        "model": "Il comportamento che vogliamo proteggere",
+        "trace": "Prepara, esegui, osserva",
+        "walkthrough": "Rendi riproducibile il comportamento",
+        "pattern": "Cambia una sola responsabilità",
+        "diagnosis": "Che cosa rende il difetto osservabile?",
+        "recall": "Quale evidenza dimostra il comportamento?",
+    },
+    "10": {
+        "model": "Il progetto visto da chi deve usarlo",
+        "trace": "Attraversa i file e i processi coinvolti",
+        "walkthrough": "Racconta l'operazione dal file al risultato",
+        "pattern": "Prova il flusso da un checkout pulito",
+        "diagnosis": "Che cosa deve poter verificare un'altra persona?",
+        "recall": "Quale decisione puoi motivare con il codice?",
+    },
+}
+
+
+CHAPTER_OVERRIDES = {
+    "Anatomia di una soluzione Full-Stack Client-Server": {
+        "intro": "Quando una persona apre un elenco nel browser, la pagina e il server che possiede i dati sono due programmi distinti. L'HTTP è il confine osservabile tra loro: la richiesta porta un metodo, un indirizzo e, quando serve, un body; la risposta porta uno status e un body, spesso JSON.",
+        "model": """### Una lettura dal browser e il viaggio dei dati
+```text
+Persona seleziona “Soggetti”
+  ↓
+Browser: GET https://localhost:5001/api/subjects?zone=Centro
+  ↓ HTTP attraverso la rete
+ASP.NET Core: trova una route che corrisponde
+  ↓ legge i dati e applica le regole
+Risposta: HTTP 200 + JSON nel body
+  ↓
+Angular: interpreta il dato e aggiorna la vista
+```
+
+Il metodo e il percorso descrivono quale operazione chiedere; il body trasporta i dati della richiesta o della risposta. Il codice HTTP comunica l'esito, per esempio `200` per una lettura riuscita o `404` per una risorsa assente. Il server serializza il proprio oggetto in JSON; il browser riceve testo strutturato, non un oggetto C# condiviso in memoria.
+
+`https://localhost:4200` e `https://localhost:5001` hanno schema e host uguali ma porte diverse: per il browser sono origini diverse. In sviluppo puoi usare un proxy oppure configurare una policy CORS specifica sull'API. CORS regola la lettura cross-origin nel browser, non autentica la persona.
+
+All'inizio seguiamo solo una GET. Nelle lezioni successive il Router e `HttpClient` spiegheranno la parte Angular, mentre Minimal API mostrerà come una route raggiunge il suo gestore. In seguito il percorso continuerà dal gestore a service, `DbContext` e database.""",
+        "example": "GET /api/subjects?zone=Centro → HTTP 200 → { \"id\": 7, \"name\": \"Centro\" }",
+        "walkthrough": """1. La persona apre la pagina dei soggetti; l'interfaccia decide di chiedere al server i record della zona `Centro`.
+2. Il browser invia il metodo `GET` e il percorso `/api/subjects?zone=Centro` all'host ASP.NET Core. La porta fa parte dell'origine, mentre il percorso identifica la risorsa.
+3. ASP.NET Core trova un endpoint che corrisponde e produce una risposta. Il browser riceve uno status HTTP e un body JSON; non condivide direttamente le classi o gli oggetti in memoria del server.
+4. Angular può interpretare il body secondo il tipo atteso e usarlo per renderizzare l'elenco. Un `404` indica un percorso non trovato; un errore CORS indica una policy del browser/API e va distinto da un errore dell'endpoint.""",
+        "practice": "L'esercizio breve controlla la composizione di un URL, non apre una connessione HTTP. È un primo esercizio di lettura degli indirizzi; il laboratorio Monorepo e quello Minimal API verificheranno poi una richiesta reale da browser a server.",
+        "frame": {"model": "Il confine tra due programmi", "trace": "Dal click alla risposta JSON", "diagnosis": "Leggi status e origine prima di cercare il bug", "recall": "Quale dato attraversa HTTP e quale resta dentro ciascun processo?"},
+        "pitfalls": "Il JSON trasporta dati, non tipi condivisi tra C# e TypeScript; una porta diversa cambia l'origine del browser anche quando host e schema coincidono; CORS non sostituisce autenticazione o autorizzazione.",
+    },
+    "Controllo di flusso, Pattern Matching e Switch Expressions": {
+        "intro": "Un programma deve scegliere una risposta in base allo stato di un dato. Con pochi casi un `if` è chiaro; quando le condizioni descrivono forme e proprietà di un oggetto, i pattern di C# rendono esplicito che cosa si sta confrontando e fanno restituire il risultato direttamente.",
+        "model": """### Dalla condizione al caso dell'ordine
+Per una stringa semplice si può partire con condizioni in sequenza:
+```csharp
+public static class StatusLabels
+{
+    public static string DescribeStatus(string status)
+    {
+        if (status == "open") return "Da gestire";
+        if (status == "closed") return "Completato";
+        return "Stato non riconosciuto";
+    }
+}
+```
+
+Quando la decisione dipende da più proprietà, una switch expression confronta il valore in un solo punto:
+```csharp
+public sealed record ServiceTicket(string Status, int DaysWaiting);
+
+public static class TicketLabels
+{
+    public static string Describe(ServiceTicket ticket) => ticket switch
+    {
+        { Status: "open", DaysWaiting: >= 3 } => "In ritardo",
+        { Status: "open" } => "In attesa",
+        { Status: "closed" } => "Completato",
+        _ => "Stato non riconosciuto"
+    };
+}
+```
+
+`{ Status: "open" }` è un property pattern; `DaysWaiting: >= 3` aggiunge un relational pattern. `_` copre i valori che non corrispondono ai casi precedenti. L'ordine è leggibile: prima l'ordine aperto in ritardo, poi il caso aperto generale. Se il caso generale fosse sopra, nasconderebbe quello più specifico.
+
+Una switch expression produce un valore, quindi si adatta a etichette e classificazioni. Un normale `switch` resta adatto quando i rami eseguono più istruzioni. Non serve elencare ogni forma di pattern prima di saper seguire una decisione concreta.""",
+        "example": "TicketLabels.Describe(new ServiceTicket(\"open\", 5)) // \"In ritardo\"",
+        "example_language": "csharp",
+        "walkthrough": """1. Crea `ServiceTicket("open", 5)`: il primo pattern controlla contemporaneamente lo stato e i giorni di attesa.
+2. Entrambe le condizioni sono vere, quindi il risultato è `"In ritardo"`; C# non prova i rami successivi.
+3. Con `ServiceTicket("open", 1)` il primo caso non corrisponde, mentre `{ Status: "open" }` sì: il risultato è `"In attesa"`.
+4. Prova lo stato `"closed"` e un valore nuovo. Segui il ramo specifico e poi il caso `_`; non lasciare una combinazione possibile senza una decisione esplicita.""",
+        "practice": "La pratica breve usa una classificazione di sconti: prova prima una combinazione per volta e poi costruisci i casi. Non copiare lo schema esatto degli stati dell'esempio; nel laboratorio CRUD userai condizioni e validazione su record reali.",
+        "frame": {"model": "Una decisione diventa un valore", "trace": "Quale pattern corrisponde per primo?", "diagnosis": "Controlla ordine e copertura dei casi", "recall": "Quando la decisione può diventare un'espressione?"},
+        "pitfalls": "Un pattern generale prima di uno specifico rende irraggiungibile il caso dettagliato; una switch expression senza copertura adeguata può fallire a runtime; non usare un'espressione se i rami devono svolgere molte operazioni.",
+    },
+    "LINQ fondamentale: Where, Select e Aggregazioni": {
+        "intro": "Hai una lista di utenti e vuoi mostrare soltanto quelli attivi e maggiorenni, ordinati per nome, con i campi che servono alla tabella. Un ciclo esplicito rende visibile il lavoro; LINQ permette di esprimere lo stesso percorso come una trasformazione leggibile.",
+        "model": """### Prima: descrivere il lavoro passo per passo
+```csharp
+public sealed record User(int Id, string Name, int Age, bool IsActive, string Email);
+public sealed record UserRow(string Name, string Email);
+
+var rows = new List<UserRow>();
+var users = new List<User>
+{
+    new(1, "Anna", 35, true, "anna@example.com"),
+    new(2, "Marco", 16, true, "marco@example.com"),
+    new(3, "Luca", 42, false, "luca@example.com")
+};
+foreach (var user in users)
+{
+    if (!user.IsActive || user.Age < 18) continue;
+    rows.Add(new UserRow(user.Name, user.Email));
+}
+rows.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
+```
+
+### Poi: nominare i passaggi con LINQ
+```csharp
+var rows = users
+    .Where(user => user.IsActive && user.Age >= 18)
+    .OrderBy(user => user.Name)
+    .Select(user => new UserRow(user.Name, user.Email))
+    .ToList();
+```
+
+`Where` decide quali elementi restano; `OrderBy` decide in quale ordine; `Select` costruisce il dato destinato alla vista. In un progetto, il tipo `User` e la query vivono nel server, mentre `UserRow` può diventare un DTO se attraversa il confine HTTP. LINQ to Objects e LINQ to Entities condividono la forma, ma EF Core può tradurre in SQL soltanto le espressioni supportate dal provider.""",
+        "example": "var evenNumbers = numbers.Where(n => n % 2 == 0).Select(n => n * 2).ToList();",
+        "walkthrough": """1. Con i numeri `[1, 2, 3, 4]`, `Where` conserva `[2, 4]` perché solo quei valori soddisfano la condizione.
+2. `Select` trasforma la sequenza in `[4, 8]`; non modifica la lista originale.
+3. Gli operatori di filtro e proiezione costruiscono una query differita. `ToList()` la enumera e conserva qui il risultato.
+4. Applica lo stesso ragionamento agli utenti: prima scegli le righe, poi ordinale, poi proietta i campi necessari. Se la fonte è `IQueryable`, verifica che ogni espressione sia traducibile dal provider.""",
+        "practice": "Per l'esercizio, prima prevedi l'insieme dopo ogni trasformazione e solo dopo componi la query. Il laboratorio CRUD usa un archivio vero in memoria e aggiunge casi vuoti e identificativi assenti.",
+    },
+    "Programmazione Asincrona: Task, async/await ed Eccezioni": {
+        "intro": "Quando il server attende una risposta dal database o da un servizio HTTP, il risultato non è disponibile subito. L'obiettivo dell'asincronia è rappresentare quell'attesa senza tenere occupato il thread soltanto per aspettare: non significa avviare automaticamente un nuovo thread né eseguire il calcolo più in fretta.",
+        "model": """### Una chiamata I/O e il valore che arriva dopo
+```csharp
+using System.Net;
+using System.Net.Http.Json;
+
+public sealed class UserClient(HttpClient http)
+{
+    public async Task<UserDto?> GetUserAsync(int id, CancellationToken cancellationToken)
+    {
+        using var response = await http.GetAsync($"/api/users/{id}", cancellationToken);
+        if (response.StatusCode == HttpStatusCode.NotFound) return null;
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<UserDto>(cancellationToken);
+    }
+}
+
+public sealed record UserDto(int Id, string Name);
+```
+
+`Task<UserDto?>` rappresenta un'operazione futura il cui risultato può essere un utente o `null`; non contiene già l'utente. `await` restituisce il controllo al chiamante mentre l'I/O è in corso e riprende il metodo quando la risposta arriva. Nei progetti ASP.NET Core configura `HttpClient` con `IHttpClientFactory` e passa il `CancellationToken` della richiesta quando è disponibile.
+
+Un metodo asincrono che fa soltanto calcolo CPU-bound non diventa non bloccante grazie alla parola `async`. Il parallelismo è un tema separato: più operazioni possono sovrapporsi, ma `await` da solo non le avvia tutte.""",
+        "example": "Task<string> pending = httpClient.GetStringAsync(url, cancellationToken);\nstring body = await pending;",
+        "walkthrough": """1. La chiamata HTTP restituisce un `Task<string>` che rappresenta la risposta ancora attesa; il server non ha già ricevuto il testo.
+2. `await` sospende questa continuazione. Durante l'attesa I/O il thread può servire altro lavoro, invece di restare bloccato su `.Wait()`.
+3. Se la rete risponde, `body` riceve il testo. Se il token annulla l'operazione o la rete fallisce, l'attesa propaga un'eccezione al chiamante.
+4. Gestisci `OperationCanceledException` come cancellazione quando è quella richiesta e registra gli errori inattesi al confine appropriato. Non trasformare ogni errore in un risultato vuoto.""",
+        "practice": "L'esercizio breve restituisce un `Task` per farti osservare il contratto; nel laboratorio e negli endpoint del corso segui `await` fino al chiamante e passa la cancellazione quando l'operazione dipende dalla richiesta HTTP.",
+    },
+    "Minimal API da zero: Program.cs e WebApplication": {
+        "intro": "Un endpoint è una funzione che ASP.NET Core invoca quando una richiesta corrisponde a una rotta. Prima di aggiungere database, servizi o autenticazione, seguiamo una risposta completa e piccola: una GET che restituisce una stringa.",
+        "model": """### `Program.cs`, prima della prima richiesta
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+var app = builder.Build();
+
+app.MapGet("/hello", () => "Hello");
+
+app.Run();
+```
+
+`CreateBuilder` prepara configurazione, logging e raccolta dei servizi. Qui non registriamo servizi perché l'endpoint non ne richiede. `Build` costruisce l'applicazione con le registrazioni e le route dichiarate fino a quel punto. `MapGet` associa metodo e percorso a un handler, ma non esegue ancora il corpo della lambda. `Run` avvia l'host e resta in ascolto: l'handler viene invocato più tardi, per ogni richiesta GET che corrisponde a `/hello`.
+
+Quando la route deve restituire un codice e un corpo JSON, l'helper rende esplicita la risposta:
+```csharp
+app.MapGet("/api/health", () => TypedResults.Ok(new { status = "Healthy" }));
+```
+`TypedResults.Ok` restituisce un risultato concreto con metadati utili anche a OpenAPI. `Results.Ok` è comodo quando un handler restituisce rami diversi che condividono `IResult`; con `TypedResults` i tipi dei rami vanno dichiarati, per esempio con `Results<Ok<T>, NotFound>`. Nessuna delle due forme è necessaria per restituire direttamente un oggetto serializzabile.
+
+In una Minimal API, `Program.cs` può iniziare come file unico. Quando endpoint, regole e accesso ai dati crescono, sposta responsabilità in servizi e file separati senza cambiare il ciclo HTTP.""",
+        "example": "app.MapGet(\"/hello\", () => \"Hello\");",
+        "walkthrough": """1. Avvia il progetto con `dotnet run`; il processo resta in ascolto sull'indirizzo indicato dal terminale.
+2. In un secondo terminale invia `GET /hello`. Il routing confronta metodo e percorso con la route registrata.
+3. Solo adesso ASP.NET Core chiama la lambda. Il valore `Hello` diventa una risposta HTTP, normalmente con status `200` e contenuto testuale.
+4. Prova `GET /other` e poi `POST /hello`: nessuna delle due richieste corrisponde alla route, quindi l'handler non viene chiamato.""",
+        "practice": "La pratica breve controlla la logica helper; il laboratorio invece avvia il server, invia richieste HTTP e verifica body e status code delle operazioni CRUD.",
+        "frame": {"model": "Prima di avviare il server", "trace": "La richiesta incontra un handler", "diagnosis": "Confronta metodo e percorso", "recall": "Che cosa viene registrato e che cosa viene eseguito?"},
+    },
+    "Dependency Injection: Transient, Scoped e Singleton": {
+        "intro": "Una classe che esegue `new UserRepository()` decide da sola quale implementazione usare, come costruirla e quanto a lungo conservarla. Quando l'endpoint deve poter usare un archivio reale o uno sostituto di test, conviene dichiarare la dipendenza e lasciare al contenitore la creazione e la durata degli oggetti.",
+        "model": """### Prima la dipendenza, poi la registrazione
+Un costruttore che crea direttamente il repository è legato a quell'implementazione. Con DI il consumer chiede un'interfaccia e il contenitore fornisce la classe registrata. Questo esempio minimale può vivere in `Program.cs`:
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddScoped<IUserRepository, InMemoryUserRepository>();
+builder.Services.AddScoped<UserService>();
+var app = builder.Build();
+
+app.MapGet("/api/users/{id:int}", (int id, UserService service) =>
+    service.Find(id) is { } user ? Results.Ok(user) : Results.NotFound());
+app.Run();
+
+public sealed record User(int Id, string Name);
+public interface IUserRepository { User? Find(int id); }
+
+public sealed class InMemoryUserRepository : IUserRepository
+{
+    private readonly User[] users = [new(1, "Anna"), new(2, "Luca")];
+    public User? Find(int id) => users.FirstOrDefault(user => user.Id == id);
+}
+
+public sealed class UserService(IUserRepository users)
+{
+    public User? Find(int id) => users.Find(id);
+}
+```
+
+La registrazione dice quale oggetto consegnare; il parametro dell'handler dichiara chi lo richiede. Un test può registrare un repository finto senza riscrivere il servizio.
+
+### Visualizzare le durate con un identificatore
+```csharp
+public interface ITransientId { Guid Id { get; } }
+public interface IScopedId { Guid Id { get; } }
+public interface ISingletonId { Guid Id { get; } }
+
+public sealed class OperationId : ITransientId, IScopedId, ISingletonId
+{
+    public Guid Id { get; } = Guid.NewGuid();
+}
+
+builder.Services.AddTransient<ITransientId, OperationId>();
+builder.Services.AddScoped<IScopedId, OperationId>();
+builder.Services.AddSingleton<ISingletonId, OperationId>();
+```
+
+Ogni registrazione rappresenta una durata diversa. In un endpoint inietta due istanze dello stesso contratto e confronta gli identificatori:
+```text
+Richiesta HTTP A       Transient: A1, A2    Scoped: S1, S1    Singleton: G1
+Richiesta HTTP B       Transient: B1, B2    Scoped: S2, S2    Singleton: G1
+```
+
+Il contenitore ASP.NET Core crea uno scope per richiesta. Un `DbContext` è normalmente Scoped e rappresenta un'unità di lavoro; non è thread-safe. Un Singleton non deve catturare una dipendenza Scoped.""",
+        "example": "builder.Services.AddScoped<IUserRepository, SqlUserRepository>();",
+        "walkthrough": """1. Nella stessa richiesta HTTP chiedi due volte `ITransientId`: il contenitore crea due oggetti e gli ID sono diversi.
+2. Chiedi due volte `IScopedId`: la richiesta condivide il medesimo scope, quindi i due ID coincidono.
+3. In una seconda richiesta cambiano i due ID Scoped; l'ID Singleton resta uguale perché appartiene alla vita dell'applicazione.
+4. Se un Singleton richiede un servizio Scoped, in sviluppo ASP.NET Core può segnalare `InvalidOperationException` per il lifetime incompatibile. Correggi il grafo delle dipendenze invece di disabilitare la convalida.""",
+        "practice": "L'esercizio isola una decisione sul lifetime. Nel laboratorio API, usa `AddScoped` per il repository che dipende dal `DbContext` e prova il servizio tramite l'endpoint HTTP.",
+        "frame": {"model": "Un oggetto non deve costruirsi tutte le dipendenze", "trace": "Confronta le istanze nella stessa richiesta e tra richieste", "diagnosis": "Lifetimes che non possono convivere", "recall": "Per quanto tempo deve vivere questo servizio?"},
+    },
+    "Routing, Parametri e Binding di Record DTO": {
+        "intro": "Il browser invia byte, header, percorso e query string; il gestore .NET lavora invece con valori C# tipizzati. Il model binding collega questi due lati e i DTO definiscono la forma ammessa dei dati in ingresso e in uscita.",
+        "model": """### Dal JSON alla risposta
+La richiesta `GET` usa path e query string come fonti distinte:
+```text
+GET /api/products/4?category=books
+                 └ id dalla route; category dalla query
+```
+
+Per creare un utente, il body JSON diventa un record C#. L'API costruisce un DTO pubblico invece di restituire l'entity persistita:
+```json
+{ "name": "Anna", "email": "anna@example.com" }
+```
+
+In `Program.cs`, il parametro `CreateUserRequest` viene costruito dal body JSON. Questo estratto mostra il binding e la forma della risposta; la lezione successiva aggiunge la validazione:
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+var app = builder.Build();
+
+app.MapGet("/api/products/{id:int}", (int id, string? category) =>
+    Results.Ok(new { id, category }));
+
+app.MapPost("/api/users", (CreateUserRequest request) =>
+{
+    var response = new UserResponse(Guid.NewGuid(), request.Name.Trim(), request.Email.Trim());
+    return Results.Created($"/api/users/{response.Id}", response);
+});
+app.Run();
+
+public record CreateUserRequest(string Name, string Email);
+public record UserResponse(Guid Id, string Name, string Email);
+```
+
+L'entity del database può contenere chiavi interne o proprietà di audit che non devono essere restituite. Il DTO rende visibile il contratto HTTP e permette al modello persistito di evolvere separatamente. Questo handler assume valori validi e non scrive ancora su un database: fra binding e creazione serve una validazione, che vedrai subito dopo.""",
+        "example": "app.MapGet(\"/api/products/{id:int}\", (int id, string? category) =>\n    Results.Ok(new { id, category }));",
+        "walkthrough": """1. In `/api/products/4?category=books`, il routing applica il vincolo `int` e assegna `4` a `id`; `category` arriva invece dalla query.
+2. Per la POST, il browser serializza il body in JSON. Il model binder deserializza `name` ed `email` nel record `CreateUserRequest`.
+3. Il route handler usa quei valori per costruire `UserResponse`, che contiene soltanto i dati scelti per il client; non espone direttamente la forma interna di un'entity.
+4. `Results.Created` serializza il DTO e restituisce `201` con il percorso della risorsa. Qui i dati sono dimostrativi: prima di persisterli, la prossima lezione aggiungerà una decisione di validazione.""",
+        "practice": "La pratica breve verifica una trasformazione pura. Nel laboratorio Minimal API costruisci endpoint reali e aggiungi casi HTTP per DTO validi, non validi e risorsa assente.",
+    },
+    "Validazione degli input e ProblemDetails standard": {
+        "intro": "Quando arriva una POST, ASP.NET Core prima deve associare il body JSON a un tipo C#. Solo dopo il route handler può applicare regole del dominio. Separare binding e validazione aiuta a capire perché una richiesta è rifiutata e permette ad Angular di collegare l'errore al campo giusto.",
+        "model": """### Il body diventa un DTO, poi il server decide se accettarlo
+Il client invia JSON secondo il contratto stabilito:
+```json
+{ "email": "ada@example.com", "name": "Ada" }
+```
+
+Il parametro complesso `CreateUserRequest` è associato al body. Le regole del gestore controllano i valori prima di qualsiasi scrittura:
+```csharp
+using System.Collections.Generic;
+
+var builder = WebApplication.CreateBuilder(args);
+var app = builder.Build();
+
+app.MapPost("/api/users", (CreateUserRequest input) =>
+{
+    var errors = new Dictionary<string, string[]>();
+    if (string.IsNullOrWhiteSpace(input.Email) || !input.Email.Contains('@'))
+        errors["Email"] = ["Inserisci un indirizzo email valido."];
+    if (string.IsNullOrWhiteSpace(input.Name))
+        errors["Name"] = ["Il nome è obbligatorio."];
+
+    if (errors.Count > 0) return Results.ValidationProblem(errors);
+
+    // Il service e il database entreranno nel percorso nelle lezioni successive.
+    var created = new UserResponse(42, input.Email, input.Name);
+    return Results.Created($"/api/users/{created.Id}", created);
+});
+app.Run();
+
+public sealed record CreateUserRequest(string Email, string Name);
+public sealed record UserResponse(int Id, string Email, string Name);
+```
+
+Se una regola fallisce, `ValidationProblem` produce status `400` con un oggetto JSON e una mappa `errors` indicizzata per campo. Per esempio, una richiesta senza email ha una risposta di questa forma:
+```json
+{
+  "status": 400,
+  "errors": { "Email": ["Inserisci un indirizzo email valido."] }
+}
+```
+Se la richiesta è accettata, `Created` restituisce `201` e il percorso della risorsa. Il controllo `Contains('@')` è volutamente solo illustrativo: una regola reale deve dichiarare con precisione che cosa accetta, e non può verificare che la casella esista.
+
+Il body malformato o incompatibile col DTO può essere rifiutato durante il binding prima che il gestore venga chiamato. Un errore di validazione applicativa nasce invece dopo il binding: nel browser confronta status e body per distinguere i due casi.""",
+        "example": "return errors.Count > 0\n    ? Results.ValidationProblem(errors)\n    : Results.Created($\"/api/users/{created.Id}\", created);",
+        "walkthrough": """1. Il browser invia JSON; il model binder crea `CreateUserRequest` se nomi e tipi sono compatibili.
+2. Il gestore controlla email e nome, accumulando gli errori per campo senza scrivere sul database.
+3. Con un errore, `ValidationProblem` restituisce `400` e `errors.Email` o `errors.Name`; con dati accettati, il service potrà salvare e restituire `201 Created`.
+4. Quando Angular riceve il `400`, mostra ciascun messaggio vicino al controllo corrispondente. Se il body JSON non può essere associato al record, l'handler potrebbe non partire: usa Network per vedere status e risposta effettivi.""",
+        "example_language": "csharp",
+        "practice": "Il mini-runner prova una funzione pura che costruisce il dizionario e non avvia HTTP. Nel laboratorio Minimal API collega la stessa decisione al body JSON reale, verifica status 400/201 e controlla che una richiesta invalida non scriva dati.",
+        "frame": {"model": "Dal body JSON alla decisione del server", "trace": "Segui validazione ed esito HTTP", "walkthrough": "Una richiesta valida e una da rifiutare", "diagnosis": "Binding ed errore di campo non sono lo stesso passaggio", "recall": "In quale momento il server può ancora evitare la scrittura?"},
+        "pitfalls": "Usare status 200 per un rifiuto rende ambiguo il risultato; restituire soltanto una stringa impedisce al client di associare il messaggio al campo; un controllo email elementare non prova che la casella sia valida o raggiungibile.",
+    },
+    "Gestione globale delle eccezioni e Logging strutturato": {
+        "intro": "Una richiesta non passa direttamente dall'URL alla lambda. I middleware formano una pipeline: ciascuno può preparare la richiesta, chiamare il passaggio successivo e osservare la risposta mentre questa risale. Per questo l'ordine cambia il comportamento.",
+        "model": """### La pipeline e il percorso di ritorno
+```text
+Request
+  ↓
+Exception handler
+  ↓
+Logging: prima di next
+  ↓
+Routing / endpoint
+  ↑
+Logging: dopo next
+  ↑
+Response
+```
+
+In `Program.cs`, registra prima il gestore che deve poter intercettare gli errori successivi. Questo middleware minimo rende visibile il lavoro prima e dopo `next`:
+```csharp
+var app = builder.Build();
+var logger = app.Logger;
+
+app.UseExceptionHandler(errorApp => errorApp.Run(async context =>
+{
+    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+    await context.Response.WriteAsJsonAsync(new { title = "Errore interno", status = 500 });
+}));
+
+app.Use(async (context, next) =>
+{
+    logger.LogInformation("Inizio {Method} {Path}", context.Request.Method, context.Request.Path);
+    await next(context);
+    logger.LogInformation("Fine richiesta con {StatusCode}", context.Response.StatusCode);
+});
+
+app.MapGet("/api/failure", () => throw new InvalidOperationException("Dettaglio solo server"));
+```
+
+Il gestore delle eccezioni è esterno al middleware di logging, così può trasformare un errore non gestito in una risposta pubblica controllata. Il messaggio dettagliato resta nei log del server; non includere stack trace o dati sensibili nel body.""",
+        "example": "logger.LogInformation(\"Ordine {OrderId} creato per {UserId}\", orderId, userId);",
+        "walkthrough": """1. La richiesta attraversa `UseExceptionHandler` e poi il middleware di logging dall'alto verso il basso.
+2. Il logging scrive l'evento iniziale e `await next(context)` passa il controllo alla route.
+3. Dopo l'endpoint, il controllo torna al middleware: viene registrato lo status della risposta. Se il downstream lancia, il gestore esterno converte l'eccezione in un `500`.
+4. Prova una route che riesce e una che fallisce. I log strutturati conservano i campi `{Method}`, `{Path}` e `{StatusCode}` separati dal testo del messaggio.""",
+        "practice": "La pratica breve controlla la formattazione dei campi. Nel server del laboratorio aggiungi log al percorso reale e verifica che una risposta 500 non riveli l'eccezione al client.",
+    },
+    "Progetto Angular Standalone e Bootstrap applicazione": {
+        "intro": "Angular non parte da un componente trovato per caso: una catena di file indica al browser quale elemento ospita l'app, quale componente è la radice e quali servizi sono disponibili quando i componenti vengono creati.",
+        "model": """### Dall'HTML al componente radice
+Nel progetto generato dal laboratorio, i file essenziali sono `src/index.html`, `src/main.ts`, `src/app/app.ts`, `src/app/app.config.ts` e `src/app/app.routes.ts`.
+
+`src/index.html` fornisce l'elemento host:
+```html
+<body><app-root></app-root></body>
+```
+
+`src/main.ts` avvia il componente esportato da `app.ts` e gli passa la configurazione:
+```typescript
+import { bootstrapApplication } from '@angular/platform-browser';
+import { App } from './app/app';
+import { appConfig } from './app/app.config';
+
+bootstrapApplication(App, appConfig).catch(error => console.error(error));
+```
+
+`src/app/app.ts` collega la classe al selettore presente nell'HTML:
+```typescript
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+
+@Component({
+  selector: 'app-root',
+  imports: [RouterOutlet],
+  template: '<h1>Catalogo</h1><router-outlet />',
+  styleUrl: './app.css'
+})
+export class App {}
+```
+
+`src/app/app.config.ts` registra i servizi applicativi:
+```typescript
+import { ApplicationConfig } from '@angular/core';
+import { provideHttpClient } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
+import { routes } from './app.routes';
+
+export const appConfig: ApplicationConfig = {
+  providers: [provideRouter(routes), provideHttpClient()]
+};
+```
+
+Un provider configura il contenitore d'iniezione: `provideRouter` rende disponibile il Router con queste route; `provideHttpClient` rende iniettabile `HttpClient`. Togli il secondo e un servizio che lo richiede può fallire con `NullInjectorError`. `imports` del componente, invece, rende direttive o componenti disponibili nel suo template: provider e template import non sono la stessa cosa. Nei nuovi componenti `standalone` è il default; `NgModule` resta supportato per codice esistente.""",
+        "example": "bootstrapApplication(App, appConfig).catch(error => console.error(error));",
+        "walkthrough": """1. Il browser legge `index.html` e crea `<app-root>`; il bundler esegue il file d'ingresso `main.ts`.
+2. `bootstrapApplication(App, appConfig)` crea l'injector applicativo con i provider e istanzia `App` sull'elemento `app-root`.
+3. Angular compila il template della radice e inserisce `router-outlet`; il Router vi mostra il componente associato all'URL corrente.
+4. Rimuovi `provideHttpClient()` e segui l'errore dal componente che usa `HttpClient` all'injector. Ripristinalo e controlla che la richiesta parta; se rimuovi `RouterOutlet` da `imports`, il compilatore segnala che il template non riconosce quell'elemento.""",
+        "practice": "Il laboratorio Standalone usa proprio `main.ts`, `app.ts` e `app.config.ts`. Prova la pagina nel browser: la pratica breve non avvia Angular e quindi non può dimostrare il bootstrap o il rendering.",
+    },
+    "Creazione di componenti Standalone con @Component": {
+        "intro": "Un componente nasce quando una parte della schermata ha dati, interazioni o responsabilità visive proprie. La classe contiene stato e metodi; `@Component` dice ad Angular quale selettore, template, stile e dipendenze assemblare.",
+        "model": """### Un componente e il punto in cui viene usato
+```text
+src/app/user-card/user-card.ts   classe, stato e metodi
+src/app/user-card/user-card.css  stile della scheda
+src/app/app.ts                   componente genitore che importa la scheda
+```
+
+```typescript
+// src/app/user-card/user-card.ts
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-user-card',
+  standalone: true,
+  imports: [],
+  template: `
+    <article class="card">
+      <h2>{{ username }}</h2>
+      <button type="button" (click)="clearName()">Pulisci</button>
+    </article>
+  `,
+  styleUrl: './user-card.css'
+})
+export class UserCardComponent {
+  username = 'Luca';
+
+  clearName(): void {
+    this.username = '';
+  }
+}
+```
+
+Il genitore rende disponibile il figlio nel suo template importandolo:
+```typescript
+@Component({
+  selector: 'app-root',
+  imports: [UserCardComponent],
+  template: '<app-user-card />'
+})
+export class App {}
+```
+
+Il selector deve corrispondere al tag usato dal genitore. Ogni direttiva, pipe o componente non nativo usato nel template appartiene a `imports`; `styles` o `styleUrl` definiscono l'aspetto associato. In Angular moderno la classe standalone è il default, mentre `standalone: true` rende esplicita l'intenzione nell'esempio. `NgModule` resta supportato nei progetti esistenti: lì i componenti non standalone si dichiarano nel modulo, mentre un componente standalone si importa. Qui seguiamo la struttura corrente senza cancellare il modello che incontrerai nel codice legacy.""",
+        "example": "username = 'Luca';\nclearName(): void { this.username = ''; }",
+        "walkthrough": """1. Angular crea `App` come radice e legge `<app-user-card>` nel template.
+2. Poiché `App` dichiara `UserCardComponent` in `imports`, il selettore trova una definizione e Angular crea quell'istanza figlia.
+3. Il template figlio legge `username`; il click chiama `clearName()`, che cambia lo stato della classe.
+4. Angular aggiorna la vista e il titolo diventa vuoto. Se togli il figlio da `imports`, il template non può risolvere il selettore e la compilazione segnala l'elemento sconosciuto.""",
+        "example_language": "typescript",
+        "practice": "Il runner controlla il modello TypeScript isolato; nel laboratorio Catalogo Standalone, verifica anche che il componente figlio venga importato e che il DOM reagisca al click.",
+    },
+    "Nuovo Control Flow: @if, @else, @for e @switch": {
+        "intro": "Una lista della dashboard può essere in caricamento, vuota, pronta o in errore. Il componente possiede questi dati e il template decide quale struttura DOM mostrare in ciascuno stato.",
+        "model": """### Dati del componente e identità delle righe
+```typescript
+type User = { id: number; name: string };
+users = signal<User[]>([]);
+status = signal<'loading' | 'ready' | 'error'>('loading');
+```
+
+```html
+@switch (status()) {
+  @case ('loading') { <p role="status">Caricamento utenti…</p> }
+  @case ('error') { <p role="alert">Non è stato possibile caricare gli utenti.</p> }
+  @default {
+    <ul>
+      @for (user of users(); track user.id) {
+        <li>{{ user.name }}</li>
+      } @empty {
+        <li>Nessun utente trovato.</li>
+      }
+    </ul>
+  }
+}
+```
+
+`@if`/`@else` e `@switch` scelgono quale ramo esiste; `@for` ripete un blocco. In una lista modificabile `track user.id` è la chiave con cui Angular associa una vista già esistente all'utente che la rappresenta. Se un utente viene rinominato mantenendo l'id, la riga corrispondente resta la stessa; se cambia l'ordine, Angular può collegare ogni riga alla persona corretta. `track $index` descrive la posizione e di solito non è adatto quando gli elementi si inseriscono, rimuovono o riordinano.""",
+        "example": "@for (user of users(); track user.id) {\n  <li>{{ user.name }}</li>\n} @empty {\n  <li>Nessun utente trovato.</li>\n}",
+        "walkthrough": """1. Con `status() === 'loading'`, il template mostra l'indicatore e non crea la lista.
+2. Quando lo stato diventa `ready`, Angular valuta `users()`. Con `[]` entra in `@empty`; con tre utenti crea tre `<li>`.
+3. La chiave `user.id` collega ogni riga alla stessa entità. Se arriva una nuova lista con un nome aggiornato ma ID invariati, Angular può aggiornare il contenuto della riga corrispondente invece di scambiare le identità per posizione.
+4. Imposta `status` su `error`, poi prova una lista vuota e una lista riordinata. Verifica nel DOM quale ramo è visibile e quali chiavi restano stabili.""",
+        "practice": "Il mini-esercizio verifica la trasformazione della lista; il laboratorio controlla lista, stato vuoto, selezione ed elementi DOM effettivamente renderizzati.",
+    },
+    "Data Binding moderno: interpolazione, property ed event binding": {
+        "intro": "Un input deve mostrare il valore corrente del componente e riportare al componente quello che la persona scrive. Il binding non è una collezione di parentesi da memorizzare: è la descrizione della direzione con cui viaggia ogni dato.",
+        "model": """### Costruiamo la stessa schermata in passaggi
+All'inizio la classe contiene soltanto stato e azione:
+```typescript
+username = 'Luca';
+
+clear(): void {
+  this.username = '';
+}
+```
+
+Il testo scende dalla classe al template con l'interpolazione:
+```html
+<p>{{ username }}</p>
+```
+
+Il property binding manda il valore alla proprietà DOM `value`; l'event binding riporta l'input al componente:
+```html
+<input [value]="username" (input)="updateName($event)" />
+<button type="button" (click)="clear()">Pulisci</button>
+```
+```typescript
+updateName(event: Event): void {
+  this.username = (event.target as HTMLInputElement).value;
+}
+```
+
+Per un controllo di form, `[(ngModel)]` abbrevia il binding in entrambe le direzioni e richiede `FormsModule` negli `imports` del componente standalone:
+```html
+<input [(ngModel)]="username" aria-label="Nome utente" />
+```
+```text
+Component → Template: {{ username }} e [value]
+Template → Component: (input), (click)
+Component ↔ Controllo: [(ngModel)]
+```
+
+Nel codice applicativo usa una sola strategia per quel controllo: i frammenti mostrano come si evolve il modello, non tre input da sovrapporre nella stessa schermata.""",
+        "example": "<input [(ngModel)]=\"username\" aria-label=\"Nome utente\" />\n<p>{{ username }}</p>",
+        "walkthrough": """1. La classe inizializza `username` a `Luca`; interpolazione e property binding mostrano quel valore nel DOM.
+2. Quando arriva `input`, il browser fornisce l'evento. Il metodo legge il testo dall'elemento e aggiorna la proprietà della classe.
+3. Angular aggiorna il testo interpolato e il valore legato. Con `[(ngModel)]`, la direttiva coordina in breve le due direzioni.
+4. Clicca Pulisci: l'evento chiama il metodo, la classe imposta `''` e la vista riflette il nuovo stato. Rimuovi `FormsModule` e osserva l'errore sul binding `ngModel`.""",
+        "practice": "Il runner breve verifica la logica del componente, non il template. Nel laboratorio Standalone, controlla il valore iniziale, digita, cancella e osserva l'input e il DOM dopo ogni evento.",
+    },
+    "Introduzione a signal() e aggiornamento stato con set() e update()": {
+        "intro": "In una vista il numero mostrato dipende dallo stato della classe. Una proprietà normale può contenere `0`, ma quando Angular la legge non crea una dipendenza reattiva esplicita; un Signal rende leggibile quel valore e notifica il framework quando viene aggiornato.",
+        "model": """### Dal campo al Signal
+Prima il componente tiene un valore ordinario:
+```typescript
+count = 0;
+increment(): void { this.count += 1; }
+```
+Il template può leggere `{{ count }}`. Un evento può cambiare il campo e Angular può controllare la vista; però il campo non dichiara da sé una dipendenza che un computed o un consumer possa tracciare.
+
+Con un Signal:
+```typescript
+import { Component, signal } from '@angular/core';
+
+@Component({
+  selector: 'app-counter',
+  template: '<p>Hai aggiunto {{ count() }} articoli</p><button (click)="increment()">+</button>'
+})
+export class CounterComponent {
+  readonly count = signal(0);
+
+  increment(): void {
+    this.count.update(value => value + 1);
+  }
+}
+```
+
+Il Signal è una funzione getter: `count()` restituisce il valore e registra chi lo legge. `set(value)` sostituisce lo stato; `update(current => next)` calcola il nuovo valore da quello corrente. `asReadonly()` consente di esporre una lettura senza `.set()` o `.update()`, ma non rende immutabile in profondità un oggetto contenuto.
+
+Per liste e oggetti crea un nuovo valore: `items.update(current => [...current, newItem])`. Mutare l'array esistente con `push()` mantiene la stessa identità e non è un aggiornamento affidabile del Signal.""",
+        "example": "count = signal(0);\nincrement(): void { this.count.update(value => value + 1); }",
+        "walkthrough": """1. All'avvio `count()` vale `0`; il template legge il Signal e registra la vista come consumatore di quel dato.
+2. Il click invoca `increment()`, che usa `update` per calcolare `0 + 1` e memorizza `1`.
+3. Angular riceve la notifica del Signal e aggiorna la vista che ne dipende; il template mostra `1`. Le parentesi appartengono alla lettura, non all'aggiornamento.
+4. Confronta `set(5)` con `update(value => value + 1)`. Poi prova una lista: assegna una nuova lista con spread e osserva perché mutare quella esistente con `push` non costituisce un nuovo valore.""",
+        "practice": "Il runner del mini-esercizio fornisce un mock dei Signals e verifica i valori; il laboratorio avvia Angular e controlla che i click aggiornino la vista reale.",
+    },
+    "Valori derivati intelligenti con computed()": {
+        "intro": "Se un carrello contiene righe e quantità, il totale dipende da quei dati. Memorizzare sia le righe sia un totale modificabile richiede di ricordare ogni punto di aggiornamento: basta dimenticarne uno per mostrare una cifra incoerente.",
+        "model": """### Stato sorgente e stato derivato
+```typescript
+import { computed, signal } from '@angular/core';
+
+type CartItem = { id: number; name: string; price: number; quantity: number };
+
+export class CartStore {
+  private readonly _items = signal<CartItem[]>([]);
+  readonly items = this._items.asReadonly();
+
+  readonly subtotal = computed(() =>
+    this._items().reduce((sum, item) => sum + item.price * item.quantity, 0)
+  );
+  readonly itemCount = computed(() =>
+    this._items().reduce((sum, item) => sum + item.quantity, 0)
+  );
+  readonly hasItems = computed(() => this._items().length > 0);
+
+  add(item: CartItem): void {
+    this._items.update(current => [...current, item]);
+  }
+}
+```
+
+`_items` è stato sorgente, posseduto e modificato dal servizio. `subtotal`, `itemCount` e `hasItems` sono proiezioni in sola lettura. `computed` osserva le letture fatte dalla funzione, memorizza il risultato e lo ricalcola quando una dipendenza cambia; il calcolo deve essere sincrono e senza effetti esterni.
+
+Se aggiorni manualmente sia `_items` sia un Signal `total`, ogni operazione di aggiunta, rimozione e modifica deve ricordarsi di aggiornare entrambi. Una derivazione centrale elimina questa duplicazione e rende visibile la relazione fra dati e risultato.""",
+        "example": "const total = computed(() => items().reduce((sum, item) => sum + item.price * item.quantity, 0));",
+        "walkthrough": """1. Con due articoli da `10 € × 2` e `5 € × 1`, `subtotal()` deriva `25` da `_items()`.
+2. `itemCount()` produce `3`; non è un secondo contatore da incrementare manualmente.
+3. `add()` sostituisce l'array con una nuova lista. Angular invalida i computed che hanno letto `_items()`; il prossimo accesso ricalcola il risultato.
+4. Rimuovi un articolo aggiornando solo `_items`. Se totale e conteggio cambiano correttamente, lo stato derivato ha una sola fonte di verità.""",
+        "practice": "La pratica breve verifica una derivazione isolata. Nel laboratorio Dashboard prova lista vuota, aggiunta e rimozione con array immutabili, quindi osserva totali e percentuali nel componente reale.",
+    },
+    "Effetti collaterali controllati con effect()": {
+        "intro": "Un valore calcolato appartiene allo stato dell'applicazione; scrivere su `localStorage`, inviare telemetria o aggiornare una libreria esterna è invece un effetto collaterale. Separare le due cose evita che un calcolo apparentemente innocuo inizi richieste o mutazioni.",
+        "model": """### Un calcolo non è un effetto
+Usa `computed` per ricavare il nome visibile da un valore sorgente; usa `effect` quando occorre sincronizzare un'API esterna.
+```typescript
+import { Component, computed, effect, signal } from '@angular/core';
+
+@Component({ selector: 'app-theme', template: '<button (click)="toggle()">{{ themeName() }}</button>' })
+export class ThemeComponent {
+  private readonly dark = signal(false);
+  readonly themeName = computed(() => this.dark() ? 'dark' : 'light');
+
+  constructor() {
+    effect(() => {
+      console.info('Tema selezionato:', this.themeName());
+    });
+  }
+
+  toggle(): void { this.dark.update(value => !value); }
+}
+```
+
+L'effetto viene eseguito almeno una volta e legge `themeName()`, quindi segue le dipendenze lette. Viene creato nel contesto di iniezione del componente e Angular lo distrugge con il componente. Gli effetti sono asincroni nel ciclo di change detection.
+
+Per storage o DOM considera il ciclo di vita del browser: non accedere a `localStorage` durante il rendering server-side. Se l'effetto avvia un timer o una sottoscrizione, registra la pulizia prima della prossima esecuzione o della distruzione. Evita di copiare un Signal in un altro con `effect`: usa `computed` o, per stato derivato che l'utente può anche impostare, valuta `linkedSignal`.""",
+        "example": "effect(() => console.info('Tema selezionato:', themeName()));",
+        "walkthrough": """1. Alla creazione il componente inizializza `dark` a `false`; `computed` ricava `light` senza modificare altri dati.
+2. `effect` legge `themeName()` e registra quella dipendenza; il primo log viene eseguito dal ciclo reattivo di Angular.
+3. Al click, `toggle()` aggiorna solo lo stato sorgente. Il nome derivato cambia e l'effetto sincronizza il log esterno.
+4. Se il componente viene distrutto, il suo effetto viene terminato. Per una risorsa avviata dall'effetto, aggiungi cleanup; per un totale o un'etichetta, resta su `computed`.""",
+        "practice": "L'esercizio riguarda una regola pura di tema; non richiede di copiare `themeName` in un altro Signal. Nel laboratorio usa `effect` soltanto se sincronizzi davvero una risorsa esterna.",
+    },
+    "Integrazione tra Signals e RxJS: toSignal e toObservable": {
+        "intro": "Un Signal risponde bene alla domanda «qual è il valore corrente?». Un Observable descrive valori che possono arrivare nel tempo e compone attese, cancellazioni e trasformazioni. Una ricerca remota mostra perché servono entrambi: l'input è stato corrente, mentre le risposte HTTP formano un flusso asincrono.",
+        "model": """### Sposta la responsabilità quando i dati arrivano dalla rete
+Un contratto piccolo può vivere in `user.model.ts` ed essere riusato dai due file che seguono:
+```typescript
+export type User = { id: number; name: string };
+```
+
+All'inizio una lista locale basta per disegnare il template:
+```typescript
+import { Component, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import type { User } from './user.model';
+
+@Component({ selector: 'app-user-search', template: '' })
+export class UserSearchComponent {
+  readonly users = signal<User[]>([{ id: 1, name: 'Anna' }]);
+  private readonly http = inject(HttpClient);
+
+  load(): void {
+    this.http.get<User[]>('/api/users').subscribe(users => this.users.set(users));
+  }
+}
+```
+Il flusso è valido, ma il componente ora conosce URL, trasporto e aggiornamento dei dati. Un service possiede la responsabilità HTTP; il componente resta interessato al valore e a ciò che mostra. `provideHttpClient()` deve essere registrato in `app.config.ts`, altrimenti l'iniezione fallisce con `NullInjectorError`.
+
+### La richiesta HTTP vive in un service
+```typescript
+// user.service.ts
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import type { User } from './user.model';
+
+@Injectable({ providedIn: 'root' })
+export class UserService {
+  private readonly http = inject(HttpClient);
+
+  search(query: string): Observable<User[]> {
+    return this.http.get<User[]>('/api/users', { params: { q: query } });
+  }
+}
+```
+
+### Nel componente: valore corrente e flusso delle risposte
+```typescript
+// user-search.component.ts
+import { Component, inject, signal } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { catchError, debounceTime, distinctUntilChanged, map, of, startWith, switchMap } from 'rxjs';
+import { UserService } from './user.service';
+import type { User } from './user.model';
+
+type SearchState =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'success'; users: User[] }
+  | { status: 'error'; message: string };
+
+@Component({
+  selector: 'app-user-search',
+  template: `
+    <label>Utente <input #search (input)="setQuery(search.value)" /></label>
+    @let current = state();
+    @switch (current.status) {
+      @case ('loading') { <p role="status">Ricerca in corso…</p> }
+      @case ('error') { <p role="alert">{{ current.message }}</p> }
+      @case ('success') {
+        <ul>
+          @for (user of current.users; track user.id) { <li>{{ user.name }}</li> }
+          @empty { <li>Nessun utente trovato.</li> }
+        </ul>
+      }
+      @default { <p>Inserisci un nome per iniziare.</p> }
+    }
+  `
+})
+export class UserSearchComponent {
+  private readonly users = inject(UserService);
+  readonly query = signal('');
+  readonly state = toSignal(
+    toObservable(this.query).pipe(
+      debounceTime(250),
+      distinctUntilChanged(),
+      switchMap(query => query.trim()
+        ? this.users.search(query).pipe(
+            map(users => ({ status: 'success', users }) as const),
+            startWith({ status: 'loading' } as const),
+            catchError(() => of({ status: 'error', message: 'Ricerca non disponibile' } as const))
+          )
+        : of({ status: 'idle' } as const)
+      )
+    ),
+    { initialValue: { status: 'idle' } as SearchState }
+  );
+
+  setQuery(query: string): void {
+    this.query.set(query);
+  }
+}
+```
+
+`HttpClient` è fornito in `app.config.ts` con `provideHttpClient()`. Il componente dipende da `UserService`, che usa `HttpClient`: la UI non costruisce la richiesta né conosce i dettagli del backend. Il tipo `<User[]>` documenta il JSON atteso, ma non valida a runtime il contenuto ricevuto. `toSignal` sottoscrive nel contesto di iniezione e offre lo stato corrente al template; `switchMap` abbandona la richiesta precedente quando cambia la query. Gli Observable di `HttpClient` sono freddi: la richiesta parte quando qualcuno si sottoscrive.""",
+        "example": "toObservable(this.query).pipe(\n  debounceTime(250),\n  switchMap(query => this.users.search(query))\n)",
+        "walkthrough": """1. La persona digita e `query.set(...)` aggiorna lo stato sorgente. `toObservable` rende le variazioni disponibili al flusso RxJS.
+2. `debounceTime(250)` attende una pausa; `distinctUntilChanged` elimina query consecutive uguali.
+3. `switchMap` chiama il service. Il service usa `HttpClient` per `GET /api/users?q=...`; l'Observable HTTP invia la richiesta quando viene sottoscritto.
+4. La risposta JSON diventa `User[]`, poi uno stato `success` leggibile come `state()` nel template. Nel frattempo appare `loading`; se la richiesta fallisce, il flusso emette `error` senza confonderlo con una lista vuota.""",
+        "practice": "Il mini-runner controlla una trasformazione TypeScript e non avvia HTTP. Nel laboratorio Monorepo verifica il confine reale tra service, backend e template; nel laboratorio JWT osserva invece come l'interceptor modifica la richiesta in uscita e lascia risalire la risposta.",
+        "frame": {"model": "Il valore corrente e gli eventi che arrivano nel tempo", "trace": "Dalla digitazione alla risposta JSON", "diagnosis": "Distingui attesa, risultato vuoto ed errore", "recall": "Quale valore c'è ora e quale arriverà dopo?"},
+    },
+    "Collezioni moderne: List, Dictionary e Array": {
+        "intro": "Un elenco di soggetti va attraversato e ordinato; una ricerca ripetuta per ID richiede invece una struttura pensata per le chiavi. `List<T>` e `Dictionary<TKey, TValue>` sono collezioni generiche: il tipo fra parentesi angolari lega la struttura ai dati ammessi e fa controllare accessi e assegnazioni dal compilatore.",
+        "model": """### Lo stesso dominio, due operazioni diverse
+```csharp
+public sealed record Subject(int Id, string Name);
+
+var subjects = new List<Subject>
+{
+    new(1, "Anna"),
+    new(2, "Luca")
+};
+
+var byId = new Dictionary<int, Subject>
+{
+    [1] = subjects[0],
+    [2] = subjects[1]
+};
+
+if (byId.TryGetValue(2, out var selected))
+{
+    Console.WriteLine(selected.Name);
+}
+```
+
+`List<Subject>` conserva una sequenza attraversabile e modificabile; `Dictionary<int, Subject>` associa chiavi intere a soggetti. `TryGetValue` rappresenta l'assenza come un risultato booleano, senza usare un'eccezione per il caso normale della chiave mancante.
+
+La parte generica `<T>` è un parametro di tipo: `List<Subject>` e `List<string>` riusano la stessa collezione con contratti diversi. Dentro `List<Subject>`, il compilatore sa che ogni elemento ha `Id` e `Name`; non serve convertire da `object` o affidarsi a `dynamic`. Un metodo generico può applicare la stessa operazione a più tipi senza perdere l'informazione sul tipo ricevuto.""",
+        "example": "Dictionary<int, Subject> byId = subjects.ToDictionary(subject => subject.Id);",
+        "walkthrough": """1. `subjects` contiene due record e ne conserva l'ordine di inserimento.
+2. `ToDictionary` estrae ogni `Id` e lo usa come chiave; il valore associato resta un `Subject` completo.
+3. `TryGetValue(2, out var selected)` cerca la chiave. Se esiste, `selected` è un `Subject`; il compilatore controlla l'accesso a `Name`.
+4. Prova l'ID `99`: il metodo restituisce `false` e non entra nel blocco. Scegli List per enumerare una sequenza e Dictionary quando l'operazione centrale è cercare tramite chiave.""",
+        "practice": "Il mini-esercizio usa collezioni C# vere: controlla chiave presente, assente e input vuoto prima di passare al laboratorio CRUD, dove più operazioni condividono lo stesso archivio.",
+    },
+    "Introduzione a EF Core e DbContext": {
+        "intro": "Il database conserva righe e vincoli; il codice C# usa oggetti e proprietà. Entity Framework Core collega i due modelli, ma non nasconde la configurazione del provider, il ciclo di vita della connessione o il momento in cui una modifica viene salvata.",
+        "model": """### Quattro file raccontano il primo passaggio
+```text
+server/Models/Subject.cs       forma dell'entità
+server/Data/AppDbContext.cs    insieme di entità e unità di lavoro
+server/Program.cs              provider, DI ed endpoint
+server/dev48.db                file SQLite creato dal provider
+```
+
+```csharp
+// Models/Subject.cs
+public sealed class Subject
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+}
+
+// Data/AppDbContext.cs
+using Microsoft.EntityFrameworkCore;
+
+public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+{
+    public DbSet<Subject> Subjects => Set<Subject>();
+}
+```
+
+```csharp
+// Program.cs
+using Microsoft.EntityFrameworkCore;
+
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite("Data Source=dev48.db"));
+var app = builder.Build();
+
+app.MapGet("/api/subjects", async (AppDbContext db, CancellationToken ct) =>
+    await db.Subjects.AsNoTracking()
+        .Select(subject => new { subject.Id, subject.Name })
+        .ToListAsync(ct));
+app.Run();
+```
+
+```text
+C# Subject → DbSet / DbContext → provider SQLite → tabella Subjects
+database rows → materializzazione EF Core → oggetti C# → DTO / JSON
+```
+
+`DbSet<Subject>` è l'ingresso tipizzato alla tabella; `DbContext` coordina query e tracking per una unità di lavoro. `AddDbContext` registra normalmente il contesto come Scoped in ASP.NET Core e costruisce le opzioni per richiesta. Il provider esegue SQL sul file SQLite: il contesto non crea né aggiorna lo schema senza una migrazione o un comando esplicito.""",
+        "example": "builder.Services.AddDbContext<AppDbContext>(options =>\n    options.UseSqlite(\"Data Source=dev48.db\"));",
+        "walkthrough": """1. `Program.cs` registra il provider SQLite e le opzioni di `AppDbContext` nel contenitore.
+2. Alla richiesta GET, ASP.NET Core crea lo scope e inietta il contesto nel gestore.
+3. `db.Subjects` costruisce una query. `ToListAsync` la esegue; EF Core traduce le parti supportate in SQL, legge le righe e le proietta nei valori restituiti.
+4. Osserva la query nel log EF Core o nel laboratorio SQLite. Se cambi `Subject` ma non chiami `SaveChangesAsync`, nessuna istruzione di scrittura viene inviata al database.""",
+        "practice": "Il mini-esercizio controlla una stringa di connessione. Nel laboratorio EF configura il provider, genera una migrazione e verifica lettura e scrittura contro SQLite isolato nei test.",
+    },
+    "Modellazione Entità e Relazioni 1:N e N:N": {
+        "intro": "Un soggetto può avere molte misure; molte misure possono riferirsi allo stesso soggetto. Nel database la relazione è memorizzata con chiavi, mentre in C# le navigation property rendono raggiungibili gli oggetti collegati quando EF Core li carica.",
+        "model": """### Prima capisci cardinalità e chiavi
+```text
+Subject 1 ───────── * Measure
+Tag     * ───────── * Subject
+```
+
+`Subject.Id` è la chiave primaria. In `Measure`, `SubjectId` è la foreign key che conserva la relazione; `Measure.Subject` e `Subject.Measures` sono navigation property. Una navigation descrive il collegamento tra oggetti, ma non significa che la riga correlata sia già stata caricata.
+
+```csharp
+public sealed class Subject
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public List<Measure> Measures { get; set; } = [];
+    public List<Tag> Tags { get; set; } = [];
+}
+
+public sealed class Measure
+{
+    public int Id { get; set; }
+    public decimal Value { get; set; }
+    public int SubjectId { get; set; }
+    public Subject Subject { get; set; } = null!;
+}
+
+public sealed class Tag
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public List<Subject> Subjects { get; set; } = [];
+}
+```
+
+Per 1:N EF Core riconosce normalmente la chiave `SubjectId` per convenzione. Per N:N può creare una tabella di join implicita; se la relazione stessa ha dati, come data di assegnazione o autore, modella una join entity esplicita. La Fluent API rende le regole chiare quando i nomi non seguono le convenzioni.""",
+        "example": "modelBuilder.Entity<Subject>()\n    .HasMany(subject => subject.Measures)\n    .WithOne(measure => measure.Subject)\n    .HasForeignKey(measure => measure.SubjectId);",
+        "walkthrough": """1. Una riga `Subject` ha `Id` come chiave primaria; più righe `Measure` possono contenere quel valore in `SubjectId`.
+2. EF Core usa la foreign key per collegare `Measure.Subject` al soggetto e `Subject.Measures` alla collezione inversa.
+3. Per leggere la navigazione nel risultato, chiedi esplicitamente il caricamento, ad esempio con `Include(subject => subject.Measures)`, oppure proietta i campi nella query.
+4. Nel laboratorio salva due misure per lo stesso soggetto, poi prova un riferimento a un ID inesistente. Distingui il comportamento del modello C# dal vincolo di integrità che applica il database.""",
+        "practice": "La pratica breve controlla una relazione isolata. Il laboratorio usa proprio Subject e Measure: aggiungi test che leggono il dato correlato dal database SQLite, non soltanto una property in memoria.",
+    },
+    "Query con LINQ su Database: Tracking e AsNoTracking": {
+        "intro": "Quando EF Core materializza un'entità tracciata, il `DbContext` conserva i valori originali e può riconoscere le modifiche successive. Per una schermata di sola lettura, `AsNoTracking` evita quel lavoro; dopo aver scelto, il codice deve essere coerente con il fatto che la modifica verrà o non verrà salvata.",
+        "model": """### Guarda lo stato dell'entità
+```csharp
+var subject = await db.Subjects.SingleAsync(item => item.Id == id, cancellationToken);
+Console.WriteLine(db.Entry(subject).State); // Unchanged
+
+subject.Name = "Marco";
+db.ChangeTracker.DetectChanges();
+Console.WriteLine(db.Entry(subject).State); // Modified
+
+await db.SaveChangesAsync(cancellationToken); // UPDATE ...
+Console.WriteLine(db.Entry(subject).State); // Unchanged
+```
+
+Una query di entità è tracked per default. Il contesto mantiene la stessa istanza e rileva che `Name` è cambiato. Dopo `SaveChangesAsync`, EF Core invia l'aggiornamento e accetta i valori come nuova base.
+
+Per una lettura che non verrà modificata nello stesso contesto:
+```csharp
+var rows = await db.Subjects
+    .AsNoTracking()
+    .Where(subject => subject.Name.StartsWith("A"))
+    .Select(subject => new SubjectRow(subject.Id, subject.Name))
+    .ToListAsync(cancellationToken);
+
+public sealed record SubjectRow(int Id, string Name);
+```
+
+Questo risultato non viene registrato nel Change Tracker. Modificare l'oggetto materializzato e chiamare `SaveChangesAsync` non lo aggiorna. Le proiezioni in DTO sono spesso adatte alle API read-only; il vantaggio prestazionale di `AsNoTracking` dipende dalla query e va misurato.""",
+        "example": "var subject = await db.Subjects.SingleAsync(item => item.Id == id, cancellationToken);\ndb.ChangeTracker.DetectChanges();\nsubject.Name = \"Marco\";\nawait db.SaveChangesAsync(cancellationToken);",
+        "walkthrough": """1. La query tracked materializza il soggetto e il suo stato iniziale è `Unchanged`.
+2. L'assegnazione `Name = "Marco"` cambia l'oggetto in memoria; EF rileva `Modified` quando aggiorna lo stato.
+3. `SaveChangesAsync` traduce la differenza in un `UPDATE` e dopo il salvataggio lo stato torna `Unchanged`.
+4. Ripeti la query con `AsNoTracking`. Il soggetto torna leggibile, ma una modifica successiva non produce un `UPDATE` da quel contesto. Scegli in base all'uso successivo, non al verbo HTTP.""",
+        "practice": "L'esercizio breve classifica la politica di tracking; nel laboratorio modifica un'entità letta dal contesto e verifica il database dopo `SaveChangesAsync`, poi confronta una proiezione read-only.",
+    },
+    "Scrittura atomica, Transazioni e SaveChangesAsync": {
+        "intro": "Aggiungere un oggetto al contesto cambia prima lo stato in memoria. Il database viene coinvolto quando chiami `SaveChangesAsync`: capire il confine fra queste due fasi aiuta a diagnosticare perché una modifica non è persistita o perché un gruppo di operazioni è stato confermato insieme.",
+        "model": """### Traccia un inserimento
+```csharp
+var measure = new Measure { SubjectId = subjectId, Value = 12.5m };
+db.Measures.Add(measure);
+
+Console.WriteLine(db.Entry(measure).State); // Added; non è ancora stato inserito
+var recordsAffected = await db.SaveChangesAsync(cancellationToken);
+Console.WriteLine(db.Entry(measure).State); // Unchanged dopo il successo
+Console.WriteLine(measure.Id);              // chiave generata dal provider
+```
+
+`Add` registra l'entità nel Change Tracker; la chiamata a `SaveChangesAsync` invia gli INSERT/UPDATE/DELETE pendenti. Con un provider relazionale, una singola chiamata usa normalmente una transazione, quindi le modifiche di quella chiamata vengono applicate insieme. `recordsAffected` è il numero di voci di stato scritte, non una misura del tempo né un ID.
+
+Se un caso d'uso deve salvare in più chiamate o coordinare operazioni che la chiamata singola non include, apri una transazione esplicita con `Database.BeginTransactionAsync`, esegui il lavoro e conferma con `CommitAsync`; in caso di eccezione, la disposizione della transazione la annulla. Gestisci anche i conflitti di concorrenza: atomicità non significa che nessun altro possa aver modificato i dati.""",
+        "example": "db.Measures.Add(measure);\nvar savedEntries = await db.SaveChangesAsync(cancellationToken);",
+        "walkthrough": """1. `Add(measure)` porta l'entità allo stato `Added` nel contesto; osserva che la riga non è ancora nel database.
+2. `SaveChangesAsync` invia l'INSERT. Il provider può valorizzare `measure.Id` con la chiave generata.
+3. Se la chiamata riesce, il metodo restituisce il numero di entry scritte e il contesto accetta lo stato come `Unchanged`.
+4. Prova un vincolo non valido e osserva l'eccezione. Poi raggruppa le modifiche prima della singola chiamata; usa una transazione esplicita solo quando l'unità di lavoro attraversa più salvataggi.""",
+        "practice": "La pratica breve interpreta il numero restituito da `SaveChangesAsync`; nel laboratorio verifica che il dato esista con una query dopo il commit, non solo che `Add` sia stato chiamato.",
+    },
+    "Reactive Forms: FormGroup e FormControl": {
+        "intro": "Per inviare un profilo servono nome, email ed età. Il form deve ricordare il valore corrente di ogni campo, sapere se l'utente l'ha toccato o modificato e decidere se i dati sono validi; `FormControl` modella un campo e `FormGroup` aggrega l'intero modulo.",
+        "model": """### Il modello del form vive nel componente
+```typescript
+import { Component, inject } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+
+@Component({
+  selector: 'app-profile-form',
+  imports: [ReactiveFormsModule],
+  template: `
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label>Nome <input formControlName="name" /></label>
+      @if (form.controls.name.touched && form.controls.name.hasError('required')) {
+        <p>Inserisci il nome.</p>
+      }
+
+      <label>Email <input type="email" formControlName="email" /></label>
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <p>Controlla l'indirizzo email.</p>
+      }
+
+      <label>Età <input type="number" formControlName="age" /></label>
+      <button type="submit" [disabled]="form.invalid">Salva</button>
+    </form>
+  `
+})
+export class ProfileFormComponent {
+  private readonly fb = inject(FormBuilder);
+  readonly form = this.fb.nonNullable.group({
+    name: ['', Validators.required],
+    email: ['', [Validators.required, Validators.email]],
+    age: [18, [Validators.min(18)]]
+  });
+
+  submit(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+    const profile = this.form.getRawValue();
+    // Invia profile al servizio, poi mostra successo o errore.
+  }
+}
+```
+
+`ReactiveFormsModule` fornisce le direttive del template e va inserito negli `imports` standalone. `value` contiene i dati; `valid`/`invalid` sintetizzano i validator; `touched` indica che il focus è entrato ed è uscito dal controllo; `dirty` indica una modifica rispetto al valore iniziale; `pending` segnala una validazione asincrona in corso. Questi stati permettono di mostrare il messaggio nel momento utile, non al primo rendering.
+
+### Un'alternativa per i nuovi progetti signal-based
+Da Angular 22, Signal Forms è stabile e inclusa nel pacchetto `@angular/forms`. Il modello dati diventa un Signal; `form()` costruisce la struttura dei campi e `FormField` la collega ai controlli:
+```typescript
+import { Component, signal } from '@angular/core';
+import { email, form, FormField, required } from '@angular/forms/signals';
+
+@Component({
+  selector: 'app-signal-login',
+  imports: [FormField],
+  template: `<label>Email <input type="email" [formField]="loginForm.email" /></label>`
+})
+export class SignalLoginComponent {
+  readonly model = signal({ email: '' });
+  readonly loginForm = form(this.model, path => {
+    required(path.email);
+    email(path.email);
+  });
+}
+```
+Reactive Forms resta stabile ed è una scelta solida, soprattutto per codice esistente o form complessi. Questo percorso insegna quel modello e il laboratorio lo applica; Signal Forms è una panoramica per confrontare i flussi, non un secondo esercizio da completare. [Confronto ufficiale Angular](https://angular.dev/guide/forms/signals/comparison).""",
+        "example": "readonly form = this.fb.nonNullable.group({\n  name: ['', Validators.required],\n  email: ['', [Validators.required, Validators.email]],\n  age: [18, Validators.min(18)]\n});",
+        "walkthrough": """1. All'avvio `name` ed `email` sono vuoti: i controlli sono invalidi, ma `touched` è `false`, quindi gli errori non disturbano prima dell'interazione.
+2. L'utente entra nel campo e poi lo lascia: `touched` diventa `true`; se manca il nome, il template mostra il messaggio richiesto.
+3. Quando inserisce un'email valida e un'età di almeno 18, i controlli diventano validi e il gruppo aggrega `form.valid === true`. Una verifica remota aggiungerà `pending` mentre aspetta il server.
+4. Il submit legge `getRawValue()` solo quando il form è valido. Se il server rifiuta la richiesta, mostra l'errore vicino al form e riattiva il pulsante; non interpretare un errore di rete come validità.""",
+        "example_language": "typescript",
+        "practice": "La funzione breve verifica soltanto una regola TypeScript e non istanzia Angular Forms. Il laboratorio collega validator, touched/pending e invio al modello reale del form e ai test TestBed.",
+    },
+    "Angular Router moderno e Lazy Loading": {
+        "intro": "In una SPA, l'indirizzo del browser cambia senza ricaricare tutta la pagina. Il Router confronta l'URL con una route, crea il componente corrispondente e lo inserisce nel punto `router-outlet` dichiarato dal layout.",
+        "model": """### URL, route e componente
+```text
+URL browser: /users/42?tab=measures
+        ↓ provideRouter(routes)
+match: path users/:id, parametro id = 42
+        ↓ loadComponent()
+UserDetailComponent
+        ↓
+<router-outlet> nel componente radice
+```
+
+```typescript
+// src/app/app.routes.ts
+import { Routes } from '@angular/router';
+
+export const routes: Routes = [
+  { path: '', redirectTo: 'users', pathMatch: 'full' },
+  {
+    path: 'users/:id',
+    loadComponent: () => import('./user-detail.component').then(m => m.UserDetailComponent)
+  },
+  { path: '**', loadComponent: () => import('./not-found.component').then(m => m.NotFoundComponent) }
+];
+```
+
+Nel layout importa `RouterOutlet` e `RouterLink`; `provideRouter(routes)` va registrato nei provider applicativi. Il `:id` identifica la risorsa nel percorso; `tab=measures` è query string e può rappresentare un filtro o una scheda. `routerLink` naviga senza ricaricare il documento. `loadComponent` ritarda il caricamento del componente quando la route viene richiesta.
+
+Una route guard può fermare o reindirizzare la navigazione locale; non sostituisce l'autorizzazione dell'API. La rotta wildcard si mette dopo le rotte più specifiche per fungere da pagina non trovata.""",
+        "example": "{ path: 'users/:id', loadComponent: () => import('./user-detail.component').then(m => m.UserDetailComponent) }",
+        "walkthrough": """1. L'URL `/users/42?tab=measures` rimane nella barra del browser mentre il Router prova le route configurate.
+2. `users/:id` corrisponde al percorso e fornisce `id = 42`; la query `tab` è un dato facoltativo distinto dal path.
+3. Il Router carica il file `user-detail.component.ts` quando serve, crea `UserDetailComponent` e lo inserisce nel `router-outlet`.
+4. Naviga a `/users/99` con `routerLink` e poi cambia `tab` con `router.navigate`. L'app aggiorna la vista senza ricaricare l'intero documento.""",
+        "example_language": "typescript",
+        "practice": "La funzione breve costruisce un URL di dettaglio. Nel laboratorio Router verifica configurazione, outlet, route lazy e navigazione anonima/autorizzata; la lezione successiva spiega la guard e i suoi limiti.",
+    },
+    "Organizzazione Monorepo: client/ e server/": {
+        "intro": "Mettere Angular e ASP.NET Core nello stesso repository facilita modifiche coordinate, ma i due programmi restano processi distinti. Il confine che li collega è HTTP: un tipo TypeScript non diventa automaticamente un tipo C# e i dati attraversano la rete come JSON.",
+        "model": """### La stessa lista di utenti attraversa i due progetti
+```text
+UserListComponent (stato e template Angular)
+  ↓
+UserService (responsabilità API lato client)
+  ↓ HttpClient GET /api/users
+ASP.NET Core route handler
+  ↓ DbContext / EF Core
+SQLite: tabella Users
+  ↑ righe → proiezione UserResponse[]
+JSON HTTP 200
+  ↑ Observable<UserDto[]> → stato del componente
+template: lista, caricamento, vuoto o errore
+```
+
+Percorsi essenziali:
+```text
+client/src/app/users/user.service.ts
+client/src/app/users/user-list.component.ts
+server/Program.cs
+server/Data/AppDbContext.cs
+server/Services/UserService.cs
+server/DTOs/UserResponse.cs
+```
+
+Il route handler delega il caso d'uso a un servizio applicativo. Il servizio legge dal database e proietta un DTO, così il client non riceve tutte le proprietà dell'entity:
+```csharp
+// Program.cs
+builder.Services.AddScoped<UserService>(); // AppDbContext è già registrato con AddDbContext.
+app.MapGet("/api/users", (UserService users, CancellationToken ct) =>
+    users.ListAsync(ct));
+
+// Services/UserService.cs
+using Microsoft.EntityFrameworkCore;
+
+public sealed class UserService(AppDbContext db)
+{
+    public Task<List<UserResponse>> ListAsync(CancellationToken ct) =>
+        db.Users.AsNoTracking()
+            .OrderBy(user => user.Name)
+            .Select(user => new UserResponse(user.Id, user.Name))
+            .ToListAsync(ct);
+}
+
+// DTOs/UserResponse.cs
+public sealed record UserResponse(int Id, string Name);
+```
+
+Il service Angular richiede lo stesso percorso e dichiara il contratto che si aspetta:
+```typescript
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+export type UserDto = { id: number; name: string };
+
+@Injectable({ providedIn: 'root' })
+export class UserService {
+  private readonly http = inject(HttpClient);
+  list(): Observable<UserDto[]> { return this.http.get<UserDto[]>('/api/users'); }
+}
+```
+
+Il componente si occupa della presentazione e del ciclo di caricamento. Questi estratti vivono in `user-list.component.ts`:
+```typescript
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { UserService, type UserDto } from './user.service';
+
+type LoadState = 'loading' | 'success' | 'error';
+
+@Component({
+  selector: 'app-user-list',
+  standalone: true,
+  template: `
+    @if (state() === 'loading') { <p role="status">Caricamento…</p> }
+    @if (state() === 'error') { <p role="alert">Impossibile caricare gli utenti.</p> }
+    @if (state() === 'success') {
+      <ul>
+        @for (user of users(); track user.id) { <li>{{ user.name }}</li> }
+        @empty { <li>Nessun utente presente.</li> }
+      </ul>
+    }
+  `
+})
+export class UserListComponent implements OnInit {
+  private readonly userService = inject(UserService);
+  readonly state = signal<LoadState>('loading');
+  readonly users = signal<UserDto[]>([]);
+
+  ngOnInit(): void {
+    this.userService.list().subscribe({
+      next: users => { this.users.set(users); this.state.set('success'); },
+      error: () => this.state.set('error')
+    });
+  }
+}
+```
+
+Il tipo generico aiuta il compilatore, ma non convalida il JSON a runtime. Il serializer web di ASP.NET Core rende normalmente `Id` e `Name` come `id` e `name`; client e server devono accordarsi su path, status, nomi e forme dei dati. OpenAPI o test di contratto possono rendere verificabile quell'accordo. In sviluppo, usa un proxy oppure configura CORS se le origini differiscono.""",
+        "example": "GET /api/users → JSON 200 → Observable<UserDto[]> → stato del componente → template",
+        "walkthrough": """1. Il componente chiama `UserService.list()`; il service restituisce l'Observable di `HttpClient`, che descrive la richiesta.
+2. Quando il componente si sottoscrive, il browser invia `GET /api/users` al processo ASP.NET Core. Un proxy può inoltrare l'origine locale; altrimenti il browser applica la policy CORS.
+3. Il route handler usa il `DbContext`, EF Core interroga SQLite, proietta righe in `UserResponse` e ASP.NET Core serializza il DTO in JSON con status `200`.
+4. Il client riceve il JSON e aggiorna loading/success/error. Se il server rinomina `Name` senza adeguare il contratto, TypeScript non corregge la risposta: osserva il payload nel pannello Network e aggiorna DTO o API in modo coordinato.""",
+        "example_language": "text",
+        "practice": "Il laboratorio Monorepo completa la GET in `SubjectsService`, poi aggiunge form e azioni UI per il CRUD. Prova un ciclo dal browser: i test separati di client e server non dimostrano da soli che entrambi i processi comunichino.",
+        "frame": {"model": "Il confine HTTP collega due applicazioni", "trace": "Dal click al database e ritorno", "diagnosis": "Trova il primo punto in cui il dato cambia forma", "recall": "Quale processo possiede ciascun passaggio?"},
+    },
+    "Test unitari in C# con xUnit": {
+        "intro": "Un metodo di servizio contiene una regola che deve restare vera quando il codice cambia. Un test unitario prepara dipendenze controllabili, invoca una sola operazione e confronta il risultato; quando la domanda riguarda invece routing, binding e status HTTP, serve una prova d'integrazione che avvii la pipeline.",
+        "model": """### Un test unitario di servizio
+```csharp
+using System.Collections.Generic;
+using System.Linq;
+
+public sealed record OrderLine(int Price, int Quantity);
+
+public sealed class OrderTotalService
+{
+    public int Calculate(IEnumerable<OrderLine> lines) =>
+        lines.Sum(line => line.Price * line.Quantity);
+}
+```
+
+```csharp
+using Xunit;
+
+public sealed class OrderTotalServiceTests
+{
+    [Theory]
+    [InlineData(10, 2, 20)]
+    [InlineData(0, 3, 0)]
+    public void Calculate_ReturnsTheSum(int price, int quantity, int expected)
+    {
+        // Arrange
+        var service = new OrderTotalService();
+        var lines = new[] { new OrderLine(price, quantity) };
+
+        // Act
+        var total = service.Calculate(lines);
+
+        // Assert
+        Assert.Equal(expected, total);
+    }
+}
+```
+
+`[Fact]` rappresenta un caso nominato; `[Theory]` ripete la stessa regola con più righe di dati. Arrange prepara, Act esegue, Assert verifica: se l'asserzione fallisce, il test indica quale comportamento è cambiato.
+
+### Una prova d'integrazione per la pipeline HTTP
+Per verificare che l'endpoint trasformi davvero una richiesta in `404`, il progetto di test può usare `Microsoft.AspNetCore.Mvc.Testing` e `WebApplicationFactory<Program>`. Dalla cartella `tests/` aggiungi il pacchetto e un riferimento al progetto API:
+```powershell
+dotnet add package Microsoft.AspNetCore.Mvc.Testing --version 10.0.12
+dotnet add reference ../server/Server.csproj
+```
+Con le istruzioni top-level, rendi accessibile il punto d'ingresso aggiungendo questa riga alla fine di `server/Program.cs`:
+```csharp
+public partial class Program { }
+```
+
+Il codice seguente va invece in `tests/SubjectEndpointTests.cs`:
+```csharp
+using System.Net;
+using System.Net.Http;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Xunit;
+
+public sealed class SubjectEndpointTests : IClassFixture<WebApplicationFactory<Program>>
+{
+    private readonly HttpClient client;
+    public SubjectEndpointTests(WebApplicationFactory<Program> factory) => client = factory.CreateClient();
+
+    [Fact]
+    public async Task MissingSubject_ReturnsNotFound()
+    {
+        // Arrange: il client punta all'host di test in memoria.
+        // Act
+        var response = await client.GetAsync("/api/subjects/999");
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+}
+```
+
+Un test unitario non apre un server e può usare dipendenze controllabili; il test d'integrazione esegue routing, binding, middleware e endpoint in un host di test. Se l'endpoint usa un database, sostituiscilo con un archivio isolato per il test. Usa la prova più piccola che risponde alla domanda e aggiungi la persistenza solo quando è parte del comportamento da verificare.""",
+        "example": "var total = new OrderTotalService().Calculate(new[] { new OrderLine(10, 2) });\nAssert.Equal(20, total);",
+        "walkthrough": """1. Arrange crea il servizio e una riga con prezzo `10` e quantità `2`.
+2. Act chiama `Calculate` una volta; il metodo moltiplica prezzo e quantità e restituisce `20`.
+3. Assert confronta il risultato con l'atteso. Se un difetto restituisce `10`, il test fallisce mostrando atteso ed effettivo.
+4. La seconda riga della Theory copre quantità con prezzo zero. Per l'endpoint, invia invece una vera GET a `WebApplicationFactory` e verifica status e body senza dipendere da una porta locale.""",
+        "practice": "La pratica breve del laboratorio inizia da un caso limite che fallisce. Correggi il metodo senza cambiare l'atteso; poi aggiungi una prova d'integrazione solo per i comportamenti che attraversano davvero la pipeline ASP.NET Core.",
+    },
+    "Testare componenti Angular con Vitest e TestBed": {
+        "intro": "Un componente Angular dipende da template, injector e ciclo di rendering. Costruirlo con `new` non prepara queste parti: `TestBed` configura il contesto, `ComponentFixture` guida il rendering e il test osserva ciò che compare nel DOM dopo un'azione.",
+        "model": """### Il test segue l'uso della persona
+Componente standalone:
+```typescript
+@Component({
+  selector: 'app-counter',
+  template: '<p data-count>{{ count() }}</p><button (click)="increment()">Aggiungi</button>'
+})
+export class CounterComponent {
+  readonly count = signal(0);
+  increment(): void { this.count.update(value => value + 1); }
+}
+```
+
+Spec eseguita da Vitest:
+```typescript
+import { TestBed } from '@angular/core/testing';
+import { CounterComponent } from './counter.component';
+
+describe('CounterComponent', () => {
+  it('mostra il conteggio dopo un click', async () => {
+    // Arrange: prepara import Angular e crea l'istanza.
+    await TestBed.configureTestingModule({ imports: [CounterComponent] }).compileComponents();
+    const fixture = TestBed.createComponent(CounterComponent);
+    fixture.detectChanges();
+
+    // Act
+    (fixture.nativeElement.querySelector('button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    // Assert: controlla il risultato visibile.
+    expect(fixture.nativeElement.querySelector('[data-count]').textContent).toContain('1');
+  });
+});
+```
+
+`TestBed` crea il contesto d'iniezione e risolve i componenti dichiarati in `imports`; `createComponent` restituisce fixture e istanza; `detectChanges()` applica lo stato al DOM. Se il componente usa un service, fornisci un mock con `providers` e osserva l'effetto dell'azione, non un dettaglio privato.""",
+        "example": "fixture.nativeElement.querySelector('button').click();\nfixture.detectChanges();\nexpect(fixture.nativeElement.textContent).toContain('1');",
+        "walkthrough": """1. Arrange importa il componente standalone nel modulo di test e crea una fixture.
+2. Il primo `detectChanges()` renderizza il valore iniziale e collega l'handler del pulsante.
+3. Act clicca il pulsante: il metodo aggiorna il Signal; un nuovo ciclo applica il testo aggiornato al DOM.
+4. Assert cerca `1` nell'elemento visibile. Se il test osserva ancora `0`, controlla prima evento, Signal e ciclo di rendering; se usa un service, verifica che il provider di test sia stato registrato.""",
+        "example_language": "typescript",
+        "practice": "Nel laboratorio TestBed verifica il DOM dopo un'interazione e aggiungi un caso che riproduce il difetto iniziale. Il runner dell'esercizio breve non compila il template Angular.",
+    },
+    "Principi SOLID applicati allo sviluppo Full-Stack": {
+        "intro": "Una rotta che valida, interroga EF Core, calcola lo sconto e invia email può funzionare finché nessun requisito cambia. Quando la regola dello sconto cambia, il database o il provider email può far fallire la stessa classe per motivi indipendenti: SOLID aiuta a individuare questi accoppiamenti e a scioglierli dove dà un beneficio concreto.",
+        "model": """### Prima: una classe con troppe ragioni per cambiare
+```csharp
+public sealed class OrderEndpoint(AppDbContext db, IEmailSender email)
+{
+    public async Task<IResult> Create(CreateOrderRequest request, CancellationToken ct)
+    {
+        if (request.Lines.Count == 0) return Results.BadRequest();
+        var total = request.Lines.Sum(line => line.Price * line.Quantity);
+        var order = new Order { Total = total };
+        db.Orders.Add(order);
+        await db.SaveChangesAsync(ct);
+        await email.SendAsync(request.Email, $"Ordine {order.Id} creato", ct);
+        return Results.Created($"/api/orders/{order.Id}", new OrderResponse(order.Id, total));
+    }
+}
+```
+
+Questa classe conosce trasporto HTTP, validazione, calcolo, EF Core, email e risposta. Una modifica al contratto HTTP o al provider di email tocca lo stesso flusso, e per testare il totale serve costruire dipendenze non pertinenti.
+
+### Dopo: le dipendenze seguono le responsabilità
+```text
+POST endpoint → RegisterOrder (caso d'uso)
+                  ├─ IOrderRepository
+                  ├─ IDiscountPolicy
+                  └─ INotificationSender
+Infrastructure implementa le interfacce con EF Core e il provider email
+```
+
+Ora il caso d'uso coordina la regola; il repository persiste e il sender notifica. Una nuova policy implementa `IDiscountPolicy` senza infilare un altro ramo nella rotta. Per un'applicazione piccola puoi mantenere i tipi nello stesso progetto e separare solo le responsabilità che hanno motivi reali per cambiare.""",
+        "example": "public interface IDiscountStrategy { decimal Apply(decimal price); }\npublic sealed class HalfPriceDiscount : IDiscountStrategy { public decimal Apply(decimal price) => price * 0.5m; }",
+        "walkthrough": """1. Nell'endpoint iniziale una richiesta HTTP attiva validazione, calcolo, accesso al database, email e serializzazione.
+2. SRP separa le responsabilità che cambiano per ragioni diverse; non significa creare una classe per ogni riga.
+3. OCP e DIP emergono quando la rotta dipende da un contratto e una nuova policy può sostituire l'implementazione senza modificare il chiamante.
+4. Prima di estrarre un layer, chiedi quale variazione o test diventerebbe più semplice. Verifica che un sostituto rispetti davvero lo stesso comportamento: è la parte pratica di Liskov.""",
+        "practice": "La pratica chiede una strategia di sconto intercambiabile. Nel laboratorio portfolio applica la separazione soltanto dove endpoint, regole e infrastruttura oggi si ostacolano nei test o nelle modifiche.",
+    },
+    "Architettura Pulita: separazione di Domain, Application e API": {
+        "intro": "Se il dominio importa EF Core, un cambio del database si propaga alle regole che dovrebbero restare stabili. Clean Architecture rende esplicita la direzione delle dipendenze: il codice esterno può conoscere i contratti interni, mentre il nucleo non conosce framework e adapter.",
+        "model": """### Dipendenze nel progetto, dati nella richiesta
+```text
+src/
+  Domain/          Subject, regole e invarianti
+  Application/     RegisterSubject, ISubjectRepository
+  Infrastructure/  AppDbContext, repository EF Core
+  Api/             route handler e composizione DI
+```
+
+```text
+Runtime:   HTTP → API → Application → Domain
+                         ↓ contratto
+                     repository
+                         ↑ implementato da
+Build-time: Infrastructure → Application / Domain
+            Api → Application / Infrastructure (composition root)
+```
+
+Application dichiara la porta che le serve; Infrastructure dipende da quel contratto e lo realizza con EF Core. L'API è il composition root: registra l'implementazione e traduce la richiesta HTTP in una chiamata al caso d'uso. Angular resta un processo separato e comunica con l'API via HTTP, non è un assembly del Domain.
+
+La stessa idea può iniziare con quattro cartelle in un solo progetto. Dividere subito una piccola app in molti progetti aggiunge riferimenti e configurazione; fallo quando le dipendenze o i test diventano più chiari grazie al confine.""",
+        "example": "POST /api/subjects → RegisterSubject → ISubjectRepository\nEF Core repository → SQLite",
+        "walkthrough": """1. API riceve JSON e costruisce un comando per `RegisterSubject`.
+2. Application applica il caso d'uso e dipende dall'interfaccia `ISubjectRepository`, dichiarata verso il centro.
+3. Il contenitore DI in Api fornisce l'implementazione Infrastructure; questa usa `DbContext` per salvare.
+4. Verifica i riferimenti fra progetti: se `Domain` importa ASP.NET Core o EF Core, il dettaglio esterno è entrato nel nucleo. Se l'app è piccola, prima dimostra il valore del confine con test semplici.""",
+        "example_language": "text",
+        "practice": "La verifica dell'esercizio riguarda soltanto le dipendenze consentite. Nel portfolio, annota quale modifica rende più semplice questa separazione e quale costo di configurazione introduce.",
+    },
+    "Progettazione dell'esperienza utente e feedback visivo": {
+        "intro": "Un click che avvia una richiesta non produce subito un risultato. Se la vista non cambia, la persona può cliccare ancora; se il server rifiuta, lasciare il pulsante disabilitato sembra un blocco. La UI deve rappresentare l'intero ciclo, non soltanto il successo.",
+        "model": """### Stati osservabili dal template
+```typescript
+import { signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+
+type SaveState = 'idle' | 'loading' | 'success' | 'error';
+readonly state = signal<SaveState>('idle');
+
+// Estratto del componente: il service e il form sono già stati iniettati.
+async save(): Promise<void> {
+  this.state.set('loading');
+  try {
+    await firstValueFrom(this.subjectsService.save(this.form.getRawValue()));
+    this.state.set('success');
+  } catch {
+    this.state.set('error');
+  }
+}
+```
+
+Poiché `HttpClient` restituisce un Observable, `firstValueFrom` lo attende come Promise; in una UI reattiva puoi invece gestire la richiesta con `subscribe` o convertirla nello stato del template.
+
+```html
+<button [disabled]="state() === 'loading'" (click)="save()">
+  @if (state() === 'loading') { <span>Salvataggio…</span> }
+  @else { <span>Salva</span> }
+</button>
+@if (state() === 'success') { <p role="status">Modifiche salvate.</p> }
+@if (state() === 'error') { <p role="alert">Salvataggio non riuscito. Riprova.</p> }
+```
+
+Il template disabilita il doppio invio durante l'attesa e rende visibile la conclusione. Collega gli errori di validazione del server ai campi; un errore di rete deve lasciare i dati ripristinabili. Usa `role="status"` per un aggiornamento informativo e `role="alert"` per un errore che richiede attenzione.""",
+        "example": "state.set('loading');\ntry { await service.save(value); state.set('success'); }\ncatch { state.set('error'); }",
+        "walkthrough": """1. Al click, lo stato passa da `idle` a `loading`; il pulsante si disabilita e mostra l'attesa.
+2. Quando l'API risponde con successo, la lista si aggiorna e il template annuncia il completamento.
+3. Se la richiesta fallisce, il `catch` porta lo stato a `error`; il pulsante si riattiva e un messaggio spiega come proseguire.
+4. Prova una rete lenta, una risposta 400 di validazione, un errore 500 e un doppio click. Verifica tastiera e annunci screen reader oltre all'aspetto visivo.""",
+        "practice": "La funzione breve modella solo le transizioni di stato. Nel laboratorio Monorepo e nel portfolio prova il flusso con richieste HTTP riuscite e fallite e conserva il form in caso di errore.",
+    },
+}
 
 
 def lesson_markdown(
@@ -3637,80 +5187,80 @@ def lesson_markdown(
     study_context: str,
     practice_context: str,
 ) -> str:
-    concept_items = [f"- `{x.strip()}`" for x in concepts.split(";")]
-    concept_list = "\n".join(concept_items)
+    chapter = CHAPTER_OVERRIDES.get(title, {})
+    simple_explanation = chapter.get("intro", simple_explanation)
+    syntax_anatomy = chapter.get("model", syntax_anatomy)
+    example = chapter.get("example", example)
+    guided_walkthrough = chapter.get("walkthrough", guided_walkthrough)
+    pitfalls = chapter.get("pitfalls", pitfalls)
+    review_question = chapter.get("review", review_question)
+    practice_context = chapter.get("practice", practice_context)
     pitfall_items = [f"- {x.strip()}" for x in pitfalls.split(";")]
     pitfalls_list = "\n".join(pitfall_items)
-    example_lang = infer_code_language(example)
+    example_lang = chapter.get("example_language", infer_code_language(example))
     pattern_lang = infer_code_language(pattern_guide)
+    frame = {**EDITORIAL_FRAMES[module[:2]], **chapter.get("frame", {})}
     # Early practice has a nearby syntax reference. Later modules rely on the
     # worked framework example and the exercise's own starter, so the lesson
     # does not reveal the short exercise's implementation before the attempt.
-    show_pattern = module[:2] in {"00", "01", "02", "03", "04", "05"} or title in {
+    show_pattern = title not in CHAPTER_OVERRIDES and (
+        module[:2] in {"00", "01", "02", "03", "04", "05"} or title in {
         "Principi SOLID applicati allo sviluppo Full-Stack",
         "Architettura Pulita: separazione di Domain, Application e API",
-    }
+        }
+    )
     pattern_block = f"```{pattern_lang}\n{pattern_guide}\n```" if show_pattern else ""
+    pattern_heading = f"## {frame['pattern']}" if pattern_block else ""
 
     markdown = f"""# {title}
-
-## In parole semplici
-
-L'obiettivo di questa lezione è {summary[0].lower() + summary[1:]}
 
 {simple_explanation}
 
 {study_context}
 
-## Le parole da riconoscere
-
-{concept_list}
-
-## Anatomia e Sintassi del Codice
+## {frame['model']}
 
 {syntax_anatomy}
 
-## Un esempio concreto
+## {frame['trace']}
 
 ```{example_lang}
 {example}
 ```
 
-### Seguilo passo per passo
+### {frame['walkthrough']}
 
 {guided_walkthrough}
 
-## Pattern Guida per gli Esercizi
+{pattern_heading}
 
 {practice_context}
 
 {pattern_block}
 
-## Dove ci si confonde spesso
+## {frame['diagnosis']}
 
 {pitfalls_list}
 
-## Domanda di verifica
-
-> {review_question}
+> **{frame['recall']}** {review_question}
 
 """
     return re.sub(r"\n{3,}", "\n\n", markdown).rstrip() + "\n"
 
 
 LABS_DATA = [
-    ("lab-net-csharp-crud", "01_csharp", "CRUD in memoria con C# e LINQ", 75, "Implementa un archivio in memoria con ricerca, aggiornamento, rimozione, validazione e test unitari.", "dotnet"),
-    ("lab-ts-angular-models", "02_typescript", "Modelli TypeScript e Contratti Web", 45, "Progetta un set completo di interfacce e union discriminate per un'applicazione di gestione ordini.", "angular"),
-    ("lab-aspnet-minimal-api", "03_aspnet_api", "Web API con Minimal API e DTO", 60, "Costruisci da zero un servizio RESTful con Minimal API, dependency injection e validazione DTO.", "dotnet"),
-    ("lab-angular-standalone", "04_angular_core", "Catalogo Standalone con Control Flow", 65, "Sviluppa una pagina catalogo con i nuovi blocchi @if, @for (track) e visualizzazione a schede.", "angular"),
-    ("lab-angular-signals-state", "05_angular_signals", "Dashboard Reattiva con Angular Signals", 70, "Costruisci una dashboard di metriche che calcola totali e percentuali tramite computed(); usa effect solo per sincronizzare risorse esterne quando serve.", "angular"),
-    ("lab-efcore-sqlite-db", "06_efcore", "Persistenza con EF Core e SQLite", 75, "Configura DbContext, relazioni 1:N tra soggetti e misure, e crea e applica migrazioni dalla CLI in sviluppo locale.", "dotnet"),
-    ("lab-angular-reactive-forms", "07_angular_forms_routing", "Form Reattivo con Validazione Remota", 70, "Implementa un form Angular completo di controlli, validatori sincroni e verifica asincrona.", "angular"),
-    ("lab-angular-routing-guard", "07_angular_forms_routing", "Navigazione SPA e Route Guard Funzionali", 60, "Configura le rotte con lazy-loading e proteggi le pagine sensibili con canActivateFn.", "angular"),
-    ("lab-fullstack-jwt-auth", "08_security_fullstack", "Autenticazione JWT Full-Stack", 90, "Genera token Bearer nel backend ASP.NET Core e collegali tramite HttpInterceptor in Angular.", "monorepo"),
-    ("lab-testing-xunit-vitest", "09_quality_testing", "Suite di Test xUnit e Vitest", 75, "Scrivi test unitari su metodi di business C# e test comportamentali su componenti Angular.", "monorepo"),
-    ("lab-fullstack-monorepo-crud", "10_portfolio_monorepo", "Gestionale Full-Stack Monorepo", 110, "Collega client Angular Standalone e server .NET Web API con operazioni CRUD complete.", "monorepo"),
-    ("lab-portfolio-enterprise", "10_portfolio_monorepo", "Progetto Finale di Portfolio Enterprise", 130, "Realizza un'applicazione completa con architettura pulita, documentazione OpenAPI, un’interfaccia comprensibile e decisioni progettuali motivate.", "monorepo"),
+    ("lab-net-csharp-crud", "01_csharp", "Archivio in memoria con C# e LINQ", 75, "Gestisci un archivio di soggetti con ricerca, modifica, rimozione e convalida; aggiungi test unitari." , "dotnet"),
+    ("lab-ts-angular-models", "02_typescript", "Modelli TypeScript per gli ordini", 45, "Descrivi dati e stati delle operazioni con interfacce e union discriminate." , "angular"),
+    ("lab-aspnet-minimal-api", "03_aspnet_api", "API ASP.NET Core con DTO", 60, "Crea endpoint REST con Minimal API, dependency injection e convalida delle richieste." , "dotnet"),
+    ("lab-angular-standalone", "04_angular_core", "Catalogo Angular con control flow", 65, "Mostra le schede e gli stati vuoto e selezionato con `@if` e `@for` con `track`." , "angular"),
+    ("lab-angular-signals-state", "05_angular_signals", "Dashboard con Angular Signals", 70, "Calcola totali e percentuali con `computed()`; usa `effect()` solo per sincronizzare risorse esterne." , "angular"),
+    ("lab-efcore-sqlite-db", "06_efcore", "Database SQLite con EF Core", 75, "Configura `DbContext`, collega soggetti e misure e applica una migrazione al database locale." , "dotnet"),
+    ("lab-angular-reactive-forms", "07_angular_forms_routing", "Form Angular con validazione asincrona", 70, "Crea controlli e messaggi di validazione sincrona e asincrona; il controllo remoto è simulato nei test." , "angular"),
+    ("lab-angular-routing-guard", "07_angular_forms_routing", "Navigazione Angular e guard di rotta", 60, "Configura rotte e lazy loading; mostra come una guard decide se la navigazione può proseguire." , "angular"),
+    ("lab-fullstack-jwt-auth", "08_security_fullstack", "Autenticazione JWT tra Angular e .NET", 90, "Genera e convalida token Bearer nel server .NET; inviali dall'app Angular tramite interceptor." , "monorepo"),
+    ("lab-testing-xunit-vitest", "09_quality_testing", "Test per .NET e Angular", 75, "Verifica regole C# con xUnit e il comportamento dei componenti Angular con i test del progetto." , "monorepo"),
+    ("lab-fullstack-monorepo-crud", "10_portfolio_monorepo", "Gestionale Angular e .NET", 110, "Collega il client Angular alle operazioni CRUD dell'API .NET." , "monorepo"),
+    ("lab-portfolio-enterprise", "10_portfolio_monorepo", "Progetto full-stack finale", 130, "Costruisci un'applicazione con API documentate, interfaccia chiara e decisioni progettuali motivate." , "monorepo"),
 ]
 
 LAB_CRITERIA = {
@@ -3765,10 +5315,10 @@ LAB_CRITERIA = {
 }
 
 SIMULATIONS_DATA = [
-    ("sim-csharp-30", "Pratica autonoma C# — circa 30 minuti", 30, "Ricevi una collezione di transazioni. Devi filtrarla con LINQ, calcolare totali raggruppati per categoria e gestire input non validi senza generare eccezioni non gestite.", ["Ripeti i requisiti con parole tue", "Usa record immutabili per i DTO", "Implementa filtri con LINQ senza alterare la collezione originale", "Verifica casi limite come lista vuota o valori nulli", "Spiega la complessità computazionale della soluzione"]),
-    ("sim-angular-signals-45", "Pratica autonoma Angular Signals — circa 45 minuti", 45, "Costruisci un componente standalone reattivo che gestisce un carrello spesa: aggiunta, rimozione, calcolo subtotale e sconto con computed(), e salvataggio su localStorage con effect().", ["Inizializza i segnali con valori di default coerenti", "Usa computed() per i prezzi derivati evitando ricalcoli manuali", "Applica il nuovo blocco @for con clausola track obbligatoria", "Gestisci lo stato di carrello vuoto con il blocco @empty", "Dimostra il funzionamento reattivo delle modifiche"]),
-    ("sim-debug-fullstack-45", "Debugging Full-Stack .NET & Angular — 45 minuti", 45, "Un'applicazione esistente non riceve i dati dal backend: analizza log C#, errori CORS del browser, status code HTTP e interceptor per correggere i bug in modo sistematico.", ["Isola se l'errore è nel server o nel client", "Controlla la configurazione della policy CORS in Program.cs", "Verifica che l'URL dell'API e le porte corrispondano", "Controlla il parsing dei tipi DTO JSON", "Esegui nuovamente i test per confermare la risoluzione"]),
-    ("sim-portfolio-interview-60", "Revisione del progetto Full-Stack — circa 60 minuti", 60, "Avvia il progetto seguendo il README, segui una richiesta dal componente al database e scegli una piccola modifica da implementare. Usa il tempo come riferimento: completa il ciclo implementazione, debugging e verifica anche se richiede più di un’ora.", ["Avvia client e server usando i comandi documentati", "Segui una richiesta e descrivi dove vengono validati input e autorizzazioni", "Implementa una piccola estensione e verifica un caso valido e uno di errore", "Annota il difetto incontrato e come hai individuato la causa", "Aggiorna il README con la decisione presa e un limite ancora presente"]),
+    ("sim-csharp-30", "C# · filtra e riepiloga transazioni (30 min)", 30, "Filtra una raccolta di transazioni con LINQ, calcola i totali per categoria e gestisci input non validi. Usa la checklist per rivedere il risultato: la simulazione non esegue né corregge codice.", ["Riassumi i requisiti con parole tue", "Rappresenta le transazioni con record", "Filtra senza modificare la raccolta originale", "Prova lista vuota e valori nulli", "Descrivi costo e limiti della soluzione"]),
+    ("sim-angular-signals-45", "Angular Signals · carrello della spesa (45 min)", 45, "Costruisci un componente standalone per aggiungere e rimuovere prodotti. Calcola subtotale e sconto con `computed()` e sincronizza `localStorage` con `effect()`. Rivedi il risultato con la checklist: qui l'app non avvia né verifica un progetto Angular.", ["Scegli valori iniziali coerenti per i segnali", "Deriva prezzi e totali con `computed()`", "Usa `@for` e una chiave stabile con `track`", "Mostra lo stato del carrello vuoto", "Descrivi come un aggiornamento cambia la vista"]),
+    ("sim-debug-fullstack-45", "Debugging full-stack · segui una richiesta (45 min)", 45, "Il client non riceve i dati dall'API. Ricostruisci il flusso tra Angular e .NET, controlla log, richieste HTTP e interceptor, poi indica dove interverresti. Questa traccia è una revisione manuale e non esegue un'app o una suite di test.", ["Stabilisci se il guasto è nel client, nella rete o nel server", "Controlla origine e policy CORS", "Confronta URL e porte configurati", "Verifica la forma dei dati JSON attesi dal client", "Indica quale prova confermerebbe la correzione"]),
+    ("sim-portfolio-interview-60", "Revisione di un progetto full-stack (60 min)", 60, "Avvia il progetto seguendo il README, segui una richiesta dal componente al database e realizza una piccola modifica. Verifica il risultato con una prova manuale o con i test già presenti; la checklist non viene valutata dall'app e il tempo è indicativo.", ["Avvia client e server con i comandi documentati", "Segui una richiesta e individua dove vengono controllati input e permessi", "Aggiungi una modifica e prova un caso valido e uno non valido", "Annota un difetto e come ne hai trovato la causa", "Aggiorna il README con la decisione e un limite ancora presente"]),
 ]
 
 LEGACY_LESSON_TITLES = {
@@ -3944,10 +5494,10 @@ GUIDED_WALKTHROUGHS = {
 2. `WithOne(i => i.Order)` dichiara che ogni articolo appartiene a un ordine; `HasForeignKey(i => i.OrderId)` indica la colonna che conserva la chiave esterna.
 3. EF Core usa la configurazione per creare lo schema e materializzare le navigation properties; le classi `Order` e `Item` devono esistere e avere chiavi valide.
 4. Prova a salvare due articoli per un ordine e poi un articolo con chiave esterna inesistente. Individua quale vincolo applica il database.""",
-    "Migrazioni di Database: Creazione e Applicazione": """1. `dotnet ef migrations add AddUserTable` confronta il modello corrente con lo snapshot e genera una migrazione nominata.
-2. Esamina il codice generato e lo snapshot prima di applicarlo: la migrazione descrive come evolve lo schema, non è una copia di backup dei dati.
-3. `dotnet ef database update` applica le migrazioni pendenti al database configurato e aggiorna la cronologia delle migrazioni.
-4. Aggiungi una proprietà e genera una nuova migrazione. In produzione applica le modifiche con un passaggio di deploy controllato; evita l'applicazione automatica all'avvio.""",
+    "Migrazioni di Database: Creazione e Applicazione": """1. Dalla cartella `server/`, `dotnet tool restore` recupera il tool locale dal manifest e `dotnet restore` prepara il progetto per il design-time.
+2. `dotnet ef migrations add AddUserTable` confronta il modello corrente con lo snapshot e genera una migrazione nominata.
+3. Esamina `Up`, `Down`, lo snapshot e lo script SQL prima di applicarli: rinominare una proprietà può produrre una rimozione dati, e la migrazione non è un backup.
+4. In locale `dotnet ef database update` applica le migrazioni pendenti e aggiorna la cronologia. Per la produzione usa una revisione e un passaggio di deploy controllato; non migrare automaticamente a ogni avvio.""",
     "Query con LINQ su Database: Tracking e AsNoTracking": """1. La query parte da `db.Users`, filtra le righe attive con `Where` e termina con `ToListAsync()`.
 2. `AsNoTracking()` indica che EF Core non deve conservare quelle entità nel Change Tracker: è utile se la lettura non porterà a modifiche nello stesso contesto.
 3. L'assenza di tracking può ridurre lavoro e memoria, ma il risultato dipende dalla query. Senza identity resolution, righe che rappresentano la stessa entità possono produrre istanze separate.
@@ -4087,9 +5637,9 @@ STUDY_CONNECTIONS = {
     "Setup dell'ambiente moderno per Angular e .NET": ([], "Il percorso procede da metodi e dati a endpoint HTTP, componenti, stato, database e integrazione. I laboratori sono il punto in cui proverai framework e browser reali. Le sessioni finali servono a consolidare il lavoro; il tempo indicato è una stima, non una soglia di valutazione."),
     "Il primo metodo C#: parametri, variabili e valore restituito": ([], "Per eseguire l'esempio fuori dall'editor, crea un progetto con `dotnet new console -n FirstMethod`, entra con `cd FirstMethod`, sostituisci `Program.cs` con il codice dell'esempio ed esegui `dotnet run`. Nell'editor dell'esercizio scrivi soltanto la classe richiesta: il runner fornisce il chiamante."),
     "TypeScript di base: variabili, funzioni e array": ([], "Qui impari funzioni e array prima di usarli nei componenti. Il runner breve esegue la logica rimuovendo le annotazioni: nel laboratorio Modelli TypeScript e Contratti Web userai anche il compilatore per verificare i tipi."),
-    "Minimal API da zero: Program.cs e WebApplication": (["Il primo metodo C#: parametri, variabili e valore restituito", "Anatomia di una soluzione Full-Stack Client-Server"], "Crea un progetto con `dotnet new web -n FirstApi`, entra con `cd FirstApi` e sostituisci `Program.cs` con l'esempio. Avvia con `dotnet run --urls http://localhost:5000`, poi apri `http://localhost:5000/api/hello`. Il terminale resta occupato dal server; usa una seconda finestra per le richieste e Ctrl+C per fermarlo. Il laboratorio Web API con Minimal API e DTO estenderà questa risposta a operazioni CRUD."),
+    "Minimal API da zero: Program.cs e WebApplication": (["Il primo metodo C#: parametri, variabili e valore restituito", "Anatomia di una soluzione Full-Stack Client-Server"], "Crea un progetto con `dotnet new web -n FirstApi`, entra con `cd FirstApi` e sostituisci `Program.cs` con l'esempio. Avvia con `dotnet run --urls http://localhost:5000`, poi apri `http://localhost:5000/hello`. Il terminale resta occupato dal server; usa una seconda finestra per le richieste e Ctrl+C per fermarlo. Il laboratorio Web API con Minimal API e DTO estenderà questa risposta a operazioni CRUD."),
     "Dependency Injection: Transient, Scoped e Singleton": (["Classi, Record e Costruttori Primari", "Minimal API da zero: Program.cs e WebApplication"], "La scelta del ciclo di vita dipende dallo stato del servizio. Un repository che usa DbContext deve restare nella richiesta; un singleton condiviso richiede stato sicuro per accessi concorrenti. Evita di scegliere Singleton soltanto per risparmiare istanze."),
-    "Progetto Angular Standalone e Bootstrap applicazione": (["TypeScript di base: variabili, funzioni e array", "HTML essenziale e CSS per leggere i template Angular"], "Le basi di `signal()` e `computed()` precedono questa lezione: nei componenti useremo subito valori reattivi. Ripassale dai richiami qui sotto se necessario. Nel laboratorio Catalogo Standalone con Control Flow i file sono `src/main.ts`, `src/app/app.ts` e `src/app/app.config.ts`; gli esempi con `AppComponent` usano un nome illustrativo, da adattare all'export del tuo file."),
+    "Progetto Angular Standalone e Bootstrap applicazione": (["TypeScript di base: variabili, funzioni e array", "HTML essenziale e CSS per leggere i template Angular"], "Le basi di `signal()` e `computed()` precedono questa lezione: nei componenti useremo subito valori reattivi. Ripassale dai richiami qui sotto se necessario. Nel laboratorio Catalogo Standalone con Control Flow ritroverai `src/index.html`, `src/main.ts`, `src/app/app.ts` e `src/app/app.config.ts`; qui usiamo gli stessi nomi ed export dello starter."),
     "Nuovo Control Flow: @if, @else, @for e @switch": (["Introduzione a signal() e aggiornamento stato con set() e update()", "Valori derivati intelligenti con computed()"], "Il modello TypeScript prepara i dati; il template decide che cosa mostrare. Nel laboratorio Catalogo Standalone con Control Flow verifica lista, stato vuoto e selezione nel DOM: il conteggio corretto nell'esercizio breve da solo non dimostra che il template funzioni."),
     "Introduzione a signal() e aggiornamento stato con set() e update()": (["TypeScript di base: variabili, funzioni e array"], "Puoi leggere questa lezione prima del bootstrap Angular: l'esercizio breve richiede soltanto una classe e i valori reattivi. La registrazione del componente e il rendering verranno provati nel laboratorio Angular. Nel codice reale importa `signal` da `@angular/core`; l'editor breve lo mette a disposizione tramite un mock."),
     "Valori derivati intelligenti con computed()": (["Introduzione a signal() e aggiornamento stato con set() e update()"], "Un totale dipende dagli elementi: mantenere due valori modificabili separati obbliga a sincronizzarli. Il laboratorio Dashboard Reattiva con Angular Signals verifica l'aggiornamento dei totali quando la lista cambia."),
@@ -4098,7 +5648,7 @@ STUDY_CONNECTIONS = {
     "Reactive Forms: FormGroup e FormControl": (["Data Binding moderno: interpolazione, property ed event binding"], "Il laboratorio Form Reattivo con Validazione Remota collega le regole allo stato reale dei controlli. La panoramica Signal Forms è facoltativa: puoi proseguire con Reactive Forms senza implementare un secondo form."),
     "Consumo API autenticata con HttpClient e HttpInterceptor": (["Generazione e convalida token JWT in ASP.NET Core", "Interfacce vs Type Alias e Contratti di Dati"], "Prima dell'interceptor serve una richiesta reale: `provideHttpClient()` registra il servizio, `inject(HttpClient)` lo ottiene e `http.get<Profile>(url).subscribe(...)` avvia la GET. Il tipo `Profile` descrive il risultato atteso ma non valida il JSON ricevuto. Nel laboratorio Autenticazione JWT Full-Stack collegherai la sessione all'header; nel Gestionale Full-Stack Monorepo seguirai il caricamento dei dati."),
     "Architettura Pulita: separazione di Domain, Application e API": (["Dependency Injection: Transient, Scoped e Singleton", "Principi SOLID applicati allo sviluppo Full-Stack"], "Usa questa separazione quando regole e integrazioni cambiano in modo indipendente. Un CRUD piccolo può iniziare con cartelle e servizi nello stesso progetto: creare quattro progetti subito aggiunge configurazione senza necessariamente migliorare lo studio. Angular comunica con l'API via HTTP e non è un assembly dipendente da Domain. L'esercizio considera i riferimenti tra layer di business; il punto di composizione dell'API può conoscere Infrastructure per registrare le implementazioni."),
-    "Organizzazione Monorepo: client/ e server/": (["Minimal API da zero: Program.cs e WebApplication", "Progetto Angular Standalone e Bootstrap applicazione"], "Ora collega il contesto dei soggetti: GET `/api/subjects` restituisce la lista, POST crea, PUT modifica e DELETE rimuove. Nel laboratorio Gestionale Full-Stack Monorepo completa prima la lettura dal server, poi collega al servizio i comandi di modifica della UI. Le suite separate non dimostrano da sole la comunicazione tra i due processi: prova anche un'operazione dal browser."),
+    "Organizzazione Monorepo: client/ e server/": (["Minimal API da zero: Program.cs e WebApplication", "Progetto Angular Standalone e Bootstrap applicazione"], "La lezione usa Users per rendere leggibile il percorso end-to-end; il laboratorio Gestionale Full-Stack Monorepo applica gli stessi passaggi al dominio Subjects. Implementa GET `/api/subjects` per la lista, poi POST, PUT e DELETE; collega la lettura prima dei comandi di modifica della UI. Le suite separate non dimostrano da sole la comunicazione tra i due processi: prova anche un'operazione dal browser."),
 }
 
 
@@ -4120,15 +5670,28 @@ def study_context(title: str, mandatory: bool, lesson_files: dict[str, str]) -> 
     return "### Nel percorso\n\n" + "\n\n".join(parts) if parts else ""
 
 
-def practice_context(module: str, exercise: dict) -> str:
-    if exercise["kind"] == "reflection":
-        return "Annota ciò che osservi sul tuo computer. Il confronto automatico è concettuale: non esegue i comandi al posto tuo."
-    if module in {"00_fondamenti", "00_orientamento", "01_csharp", "02_typescript"}:
-        return "Usa il frammento come riferimento iniziale. Prima di aprire gli indizi, prova a prevedere un caso della consegna; dopo la soluzione, riscrivi il passaggio che ti mancava."
-    framework = "Angular" if exercise["kind"] in {"angular", "typescript"} else ".NET"
-    return (f"La pratica breve isola una regola e non avvia l'applicazione {framework}. "
-            "Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. "
-            "Nel laboratorio del modulo verifica anche il comportamento del framework.")
+PRACTICE_NOTES = {
+    "Setup dell'ambiente moderno per Angular e .NET": "L'autoverifica non esegue il terminale: annota i risultati effettivi dei comandi e confrontali con quelli attesi.",
+    "Creazione di componenti Standalone con @Component": "Il runner breve controlla lo stato della classe; nel laboratorio Standalone verifica anche compilazione, selector e aggiornamento del DOM.",
+    "Nuovo Control Flow: @if, @else, @for e @switch": "L'esercizio controlla i dati che la classe prepara, non il template Angular. Nel laboratorio verifica nel DOM lista, stato vuoto e riordino delle righe.",
+    "Data Binding moderno: interpolazione, property ed event binding": "La pratica esercita lo stato e i metodi del componente; il laboratorio Standalone è il passaggio in cui provi i binding nel browser.",
+    "Deferrable Views: ottimizzazione con @defer": "Il runner modella la condizione di caricamento, ma non crea un chunk né misura il bundle. Verifica il caricamento differito con build e Network nel tuo progetto Angular.",
+    "Comunicazione moderna tra componenti: input() e output()": "La pratica breve modella dati ed eventi; verifica il collegamento reale tra genitore e figlio nel componente del laboratorio Standalone.",
+    "Validatori sincroni nativi e personalizzati": "Il runner prova il contratto della funzione validatrice; il laboratorio Forms mostra come `ValidationErrors` diventa stato e messaggio vicino al campo.",
+    "Validatori asincroni: verifica remota via API": "L'esercizio usa un set simulato, non invia richieste HTTP. Nel laboratorio prova lo stato `pending` e ricorda che un errore di rete non dimostra che il valore sia libero.",
+    "Angular Router moderno e Lazy Loading": "La funzione breve costruisce un path; nel laboratorio Router verifica `provideRouter`, `router-outlet`, lazy loading e navigazione nel browser.",
+    "Route Guards funzionali: Proteggere le rotte con canActivate": "L'esercizio isola la decisione della guard e non configura il Router. Il laboratorio verifica la navigazione, mentre il backend deve autorizzare la risorsa.",
+    "Principi di sicurezza Web e architettura JWT": "La pratica controlla una forma sintattica di token, non ne verifica firma o attendibilità: la convalida effettiva avviene nel middleware ASP.NET Core.",
+    "Consumo API autenticata con HttpClient e HttpInterceptor": "L'esercizio breve controlla token e origine con funzioni pure; il laboratorio JWT osserva header e risposte attraverso l'HTTP reale.",
+    "CORS, Same-Origin, XSS e CSRF: scopi distinti": "La funzione dell'esercizio confronta origini ammesse; solo il browser dimostra l'effetto CORS e solo il server applica autenticazione e autorizzazione.",
+    "Documentazione delle API con OpenAPI": "Il runner formatta metadati testuali, non avvia il generatore. Nel server apri `/openapi/v1.json` e confronta schema e route effettive.",
+}
+
+
+def practice_context(title: str) -> str:
+    # Most exercises already follow from the worked example. Add a note only
+    # where the short runner or lab boundary could otherwise be misunderstood.
+    return PRACTICE_NOTES.get(title, "")
 
 
 def lesson_difficulty(title: str, mandatory: bool) -> str:
@@ -4177,7 +5740,7 @@ def build() -> None:
         content_md = lesson_markdown(
             module, title, summary, concepts, simple_exp, syntax_anatomy,
             example, pattern_guide, pitfalls, review_q, GUIDED_WALKTHROUGHS[title],
-            study_context(title, mandatory, lesson_files), practice_context(module, code_ex)
+            study_context(title, mandatory, lesson_files), practice_context(title)
         )
         (CONTENT / body_file).write_text(content_md, encoding="utf-8")
 
@@ -4197,14 +5760,14 @@ def build() -> None:
             f"Un caso o errore da tenere presente: {pitfalls.split(';')[0].strip()}"
         )
         exercises.append({
-            "id": recall_id, "lesson_id": lesson_id, "title": f"Richiamo Concettuale: {title}", "kind": "reflection",
+            "id": recall_id, "lesson_id": lesson_id, "title": f"Ripasso: {title}", "kind": "reflection",
             "difficulty": "breve", "minutes": 8, "xp": 15,
-            "prompt": f"{review_q}\n\nRispondi con un esempio o una previsione sul codice della lezione e usa il termine `{k1}`. Il controllo cerca soltanto questo termine: confronta il ragionamento con il modello, anche se risulta superato.",
+            "prompt": f"{review_q}\n\nRispondi con un esempio concreto e usa il termine `{k1}`. Il controllo automatico cerca solo quel termine, senza valutare il significato: confronta comunque la risposta con il modello.",
             "starter": "", "solution": recall_solution,
             "hints": [
-                f"Definisci chiaramente il ruolo di `{k1}` nel contesto di questa lezione.",
-                "Collega il concetto a un passaggio concreto dell'esempio.",
-                "Concludi spiegando un possibile errore da evitare o una verifica osservabile."
+                f"Richiama il significato di `{k1}`.",
+                "Applica il concetto al codice o al caso descritto nella domanda.",
+                "Aggiungi un errore da evitare o una verifica concreta, poi confronta la risposta con il modello."
             ],
             "tests": [
                 {"name": f"menziona {k1}", "alternatives": [k1]},
@@ -4230,7 +5793,7 @@ def build() -> None:
             "hints": code_ex["hints"],
             "tests": code_ex["tests"],
             "explanation": "Confronta ogni passaggio con i requisiti del prompt. Verifica quali input vengono gestiti e che cosa restituisce ciascun caso di test.",
-            "creative_goals": code_ex.get("creative_goals", ["Usa sintassi pulita ed espressiva"]),
+            "creative_goals": code_ex.get("creative_goals", ["Aggiungi un test per un caso limite pertinente."]),
             "bonus_xp": 0
         })
 
@@ -4238,7 +5801,7 @@ def build() -> None:
         flashcards.extend([
             {
                 "id": f"fc-{lesson_id}-1", "module": module,
-                "question": f"Qual è il principio cardine di **{title}**?",
+                "question": f"Riassumi il concetto di **{title}**.",
                 "answer": simple_exp
             },
             {
@@ -4297,7 +5860,7 @@ def build() -> None:
     )
     catalog_data = {
         "meta": {
-            "name": "DEV//48 — Angular & .NET Enterprise Academy",
+            "name": "Percorso Angular e .NET",
             "track_id": "dotnet-angular",
             "version": "3.0",
             "estimated_hours": f"{estimated_minutes / 60:.1f}",

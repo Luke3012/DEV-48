@@ -1,6 +1,6 @@
 {
   "meta": {
-    "name": "DEV//48",
+    "name": "Percorso JavaScript e React",
     "version": "1.0",
     "estimated_hours": "29.9 ore di lezioni essenziali; 36.3 ore di lezioni complete, pratica esclusa",
     "language": "it"
@@ -9,68 +9,68 @@
     {
       "id": "orientamento",
       "order": "00",
-      "title": "Orientamento e diagnostico",
-      "description": "Imposta un metodo di studio pratico e un approccio sistematico al debugging."
+      "title": "Orientamento e metodo",
+      "description": "Imposta un percorso di studio pratico e un metodo per diagnosticare i problemi."
     },
     {
       "id": "javascript",
       "order": "01",
       "title": "JavaScript fondamentale",
-      "description": "Il linguaggio che devi saper scrivere senza assistenza."
+      "description": "Scrivi funzioni e trasformazioni sui dati in autonomia."
     },
     {
       "id": "async_http",
       "order": "02",
-      "title": "Async, HTTP e API",
-      "description": "Dati remoti, errori e confini di sicurezza."
+      "title": "Asincronia, HTTP e API",
+      "description": "Gestisci richieste remote, errori e dati provenienti da altre applicazioni."
     },
     {
       "id": "html_css",
       "order": "03",
       "title": "HTML e CSS",
-      "description": "Struttura semantica, accessibilità e layout."
+      "description": "Costruisci pagine semantiche, accessibili e adatte a schermi diversi."
     },
     {
       "id": "typescript",
       "order": "04",
       "title": "TypeScript",
-      "description": "Contratti e dati affidabili."
+      "description": "Descrivi i dati con tipi chiari e controlla le varianti possibili."
     },
     {
       "id": "react",
       "order": "05",
       "title": "React",
-      "description": "Componenti, stato, form, effect e CRUD."
+      "description": "Componi interfacce e gestisci stato, form e richieste dati."
     },
     {
       "id": "backend",
       "order": "06",
       "title": "Backend e sicurezza",
-      "description": "Node, route, servizi e rischi web."
+      "description": "Organizza API e servizi Node.js e applica le difese web essenziali."
     },
     {
       "id": "sql",
       "order": "07",
       "title": "SQL e database",
-      "description": "Query, relazioni, integrità e transazioni."
+      "description": "Interroga dati collegati e mantieni l'integrità con vincoli e transazioni."
     },
     {
       "id": "git_testing",
       "order": "08",
       "title": "Git, test e debugging",
-      "description": "Workflow professionale e qualità."
+      "description": "Gestisci modifiche, verifica comportamenti e correggi regressioni."
     },
     {
       "id": "wordpress",
       "order": "09",
-      "title": "WordPress essenziale",
-      "description": "Plugin custom e sicurezza di base."
+      "title": "WordPress",
+      "description": "Crea plugin essenziali e gestisci input e permessi con attenzione."
     },
     {
       "id": "portfolio",
       "order": "10",
-      "title": "Progetti e comunicazione tecnica",
-      "description": "Racconta progetti complessi, decisioni tecniche e risultati in modo chiaro."
+      "title": "Progetti e decisioni tecniche",
+      "description": "Organizza il lavoro e documenta scelte, verifiche e risultati."
     }
   ],
   "lessons": [
@@ -4317,10 +4317,10 @@
     {
       "id": "lab-js-crud",
       "module": "javascript",
-      "title": "CRUD immutabile di soggetti",
+      "title": "Gestione immutabile dei soggetti",
       "minutes": 55,
       "difficulty": "laboratorio",
-      "description": "Implementa aggiunta, modifica, eliminazione, filtro e riepilogo su un dataset.",
+      "description": "Aggiungi, modifica, rimuovi e filtra soggetti senza alterare i dati originali.",
       "requirements": [
         "Implementa addSubject, updateSubject, removeSubject, searchSubjects e summarizeSubjects in solution.mjs.",
         "Conserva l'input e i campi non aggiornati; gli ID restano stabili e l'aggiunta rifiuta un ID duplicato.",
@@ -4338,10 +4338,10 @@
     {
       "id": "lab-js-debug",
       "module": "javascript",
-      "title": "Debugging di funzioni difettose",
+      "title": "Debugging di funzioni",
       "minutes": 45,
       "difficulty": "laboratorio",
-      "description": "Ripara sei bug su tipi, ricerca, mutazioni ed edge case.",
+      "description": "Trova e correggi sei problemi legati a tipi, ricerca, mutazioni e casi limite.",
       "requirements": [
         "Ripara le sei funzioni già presenti in solution.mjs, partendo dall'errore osservato nei test.",
         "Individua la causa per confronti, return delle callback, copie annidate, ricerca per ID, aggregazione e validazione.",
@@ -4359,10 +4359,10 @@
     {
       "id": "lab-html-dashboard",
       "module": "html_css",
-      "title": "Dashboard responsive accessibile",
+      "title": "Dashboard accessibile e responsive",
       "minutes": 60,
       "difficulty": "laboratorio",
-      "description": "Costruisci una dashboard da zero senza framework CSS.",
+      "description": "Costruisci una dashboard con HTML e CSS, curando tastiera, focus e layout.",
       "requirements": [
         "Completa index.html e styles.css: main, gerarchia h1/h2, navigazione, ricerca con label e card dei soggetti.",
         "Costruisci layout fluido con una colonna iniziale e più colonne quando il contenuto ha spazio.",
@@ -4380,10 +4380,10 @@
     {
       "id": "lab-fetch",
       "module": "async_http",
-      "title": "Client API resiliente",
+      "title": "Client per API affidabili",
       "minutes": 55,
       "difficulty": "laboratorio",
-      "description": "Gestisci loading, success, empty, error, retry e annullamento.",
+      "description": "Gestisci caricamento, successo, lista vuota, errori, nuovi tentativi e annullamento.",
       "requirements": [
         "Implementa createClient(request) con load(url), getState() e cancel() in solution.mjs.",
         "Lo stato distingue idle, loading, success, empty ed error; una nuova load dopo un errore costituisce il retry.",
@@ -4402,10 +4402,10 @@
     {
       "id": "lab-react-list",
       "module": "react",
-      "title": "Archivio React con ricerca",
+      "title": "Archivio React ricercabile",
       "minutes": 75,
       "difficulty": "laboratorio",
-      "description": "Crea componenti, filtri, empty state ed eliminazione immutabile.",
+      "description": "Crea una lista filtrabile con stato vuoto ed eliminazione senza mutare i dati.",
       "requirements": [
         "Completa App.jsx: ricerca controllata, lista derivata, conteggio ed eliminazione per ID senza mutare i dati iniziali.",
         "La ricerca ignora maiuscole e spazi esterni; distingui nessuna corrispondenza da archivio completamente vuoto.",
@@ -4424,10 +4424,10 @@
     {
       "id": "lab-ts-model",
       "module": "typescript",
-      "title": "Contratti TypeScript",
+      "title": "Modelli e contratti TypeScript",
       "minutes": 45,
       "difficulty": "laboratorio",
-      "description": "Modella dati e stati remoti con union discriminate.",
+      "description": "Descrivi i dati e gli stati di una richiesta con tipi e union discriminate.",
       "requirements": [
         "Completa model.ts con Subject, LoadResult, isSubject e describeResult.",
         "Il guard rifiuta null, array e proprietà di tipo errato; la union distingue success, empty ed error.",
@@ -4445,10 +4445,10 @@
     {
       "id": "lab-react-form",
       "module": "react",
-      "title": "Form controllato con validazione",
+      "title": "Form React con validazione",
       "minutes": 75,
       "difficulty": "laboratorio",
-      "description": "Implementa creazione e modifica con errori accessibili.",
+      "description": "Crea e modifica record con un form controllato e messaggi di errore accessibili.",
       "requirements": [
         "Implementa creazione e modifica del nome con input controllato, submit e pulsante Annulla modifica.",
         "Rifiuta il nome vuoto o fatto di spazi; collega errore e label al campo e conserva il testo invalido.",
@@ -4467,10 +4467,10 @@
     {
       "id": "lab-react-api",
       "module": "react",
-      "title": "CRUD React collegato a API",
+      "title": "Gestione React collegata a un'API",
       "minutes": 100,
       "difficulty": "laboratorio",
-      "description": "Integra lista, form, fetch, stati remoti, errori e retry.",
+      "description": "Collega lista e form a un'API e mostra caricamento, errori, successo e nuovi tentativi.",
       "requirements": [
         "Integra caricamento, creazione, modifica ed eliminazione con il contratto API locale in server.mjs.",
         "Mostra loading, error, empty, success e Riprova; non sovrascrivere dati con risultati fuori ordine.",
@@ -4490,10 +4490,10 @@
     {
       "id": "lab-sql",
       "module": "sql",
-      "title": "Database gestionale",
+      "title": "Database per un gestionale",
       "minutes": 60,
       "difficulty": "laboratorio",
-      "description": "Progetta schema e query per soggetti, misure e controlli.",
+      "description": "Progetta tabelle, vincoli e query per soggetti, misure e controlli.",
       "requirements": [
         "Completa schema.sql e queries.sql per soggetti, misure e controlli con chiavi, riferimenti e vincoli.",
         "Scrivi ricerca ordinata dei soggetti attivi e LEFT JOIN che conserva chi non ha misure.",
@@ -4512,10 +4512,10 @@
     {
       "id": "lab-git",
       "module": "git_testing",
-      "title": "Workflow Git e conflitto",
+      "title": "Branch, commit e conflitti",
       "minutes": 40,
       "difficulty": "laboratorio",
-      "description": "Esegui branch, commit piccoli, merge e risoluzione guidata.",
+      "description": "Crea branch, registra modifiche piccole e risolvi un conflitto nella repository di pratica.",
       "requirements": [
         "Esegui node setup.mjs per creare la repository didattica locale repo/, separata dalla repository DEV48.",
         "Esamina i due branch, unisci feature-search in main e risolvi il conflitto conservando entrambe le modifiche richieste.",
@@ -4533,10 +4533,10 @@
     {
       "id": "lab-debug-app",
       "module": "git_testing",
-      "title": "Diagnosi applicazione rotta",
+      "title": "Debugging di un'applicazione",
       "minutes": 70,
       "difficulty": "laboratorio",
-      "description": "Parti da test falliti e correggi una regressione alla volta.",
+      "description": "Indaga i test falliti e correggi i problemi uno alla volta, aggiungendo regressioni utili.",
       "requirements": [
         "Diagnostica i difetti tra repository.mjs, service.mjs e format.mjs tramite i test di integrazione.",
         "Correggi ricerca, aggiornamento, filtro e gestione dell'assenza conservando gli input e le altre righe.",
@@ -4554,10 +4554,10 @@
     {
       "id": "lab-final",
       "module": "portfolio",
-      "title": "Mini gestionale finale",
+      "title": "Progetto gestionale finale",
       "minutes": 120,
       "difficulty": "laboratorio",
-      "description": "Costruisci e verifica un archivio completo con React, API, validazione e README.",
+      "description": "Costruisci e verifica un archivio con React e API, poi documenta avvio e limiti nel README.",
       "requirements": [
         "Costruisci il mini gestionale usando il contratto API e i test forniti: lista, ricerca, form, modifica ed eliminazione.",
         "Decidi autonomamente la divisione dei componenti e il proprietario dello stato; motiva la scelta nel README.",
@@ -4578,7 +4578,7 @@
     {
       "id": "fc-00-01-come-affrontare-un-live-coding-1",
       "module": "orientamento",
-      "question": "Qual è l'idea principale di **Come affrontare un live coding** e dove entra `requisiti`?",
+      "question": "A che cosa serve **Come affrontare un live coding**?",
       "answer": "Prima di scrivere, ripeti il problema con parole tue e concorda un esempio. In questo modo eviti di risolvere bene la domanda sbagliata e dai all'intervistatore la possibilità di correggere subito un equivoco."
     },
     {
@@ -4590,13 +4590,13 @@
     {
       "id": "fc-00-01-come-affrontare-un-live-coding-3",
       "module": "orientamento",
-      "question": "Qual è un errore tipico legato a **Come affrontare un live coding**?",
-      "answer": "I rischi più comuni sono: iniziare a programmare senza aver ripetuto il requisito; restare in silenzio quando ci si blocca."
+      "question": "Quale errore evitare quando lavori su **Come affrontare un live coding**?",
+      "answer": "Un rischio da evitare: iniziare a programmare senza aver ripetuto il requisito; restare in silenzio quando ci si blocca."
     },
     {
       "id": "fc-00-02-metodo-di-debugging-sistematico-1",
       "module": "orientamento",
-      "question": "Qual è l'idea principale di **Metodo di debugging sistematico** e dove entra `riproduzione`?",
+      "question": "A che cosa serve **Metodo di debugging sistematico**?",
       "answer": "Un bug diventa gestibile quando sai riprodurlo. Parti da un caso che fallisce sempre, leggi l'errore fino in fondo e prova una sola ipotesi: così capisci davvero quale modifica lo ha risolto."
     },
     {
@@ -4608,13 +4608,13 @@
     {
       "id": "fc-00-02-metodo-di-debugging-sistematico-3",
       "module": "orientamento",
-      "question": "Qual è un errore tipico legato a **Metodo di debugging sistematico**?",
-      "answer": "I rischi più comuni sono: cambiare più cose insieme; ignorare stack trace e condizioni di riproduzione."
+      "question": "Quale errore evitare quando lavori su **Metodo di debugging sistematico**?",
+      "answer": "Un rischio da evitare: cambiare più cose insieme; ignorare stack trace e condizioni di riproduzione."
     },
     {
       "id": "fc-01-01-valori-tipi-e-confronti-1",
       "module": "javascript",
-      "question": "Qual è l'idea principale di **Valori, tipi e confronti** e dove entra `string`?",
+      "question": "A che cosa serve **Valori, tipi e confronti**?",
       "answer": "JavaScript può convertire automaticamente un valore durante un confronto. Usare `===` e controllare il tipo rende il risultato più prevedibile, soprattutto quando i dati arrivano da form o API."
     },
     {
@@ -4626,13 +4626,13 @@
     {
       "id": "fc-01-01-valori-tipi-e-confronti-3",
       "module": "javascript",
-      "question": "Qual è un errore tipico legato a **Valori, tipi e confronti**?",
-      "answer": "I rischi più comuni sono: usare ==; confondere null con undefined; considerare '0' come numero zero."
+      "question": "Quale errore evitare quando lavori su **Valori, tipi e confronti**?",
+      "answer": "Un rischio da evitare: usare ==; confondere null con undefined; considerare '0' come numero zero."
     },
     {
       "id": "fc-01-03-funzioni-e-responsabilita-1",
       "module": "javascript",
-      "question": "Qual è l'idea principale di **Funzioni e responsabilità** e dove entra `parametri`?",
+      "question": "A che cosa serve **Funzioni e responsabilità**?",
       "answer": "Una buona funzione riceve pochi dati, svolge un compito riconoscibile e restituisce un risultato chiaro. Se per descriverla servono molti verbi, probabilmente contiene più responsabilità da separare."
     },
     {
@@ -4644,13 +4644,13 @@
     {
       "id": "fc-01-03-funzioni-e-responsabilita-3",
       "module": "javascript",
-      "question": "Qual è un errore tipico legato a **Funzioni e responsabilità**?",
-      "answer": "I rischi più comuni sono: funzioni che modificano variabili globali; troppi rami e responsabilità."
+      "question": "Quale errore evitare quando lavori su **Funzioni e responsabilità**?",
+      "answer": "Un rischio da evitare: funzioni che modificano variabili globali; troppi rami e responsabilità."
     },
     {
       "id": "fc-01-02-scope-const-let-e-closure-1",
       "module": "javascript",
-      "question": "Qual è l'idea principale di **Scope, const, let e closure** e dove entra `scope di blocco`?",
+      "question": "A che cosa serve **Scope, const, let e closure**?",
       "answer": "Lo scope stabilisce da quali righe una variabile è visibile. Una closure nasce quando una funzione continua ad accedere alle variabili del luogo in cui è stata creata, anche dopo che quella funzione esterna è terminata."
     },
     {
@@ -4662,13 +4662,13 @@
     {
       "id": "fc-01-02-scope-const-let-e-closure-3",
       "module": "javascript",
-      "question": "Qual è un errore tipico legato a **Scope, const, let e closure**?",
-      "answer": "I rischi più comuni sono: usare var senza motivo; credere che const renda immutabile un oggetto."
+      "question": "Quale errore evitare quando lavori su **Scope, const, let e closure**?",
+      "answer": "Un rischio da evitare: usare var senza motivo; credere che const renda immutabile un oggetto."
     },
     {
       "id": "fc-01-04-array-map-filter-find-e-some-1",
       "module": "javascript",
-      "question": "Qual è l'idea principale di **Array: map, filter, find e some** e dove entra `map`?",
+      "question": "A che cosa serve **Array: map, filter, find e some**?",
       "answer": "Questi metodi rispondono a domande diverse: `map` trasforma tutti gli elementi, `filter` ne conserva alcuni, `find` cerca il primo e `some` verifica se ne esiste almeno uno. Scegli il metodo partendo dal risultato che ti serve."
     },
     {
@@ -4680,13 +4680,13 @@
     {
       "id": "fc-01-04-array-map-filter-find-e-some-3",
       "module": "javascript",
-      "question": "Qual è un errore tipico legato a **Array: map, filter, find e some**?",
-      "answer": "I rischi più comuni sono: usare map quando serve filter; dimenticare che find può restituire undefined."
+      "question": "Quale errore evitare quando lavori su **Array: map, filter, find e some**?",
+      "answer": "Un rischio da evitare: usare map quando serve filter; dimenticare che find può restituire undefined."
     },
     {
       "id": "fc-01-05-oggetti-destructuring-e-spread-1",
       "module": "javascript",
-      "question": "Qual è l'idea principale di **Oggetti, destructuring e spread** e dove entra `proprietà`?",
+      "question": "A che cosa serve **Oggetti, destructuring e spread**?",
       "answer": "Destructuring rende espliciti i campi che stai leggendo; spread aiuta a creare una copia con alcuni campi aggiornati. Ricorda però che la copia è superficiale: gli oggetti annidati restano condivisi se non li copi a loro volta."
     },
     {
@@ -4698,13 +4698,13 @@
     {
       "id": "fc-01-05-oggetti-destructuring-e-spread-3",
       "module": "javascript",
-      "question": "Qual è un errore tipico legato a **Oggetti, destructuring e spread**?",
-      "answer": "I rischi più comuni sono: credere che spread faccia una copia profonda; modificare oggetti condivisi."
+      "question": "Quale errore evitare quando lavori su **Oggetti, destructuring e spread**?",
+      "answer": "Un rischio da evitare: credere che spread faccia una copia profonda; modificare oggetti condivisi."
     },
     {
       "id": "fc-01-06-immutabilita-e-operazioni-crud-1",
       "module": "javascript",
-      "question": "Qual è l'idea principale di **Immutabilità e operazioni CRUD** e dove entra `spread`?",
+      "question": "A che cosa serve **Immutabilità e operazioni CRUD**?",
       "answer": "Invece di modificare l'array esistente, ne produci uno nuovo: spread per aggiungere, `map` per aggiornare e `filter` per eliminare. React può così riconoscere il cambiamento e aggiornare la UI in modo prevedibile."
     },
     {
@@ -4716,13 +4716,13 @@
     {
       "id": "fc-01-06-immutabilita-e-operazioni-crud-3",
       "module": "javascript",
-      "question": "Qual è un errore tipico legato a **Immutabilità e operazioni CRUD**?",
-      "answer": "I rischi più comuni sono: push sullo state; cambiare direttamente una proprietà; perdere campi durante una copia."
+      "question": "Quale errore evitare quando lavori su **Immutabilità e operazioni CRUD**?",
+      "answer": "Un rischio da evitare: push sullo state; cambiare direttamente una proprietà; perdere campi durante una copia."
     },
     {
       "id": "fc-01-07-reduce-set-e-map-1",
       "module": "javascript",
-      "question": "Qual è l'idea principale di **Reduce, Set e Map** e dove entra `reduce`?",
+      "question": "A che cosa serve **Reduce, Set e Map**?",
       "answer": "`reduce` combina molti valori in un solo risultato. `Set` è comodo per eliminare duplicati, mentre `Map` associa chiavi a valori ed è utile quando cerchi spesso un elemento per identificatore."
     },
     {
@@ -4734,13 +4734,13 @@
     {
       "id": "fc-01-07-reduce-set-e-map-3",
       "module": "javascript",
-      "question": "Qual è un errore tipico legato a **Reduce, Set e Map**?",
-      "answer": "I rischi più comuni sono: usare reduce per rendere il codice inutilmente compatto; confondere Map con map."
+      "question": "Quale errore evitare quando lavori su **Reduce, Set e Map**?",
+      "answer": "Un rischio da evitare: usare reduce per rendere il codice inutilmente compatto; confondere Map con map."
     },
     {
       "id": "fc-01-08-moduli-ed-organizzazione-del-codice-1",
       "module": "javascript",
-      "question": "Qual è l'idea principale di **Moduli ed organizzazione del codice** e dove entra `export nominato`?",
+      "question": "A che cosa serve **Moduli ed organizzazione del codice**?",
       "answer": "Un modulo espone soltanto ciò che gli altri file devono usare. Import ed export ben scelti mostrano le dipendenze reali e impediscono che un singolo file diventi il contenitore di tutta l'applicazione."
     },
     {
@@ -4752,13 +4752,13 @@
     {
       "id": "fc-01-08-moduli-ed-organizzazione-del-codice-3",
       "module": "javascript",
-      "question": "Qual è un errore tipico legato a **Moduli ed organizzazione del codice**?",
-      "answer": "I rischi più comuni sono: dipendenze circolari; esportare dettagli interni; file contenitore gigantesco."
+      "question": "Quale errore evitare quando lavori su **Moduli ed organizzazione del codice**?",
+      "answer": "Un rischio da evitare: dipendenze circolari; esportare dettagli interni; file contenitore gigantesco."
     },
     {
       "id": "fc-01-09-errori-e-validazione-1",
       "module": "javascript",
-      "question": "Qual è l'idea principale di **Errori e validazione** e dove entra `throw`?",
+      "question": "A che cosa serve **Errori e validazione**?",
       "answer": "Validare significa rifiutare presto un dato che non rispetta il contratto. Un errore utile dice che cosa non va e lascia al livello corretto la scelta tra mostrare un messaggio, riprovare o interrompere l'operazione."
     },
     {
@@ -4770,13 +4770,13 @@
     {
       "id": "fc-01-09-errori-e-validazione-3",
       "module": "javascript",
-      "question": "Qual è un errore tipico legato a **Errori e validazione**?",
-      "answer": "I rischi più comuni sono: catturare tutto e ignorare l'errore; mostrare dettagli sensibili all'utente."
+      "question": "Quale errore evitare quando lavori su **Errori e validazione**?",
+      "answer": "Un rischio da evitare: catturare tutto e ignorare l'errore; mostrare dettagli sensibili all'utente."
     },
     {
       "id": "fc-02-01-promise-e-async-await-1",
       "module": "async_http",
-      "question": "Qual è l'idea principale di **Promise e async/await** e dove entra `Promise`?",
+      "question": "A che cosa serve **Promise e async/await**?",
       "answer": "Una Promise rappresenta un risultato futuro: può essere ancora in attesa, completato oppure fallito. `await` sospende quella funzione, non l'intero programma, e rende più leggibile la sequenza delle operazioni asincrone."
     },
     {
@@ -4788,13 +4788,13 @@
     {
       "id": "fc-02-01-promise-e-async-await-3",
       "module": "async_http",
-      "question": "Qual è un errore tipico legato a **Promise e async/await**?",
-      "answer": "I rischi più comuni sono: dimenticare await; mescolare then e await; perdere gli errori asincroni."
+      "question": "Quale errore evitare quando lavori su **Promise e async/await**?",
+      "answer": "Un rischio da evitare: dimenticare await; mescolare then e await; perdere gli errori asincroni."
     },
     {
       "id": "fc-02-02-http-e-api-rest-1",
       "module": "async_http",
-      "question": "Qual è l'idea principale di **HTTP e API REST** e dove entra `GET`?",
+      "question": "A che cosa serve **HTTP e API REST**?",
       "answer": "Una API REST espone risorse attraverso URL e usa i metodi HTTP per esprimere l'azione. Lo status code fa parte della risposta: permette al client di distinguere una creazione, un errore di input o una risorsa assente."
     },
     {
@@ -4806,13 +4806,13 @@
     {
       "id": "fc-02-02-http-e-api-rest-3",
       "module": "async_http",
-      "question": "Qual è un errore tipico legato a **HTTP e API REST**?",
-      "answer": "I rischi più comuni sono: usare GET per modificare dati; restituire sempre 200; confondere PUT e PATCH."
+      "question": "Quale errore evitare quando lavori su **HTTP e API REST**?",
+      "answer": "Un rischio da evitare: usare GET per modificare dati; restituire sempre 200; confondere PUT e PATCH."
     },
     {
       "id": "fc-02-03-fetch-loading-error-e-successo-1",
       "module": "async_http",
-      "question": "Qual è l'idea principale di **Fetch: loading, error e successo** e dove entra `fetch`?",
+      "question": "A che cosa serve **Fetch: loading, error e successo**?",
       "answer": "`fetch` risolve la Promise anche quando il server risponde 404 o 500, quindi devi controllare `response.ok`. La UI deve inoltre distinguere attesa, dati disponibili, risultato vuoto ed errore."
     },
     {
@@ -4824,13 +4824,13 @@
     {
       "id": "fc-02-03-fetch-loading-error-e-successo-3",
       "module": "async_http",
-      "question": "Qual è un errore tipico legato a **Fetch: loading, error e successo**?",
-      "answer": "I rischi più comuni sono: credere che fetch rifiuti automaticamente su 404; non gestire richieste obsolete."
+      "question": "Quale errore evitare quando lavori su **Fetch: loading, error e successo**?",
+      "answer": "Un rischio da evitare: credere che fetch rifiuti automaticamente su 404; non gestire richieste obsolete."
     },
     {
       "id": "fc-02-04-autenticazione-cors-e-segreti-1",
       "module": "async_http",
-      "question": "Qual è l'idea principale di **Autenticazione, CORS e segreti** e dove entra `autenticazione`?",
+      "question": "A che cosa serve **Autenticazione, CORS e segreti**?",
       "answer": "L'autenticazione stabilisce chi sei; l'autorizzazione stabilisce che cosa puoi fare. CORS è una regola del browser, non una protezione dell'API, e un segreto inserito nel frontend non è più segreto."
     },
     {
@@ -4842,13 +4842,13 @@
     {
       "id": "fc-02-04-autenticazione-cors-e-segreti-3",
       "module": "async_http",
-      "question": "Qual è un errore tipico legato a **Autenticazione, CORS e segreti**?",
-      "answer": "I rischi più comuni sono: mettere API key nel frontend; usare CORS come sistema di autenticazione."
+      "question": "Quale errore evitare quando lavori su **Autenticazione, CORS e segreti**?",
+      "answer": "Un rischio da evitare: mettere API key nel frontend; usare CORS come sistema di autenticazione."
     },
     {
       "id": "fc-03-01-html-semantico-e-struttura-1",
       "module": "html_css",
-      "question": "Qual è l'idea principale di **HTML semantico e struttura** e dove entra `header`?",
+      "question": "A che cosa serve **HTML semantico e struttura**?",
       "answer": "Gli elementi semantici descrivono il ruolo del contenuto. Un `button` comunica già a browser e tecnologie assistive che può ricevere focus ed essere attivato: un `div` con un click non offre automaticamente lo stesso comportamento."
     },
     {
@@ -4860,13 +4860,13 @@
     {
       "id": "fc-03-01-html-semantico-e-struttura-3",
       "module": "html_css",
-      "question": "Qual è un errore tipico legato a **HTML semantico e struttura**?",
-      "answer": "I rischi più comuni sono: div per ogni cosa; gerarchia heading incoerente; elementi cliccabili non accessibili."
+      "question": "Quale errore evitare quando lavori su **HTML semantico e struttura**?",
+      "answer": "Un rischio da evitare: div per ogni cosa; gerarchia heading incoerente; elementi cliccabili non accessibili."
     },
     {
       "id": "fc-03-02-form-e-accessibilita-1",
       "module": "html_css",
-      "question": "Qual è l'idea principale di **Form e accessibilità** e dove entra `form`?",
+      "question": "A che cosa serve **Form e accessibilità**?",
       "answer": "Ogni campo deve avere una label riconoscibile e gli errori devono essere collegati al campo interessato. Prova sempre il form usando soltanto la tastiera: il percorso del focus rivela molti problemi."
     },
     {
@@ -4878,13 +4878,13 @@
     {
       "id": "fc-03-02-form-e-accessibilita-3",
       "module": "html_css",
-      "question": "Qual è un errore tipico legato a **Form e accessibilità**?",
-      "answer": "I rischi più comuni sono: placeholder al posto della label; focus invisibile; errori non associati al campo."
+      "question": "Quale errore evitare quando lavori su **Form e accessibilità**?",
+      "answer": "Un rischio da evitare: placeholder al posto della label; focus invisibile; errori non associati al campo."
     },
     {
       "id": "fc-03-03-box-model-cascade-e-specificita-1",
       "module": "html_css",
-      "question": "Qual è l'idea principale di **Box model, cascade e specificità** e dove entra `content`?",
+      "question": "A che cosa serve **Box model, cascade e specificità**?",
       "answer": "Ogni elemento occupa spazio attraverso contenuto, padding, bordo e margine. Quando due regole competono, la cascade considera origine, importanza, specificità e ordine: aumentare sempre la specificità rende il CSS difficile da mantenere."
     },
     {
@@ -4896,13 +4896,13 @@
     {
       "id": "fc-03-03-box-model-cascade-e-specificita-3",
       "module": "html_css",
-      "question": "Qual è un errore tipico legato a **Box model, cascade e specificità**?",
-      "answer": "I rischi più comuni sono: compensare la specificità con !important; dimenticare box-sizing."
+      "question": "Quale errore evitare quando lavori su **Box model, cascade e specificità**?",
+      "answer": "Un rischio da evitare: compensare la specificità con !important; dimenticare box-sizing."
     },
     {
       "id": "fc-03-04-flexbox-e-grid-1",
       "module": "html_css",
-      "question": "Qual è l'idea principale di **Flexbox e Grid** e dove entra `asse principale`?",
+      "question": "A che cosa serve **Flexbox e Grid**?",
       "answer": "Flexbox distribuisce elementi lungo un asse ed è ideale per righe e colonne di componenti. Grid controlla contemporaneamente righe e colonne ed è più adatto alla struttura complessiva di una pagina o di una griglia di card."
     },
     {
@@ -4914,13 +4914,13 @@
     {
       "id": "fc-03-04-flexbox-e-grid-3",
       "module": "html_css",
-      "question": "Qual è un errore tipico legato a **Flexbox e Grid**?",
-      "answer": "I rischi più comuni sono: usare position absolute per layout ordinari; non capire quale sia l'asse attivo."
+      "question": "Quale errore evitare quando lavori su **Flexbox e Grid**?",
+      "answer": "Un rischio da evitare: usare position absolute per layout ordinari; non capire quale sia l'asse attivo."
     },
     {
       "id": "fc-03-05-responsive-design-1",
       "module": "html_css",
-      "question": "Qual è l'idea principale di **Responsive design** e dove entra `mobile first`?",
+      "question": "A che cosa serve **Responsive design**?",
       "answer": "Un layout responsive non è una versione desktop rimpicciolita. Parte da misure fluide, lascia che il contenuto occupi lo spazio disponibile e introduce un breakpoint soltanto quando il layout smette di funzionare bene."
     },
     {
@@ -4932,13 +4932,13 @@
     {
       "id": "fc-03-05-responsive-design-3",
       "module": "html_css",
-      "question": "Qual è un errore tipico legato a **Responsive design**?",
-      "answer": "I rischi più comuni sono: breakpoint legati a singoli dispositivi; larghezze fisse; overflow nascosto indiscriminato."
+      "question": "Quale errore evitare quando lavori su **Responsive design**?",
+      "answer": "Un rischio da evitare: breakpoint legati a singoli dispositivi; larghezze fisse; overflow nascosto indiscriminato."
     },
     {
       "id": "fc-04-01-tipi-interface-e-type-1",
       "module": "typescript",
-      "question": "Qual è l'idea principale di **Tipi, interface e type** e dove entra `type annotation`?",
+      "question": "A che cosa serve **Tipi, interface e type**?",
       "answer": "Un tipo descrive la forma che il codice si aspetta e permette all'editor di segnalare incoerenze prima dell'avvio. Non controlla però automaticamente un JSON ricevuto dalla rete: quel dato richiede validazione a runtime."
     },
     {
@@ -4950,13 +4950,13 @@
     {
       "id": "fc-04-01-tipi-interface-e-type-3",
       "module": "typescript",
-      "question": "Qual è un errore tipico legato a **Tipi, interface e type**?",
-      "answer": "I rischi più comuni sono: usare any per silenziare errori; considerare i tipi come validazione runtime."
+      "question": "Quale errore evitare quando lavori su **Tipi, interface e type**?",
+      "answer": "Un rischio da evitare: usare any per silenziare errori; considerare i tipi come validazione runtime."
     },
     {
       "id": "fc-04-02-union-e-narrowing-1",
       "module": "typescript",
-      "question": "Qual è l'idea principale di **Union e narrowing** e dove entra `union`?",
+      "question": "A che cosa serve **Union e narrowing**?",
       "answer": "Una union dichiara che un valore può assumere forme alternative. Controllando una proprietà discriminante, TypeScript restringe il tipo e ti permette di accedere soltanto ai campi validi per quel caso."
     },
     {
@@ -4968,13 +4968,13 @@
     {
       "id": "fc-04-02-union-e-narrowing-3",
       "module": "typescript",
-      "question": "Qual è un errore tipico legato a **Union e narrowing**?",
-      "answer": "I rischi più comuni sono: asserzioni as usate per forzare; union troppo generiche; rami non esaustivi."
+      "question": "Quale errore evitare quando lavori su **Union e narrowing**?",
+      "answer": "Un rischio da evitare: asserzioni as usate per forzare; union troppo generiche; rami non esaustivi."
     },
     {
       "id": "fc-04-03-generics-essenziali-1",
       "module": "typescript",
-      "question": "Qual è l'idea principale di **Generics essenziali** e dove entra `generic`?",
+      "question": "A che cosa serve **Generics essenziali**?",
       "answer": "Un generic conserva una relazione tra il tipo ricevuto e quello restituito. È utile quando la stessa logica funziona con dati diversi, ma vuoi evitare che `any` cancelli le informazioni sui tipi."
     },
     {
@@ -4986,13 +4986,13 @@
     {
       "id": "fc-04-03-generics-essenziali-3",
       "module": "typescript",
-      "question": "Qual è un errore tipico legato a **Generics essenziali**?",
-      "answer": "I rischi più comuni sono: generics inutilmente complessi; nomi incomprensibili; constraint mancanti."
+      "question": "Quale errore evitare quando lavori su **Generics essenziali**?",
+      "answer": "Un rischio da evitare: generics inutilmente complessi; nomi incomprensibili; constraint mancanti."
     },
     {
       "id": "fc-04-04-null-unknown-e-confini-esterni-1",
       "module": "typescript",
-      "question": "Qual è l'idea principale di **Null, unknown e confini esterni** e dove entra `unknown`?",
+      "question": "A che cosa serve **Null, unknown e confini esterni**?",
       "answer": "`unknown` ti obbliga a controllare un valore prima di usarlo, mentre `any` disattiva quella protezione. È la scelta corretta per JSON, input utente e altri dati che entrano dall'esterno."
     },
     {
@@ -5004,13 +5004,13 @@
     {
       "id": "fc-04-04-null-unknown-e-confini-esterni-3",
       "module": "typescript",
-      "question": "Qual è un errore tipico legato a **Null, unknown e confini esterni**?",
-      "answer": "I rischi più comuni sono: convertire unknown in un tipo con as; fidarsi del JSON; usare ! senza prova."
+      "question": "Quale errore evitare quando lavori su **Null, unknown e confini esterni**?",
+      "answer": "Un rischio da evitare: convertire unknown in un tipo con as; fidarsi del JSON; usare ! senza prova."
     },
     {
       "id": "fc-05-01-modello-mentale-componenti-e-jsx-1",
       "module": "react",
-      "question": "Qual è l'idea principale di **Modello mentale, componenti e JSX** e dove entra `component`?",
+      "question": "A che cosa serve **Modello mentale, componenti e JSX**?",
       "answer": "Un componente è una funzione che descrive la UI a partire da props e state. A parità di input dovrebbe produrre lo stesso JSX, senza modificare dati o avviare operazioni durante il render."
     },
     {
@@ -5022,13 +5022,13 @@
     {
       "id": "fc-05-01-modello-mentale-componenti-e-jsx-3",
       "module": "react",
-      "question": "Qual è un errore tipico legato a **Modello mentale, componenti e JSX**?",
-      "answer": "I rischi più comuni sono: modificare dati durante il render; componenti monolitici; confondere JSX con HTML."
+      "question": "Quale errore evitare quando lavori su **Modello mentale, componenti e JSX**?",
+      "answer": "Un rischio da evitare: modificare dati durante il render; componenti monolitici; confondere JSX con HTML."
     },
     {
       "id": "fc-05-02-props-e-composizione-1",
       "module": "react",
-      "question": "Qual è l'idea principale di **Props e composizione** e dove entra `props`?",
+      "question": "A che cosa serve **Props e composizione**?",
       "answer": "Le props portano dati dal genitore al figlio. Per comunicare nella direzione opposta, il genitore passa una callback: il figlio segnala l'evento senza dover conoscere come verrà gestito."
     },
     {
@@ -5040,13 +5040,13 @@
     {
       "id": "fc-05-02-props-e-composizione-3",
       "module": "react",
-      "question": "Qual è un errore tipico legato a **Props e composizione**?",
-      "answer": "I rischi più comuni sono: modificare le props; passare interi store quando bastano due valori."
+      "question": "Quale errore evitare quando lavori su **Props e composizione**?",
+      "answer": "Un rischio da evitare: modificare le props; passare interi store quando bastano due valori."
     },
     {
       "id": "fc-05-03-state-ed-eventi-1",
       "module": "react",
-      "question": "Qual è l'idea principale di **State ed eventi** e dove entra `useState`?",
+      "question": "A che cosa serve **State ed eventi**?",
       "answer": "Lo state è la memoria locale del componente. Il setter pianifica un nuovo render; quando il nuovo valore dipende dal precedente, la forma funzionale evita di usare una fotografia ormai vecchia dello state."
     },
     {
@@ -5058,13 +5058,13 @@
     {
       "id": "fc-05-03-state-ed-eventi-3",
       "module": "react",
-      "question": "Qual è un errore tipico legato a **State ed eventi**?",
-      "answer": "I rischi più comuni sono: chiamare il setter durante il render; leggere state come variabile immediatamente mutabile."
+      "question": "Quale errore evitare quando lavori su **State ed eventi**?",
+      "answer": "Un rischio da evitare: chiamare il setter durante il render; leggere state come variabile immediatamente mutabile."
     },
     {
       "id": "fc-05-04-liste-key-e-rendering-condizionale-1",
       "module": "react",
-      "question": "Qual è l'idea principale di **Liste, key e rendering condizionale** e dove entra `map`?",
+      "question": "A che cosa serve **Liste, key e rendering condizionale**?",
       "answer": "React usa la `key` per riconoscere lo stesso elemento tra due render. Un identificatore stabile evita che stato e focus si spostino sulla riga sbagliata quando la lista viene riordinata o filtrata."
     },
     {
@@ -5076,13 +5076,13 @@
     {
       "id": "fc-05-04-liste-key-e-rendering-condizionale-3",
       "module": "react",
-      "question": "Qual è un errore tipico legato a **Liste, key e rendering condizionale**?",
-      "answer": "I rischi più comuni sono: usare l'indice come key in liste modificabili; dimenticare lo stato vuoto."
+      "question": "Quale errore evitare quando lavori su **Liste, key e rendering condizionale**?",
+      "answer": "Un rischio da evitare: usare l'indice come key in liste modificabili; dimenticare lo stato vuoto."
     },
     {
       "id": "fc-05-05-form-controllati-1",
       "module": "react",
-      "question": "Qual è l'idea principale di **Form controllati** e dove entra `controlled input`?",
+      "question": "A che cosa serve **Form controllati**?",
       "answer": "In un input controllato, il valore mostrato viene dallo state e `onChange` aggiorna quello state. Hai così un'unica fonte di verità per validazione, invio e messaggi di errore."
     },
     {
@@ -5094,13 +5094,13 @@
     {
       "id": "fc-05-05-form-controllati-3",
       "module": "react",
-      "question": "Qual è un errore tipico legato a **Form controllati**?",
-      "answer": "I rischi più comuni sono: mescolare input controllati e non controllati; validare soltanto dopo la chiamata API."
+      "question": "Quale errore evitare quando lavori su **Form controllati**?",
+      "answer": "Un rischio da evitare: mescolare input controllati e non controllati; validare soltanto dopo la chiamata API."
     },
     {
       "id": "fc-05-06-progettare-e-sollevare-lo-stato-1",
       "module": "react",
-      "question": "Qual è l'idea principale di **Progettare e sollevare lo stato** e dove entra `single source of truth`?",
+      "question": "A che cosa serve **Progettare e sollevare lo stato**?",
       "answer": "Lo state dovrebbe vivere nel componente comune più vicino a tutti quelli che lo usano. Un valore calcolabile da props e state esistenti non va duplicato: puoi ricalcolarlo durante il render."
     },
     {
@@ -5112,13 +5112,13 @@
     {
       "id": "fc-05-06-progettare-e-sollevare-lo-stato-3",
       "module": "react",
-      "question": "Qual è un errore tipico legato a **Progettare e sollevare lo stato**?",
-      "answer": "I rischi più comuni sono: duplicare stato derivabile; sincronizzare copie della stessa informazione con effect."
+      "question": "Quale errore evitare quando lavori su **Progettare e sollevare lo stato**?",
+      "answer": "Un rischio da evitare: duplicare stato derivabile; sincronizzare copie della stessa informazione con effect."
     },
     {
       "id": "fc-05-07-effect-e-sincronizzazione-1",
       "module": "react",
-      "question": "Qual è l'idea principale di **Effect e sincronizzazione** e dove entra `useEffect`?",
+      "question": "A che cosa serve **Effect e sincronizzazione**?",
       "answer": "`useEffect` serve a sincronizzare React con qualcosa di esterno, per esempio una richiesta, un timer o una subscription. Se l'operazione può continuare dopo un nuovo render, la cleanup deve annullarla o scollegarla."
     },
     {
@@ -5130,13 +5130,13 @@
     {
       "id": "fc-05-07-effect-e-sincronizzazione-3",
       "module": "react",
-      "question": "Qual è un errore tipico legato a **Effect e sincronizzazione**?",
-      "answer": "I rischi più comuni sono: usare effect per calcoli derivabili; dipendenze mancanti; cleanup assente."
+      "question": "Quale errore evitare quando lavori su **Effect e sincronizzazione**?",
+      "answer": "Un rischio da evitare: usare effect per calcoli derivabili; dipendenze mancanti; cleanup assente."
     },
     {
       "id": "fc-05-08-caricamento-dati-e-stati-remoti-1",
       "module": "react",
-      "question": "Qual è l'idea principale di **Caricamento dati e stati remoti** e dove entra `remote state`?",
+      "question": "A che cosa serve **Caricamento dati e stati remoti**?",
       "answer": "I dati remoti hanno più stati di una semplice lista: non ancora richiesti, in caricamento, riusciti, vuoti o falliti. Rappresentarli esplicitamente evita spinner eterni e schermate bianche."
     },
     {
@@ -5148,13 +5148,13 @@
     {
       "id": "fc-05-08-caricamento-dati-e-stati-remoti-3",
       "module": "react",
-      "question": "Qual è un errore tipico legato a **Caricamento dati e stati remoti**?",
-      "answer": "I rischi più comuni sono: mostrare schermata vuota durante il caricamento; ignorare retry e richieste concorrenti."
+      "question": "Quale errore evitare quando lavori su **Caricamento dati e stati remoti**?",
+      "answer": "Un rischio da evitare: mostrare schermata vuota durante il caricamento; ignorare retry e richieste concorrenti."
     },
     {
       "id": "fc-05-09-routing-e-architettura-frontend-1",
       "module": "react",
-      "question": "Qual è l'idea principale di **Routing e architettura frontend** e dove entra `route`?",
+      "question": "A che cosa serve **Routing e architettura frontend**?",
       "answer": "Le route organizzano le pagine; le feature raccolgono componenti e logica legati allo stesso problema. L'accesso alle API va separato dalla presentazione, così puoi cambiarlo e provarlo senza riscrivere la UI."
     },
     {
@@ -5166,13 +5166,13 @@
     {
       "id": "fc-05-09-routing-e-architettura-frontend-3",
       "module": "react",
-      "question": "Qual è un errore tipico legato a **Routing e architettura frontend**?",
-      "answer": "I rischi più comuni sono: cartelle per tipo con centinaia di file; logica API dispersa nelle view."
+      "question": "Quale errore evitare quando lavori su **Routing e architettura frontend**?",
+      "answer": "Un rischio da evitare: cartelle per tipo con centinaia di file; logica API dispersa nelle view."
     },
     {
       "id": "fc-06-01-node-event-loop-e-moduli-1",
       "module": "backend",
-      "question": "Qual è l'idea principale di **Node, event loop e moduli** e dove entra `Node.js`?",
+      "question": "A che cosa serve **Node, event loop e moduli**?",
       "answer": "Node gestisce bene molte operazioni di I/O perché non aspetta in modo sincrono file e rete. Un calcolo CPU lungo, invece, occupa il thread principale e ritarda tutte le altre richieste."
     },
     {
@@ -5184,13 +5184,13 @@
     {
       "id": "fc-06-01-node-event-loop-e-moduli-3",
       "module": "backend",
-      "question": "Qual è un errore tipico legato a **Node, event loop e moduli**?",
-      "answer": "I rischi più comuni sono: lavoro CPU pesante nel thread principale; callback bloccanti; moduli mescolati."
+      "question": "Quale errore evitare quando lavori su **Node, event loop e moduli**?",
+      "answer": "Un rischio da evitare: lavoro CPU pesante nel thread principale; callback bloccanti; moduli mescolati."
     },
     {
       "id": "fc-06-02-route-middleware-e-validazione-1",
       "module": "backend",
-      "question": "Qual è l'idea principale di **Route, middleware e validazione** e dove entra `router`?",
+      "question": "A che cosa serve **Route, middleware e validazione**?",
       "answer": "La route associa un URL a un handler; il middleware applica controlli o preparazione comuni. La logica di business resta in un servizio, così l'handler si limita a tradurre richiesta e risposta."
     },
     {
@@ -5202,13 +5202,13 @@
     {
       "id": "fc-06-02-route-middleware-e-validazione-3",
       "module": "backend",
-      "question": "Qual è un errore tipico legato a **Route, middleware e validazione**?",
-      "answer": "I rischi più comuni sono: business logic nella route; input non validato; catch duplicati ovunque."
+      "question": "Quale errore evitare quando lavori su **Route, middleware e validazione**?",
+      "answer": "Un rischio da evitare: business logic nella route; input non validato; catch duplicati ovunque."
     },
     {
       "id": "fc-06-03-sicurezza-web-essenziale-1",
       "module": "backend",
-      "question": "Qual è l'idea principale di **Sicurezza web essenziale** e dove entra `SQL injection`?",
+      "question": "A che cosa serve **Sicurezza web essenziale**?",
       "answer": "La sicurezza va applicata a più livelli: query parametrizzate, output correttamente escapato, password sottoposte a hash e permessi minimi. La validazione del frontend migliora l'esperienza, ma non protegge il server."
     },
     {
@@ -5220,13 +5220,13 @@
     {
       "id": "fc-06-03-sicurezza-web-essenziale-3",
       "module": "backend",
-      "question": "Qual è un errore tipico legato a **Sicurezza web essenziale**?",
-      "answer": "I rischi più comuni sono: concatenare SQL; memorizzare password; fidarsi della validazione frontend."
+      "question": "Quale errore evitare quando lavori su **Sicurezza web essenziale**?",
+      "answer": "Un rischio da evitare: concatenare SQL; memorizzare password; fidarsi della validazione frontend."
     },
     {
       "id": "fc-07-01-select-filtri-e-ordinamento-1",
       "module": "sql",
-      "question": "Qual è l'idea principale di **SELECT, filtri e ordinamento** e dove entra `SELECT`?",
+      "question": "A che cosa serve **SELECT, filtri e ordinamento**?",
       "answer": "Una query leggibile seleziona soltanto le colonne utili, filtra con condizioni esplicite e ordina quando l'ordine fa parte del requisito. Senza `ORDER BY`, il database non promette un ordine stabile."
     },
     {
@@ -5238,13 +5238,13 @@
     {
       "id": "fc-07-01-select-filtri-e-ordinamento-3",
       "module": "sql",
-      "question": "Qual è un errore tipico legato a **SELECT, filtri e ordinamento**?",
-      "answer": "I rischi più comuni sono: sELECT * indiscriminato; condizioni ambigue; ordinamento dimenticato."
+      "question": "Quale errore evitare quando lavori su **SELECT, filtri e ordinamento**?",
+      "answer": "Un rischio da evitare: sELECT * indiscriminato; condizioni ambigue; ordinamento dimenticato."
     },
     {
       "id": "fc-07-02-relazioni-e-join-1",
       "module": "sql",
-      "question": "Qual è l'idea principale di **Relazioni e JOIN** e dove entra `primary key`?",
+      "question": "A che cosa serve **Relazioni e JOIN**?",
       "answer": "Una chiave esterna collega una riga a un'altra tabella. `INNER JOIN` conserva soltanto le corrispondenze; `LEFT JOIN` conserva tutte le righe della tabella a sinistra, anche quando la relazione manca."
     },
     {
@@ -5256,13 +5256,13 @@
     {
       "id": "fc-07-02-relazioni-e-join-3",
       "module": "sql",
-      "question": "Qual è un errore tipico legato a **Relazioni e JOIN**?",
-      "answer": "I rischi più comuni sono: jOIN senza condizione; INNER JOIN quando servono anche elementi senza relazione."
+      "question": "Quale errore evitare quando lavori su **Relazioni e JOIN**?",
+      "answer": "Un rischio da evitare: jOIN senza condizione; INNER JOIN quando servono anche elementi senza relazione."
     },
     {
       "id": "fc-07-03-vincoli-indici-e-normalizzazione-1",
       "module": "sql",
-      "question": "Qual è l'idea principale di **Vincoli, indici e normalizzazione** e dove entra `NOT NULL`?",
+      "question": "A che cosa serve **Vincoli, indici e normalizzazione**?",
       "answer": "I vincoli impediscono che nel database entrino dati incoerenti. Gli indici velocizzano alcune letture ma occupano spazio e rallentano le scritture, quindi vanno scelti osservando le query reali."
     },
     {
@@ -5274,13 +5274,13 @@
     {
       "id": "fc-07-03-vincoli-indici-e-normalizzazione-3",
       "module": "sql",
-      "question": "Qual è un errore tipico legato a **Vincoli, indici e normalizzazione**?",
-      "answer": "I rischi più comuni sono: indice su ogni colonna; duplicazione di dati derivabili; vincoli solo nell'app."
+      "question": "Quale errore evitare quando lavori su **Vincoli, indici e normalizzazione**?",
+      "answer": "Un rischio da evitare: indice su ogni colonna; duplicazione di dati derivabili; vincoli solo nell'app."
     },
     {
       "id": "fc-07-04-transazioni-e-concorrenza-1",
       "module": "sql",
-      "question": "Qual è l'idea principale di **Transazioni e concorrenza** e dove entra `transaction`?",
+      "question": "A che cosa serve **Transazioni e concorrenza**?",
       "answer": "Una transazione raggruppa operazioni che devono riuscire insieme. Se una fallisce, il rollback evita uno stato parziale; tenerla aperta troppo a lungo può però bloccare altri accessi."
     },
     {
@@ -5292,13 +5292,13 @@
     {
       "id": "fc-07-04-transazioni-e-concorrenza-3",
       "module": "sql",
-      "question": "Qual è un errore tipico legato a **Transazioni e concorrenza**?",
-      "answer": "I rischi più comuni sono: commit parziale; transazioni troppo lunghe; nessuna gestione del rollback."
+      "question": "Quale errore evitare quando lavori su **Transazioni e concorrenza**?",
+      "answer": "Un rischio da evitare: commit parziale; transazioni troppo lunghe; nessuna gestione del rollback."
     },
     {
       "id": "fc-08-01-git-working-tree-staging-e-commit-1",
       "module": "git_testing",
-      "question": "Qual è l'idea principale di **Git: working tree, staging e commit** e dove entra `working tree`?",
+      "question": "A che cosa serve **Git: working tree, staging e commit**?",
       "answer": "Il working tree contiene ciò che stai modificando; lo staging seleziona ciò che entrerà nel prossimo commit. Un commit piccolo e coerente racconta una modifica comprensibile e rende più semplice annullarla o revisionarla."
     },
     {
@@ -5310,13 +5310,13 @@
     {
       "id": "fc-08-01-git-working-tree-staging-e-commit-3",
       "module": "git_testing",
-      "question": "Qual è un errore tipico legato a **Git: working tree, staging e commit**?",
-      "answer": "I rischi più comuni sono: git add . senza controllare; commit final version; credenziali versionate."
+      "question": "Quale errore evitare quando lavori su **Git: working tree, staging e commit**?",
+      "answer": "Un rischio da evitare: git add . senza controllare; commit final version; credenziali versionate."
     },
     {
       "id": "fc-08-02-branch-merge-e-conflitti-1",
       "module": "git_testing",
-      "question": "Qual è l'idea principale di **Branch, merge e conflitti** e dove entra `branch`?",
+      "question": "A che cosa serve **Branch, merge e conflitti**?",
       "answer": "Un branch separa una linea di lavoro. Un conflitto non è un errore automatico da cancellare: Git ti sta chiedendo quale combinazione delle due modifiche rappresenta il risultato corretto."
     },
     {
@@ -5328,13 +5328,13 @@
     {
       "id": "fc-08-02-branch-merge-e-conflitti-3",
       "module": "git_testing",
-      "question": "Qual è un errore tipico legato a **Branch, merge e conflitti**?",
-      "answer": "I rischi più comuni sono: risolvere un conflitto cancellando marcatori senza capire entrambe le versioni."
+      "question": "Quale errore evitare quando lavori su **Branch, merge e conflitti**?",
+      "answer": "Un rischio da evitare: risolvere un conflitto cancellando marcatori senza capire entrambe le versioni."
     },
     {
       "id": "fc-08-03-test-unitari-integrazione-ed-e2e-1",
       "module": "git_testing",
-      "question": "Qual è l'idea principale di **Test unitari, integrazione ed E2E** e dove entra `unit test`?",
+      "question": "A che cosa serve **Test unitari, integrazione ed E2E**?",
       "answer": "Un test unitario isola una piccola regola; un test di integrazione verifica la collaborazione tra parti; un E2E percorre il sistema come un utente. Servono livelli diversi perché trovano problemi diversi."
     },
     {
@@ -5346,13 +5346,13 @@
     {
       "id": "fc-08-03-test-unitari-integrazione-ed-e2e-3",
       "module": "git_testing",
-      "question": "Qual è un errore tipico legato a **Test unitari, integrazione ed E2E**?",
-      "answer": "I rischi più comuni sono: testare dettagli interni; mockare tutto; test senza asserzioni significative."
+      "question": "Quale errore evitare quando lavori su **Test unitari, integrazione ed E2E**?",
+      "answer": "Un rischio da evitare: testare dettagli interni; mockare tutto; test senza asserzioni significative."
     },
     {
       "id": "fc-08-04-code-review-e-refactoring-1",
       "module": "git_testing",
-      "question": "Qual è l'idea principale di **Code review e refactoring** e dove entra `refactoring`?",
+      "question": "A che cosa serve **Code review e refactoring**?",
       "answer": "La review controlla correttezza, chiarezza e rischi, non lo stile personale dell'autore. Il refactoring migliora la struttura senza cambiare il comportamento e richiede test che lo dimostrino."
     },
     {
@@ -5364,13 +5364,13 @@
     {
       "id": "fc-08-04-code-review-e-refactoring-3",
       "module": "git_testing",
-      "question": "Qual è un errore tipico legato a **Code review e refactoring**?",
-      "answer": "I rischi più comuni sono: grande riscrittura senza test; commenti sullo stile personale; nessuna priorità."
+      "question": "Quale errore evitare quando lavori su **Code review e refactoring**?",
+      "answer": "Un rischio da evitare: grande riscrittura senza test; commenti sullo stile personale; nessuna priorità."
     },
     {
       "id": "fc-09-01-php-e-ciclo-di-un-plugin-wordpress-1",
       "module": "wordpress",
-      "question": "Qual è l'idea principale di **PHP e ciclo di un plugin WordPress** e dove entra `PHP`?",
+      "question": "A che cosa serve **PHP e ciclo di un plugin WordPress**?",
       "answer": "Un plugin registra funzioni sugli hook offerti da WordPress. L'azione esegue un comportamento in un momento preciso; il filtro riceve un valore, lo trasforma e deve restituirlo."
     },
     {
@@ -5382,13 +5382,13 @@
     {
       "id": "fc-09-01-php-e-ciclo-di-un-plugin-wordpress-3",
       "module": "wordpress",
-      "question": "Qual è un errore tipico legato a **PHP e ciclo di un plugin WordPress**?",
-      "answer": "I rischi più comuni sono: modificare il core; eseguire codice globale pesante; nomi di funzione generici."
+      "question": "Quale errore evitare quando lavori su **PHP e ciclo di un plugin WordPress**?",
+      "answer": "Un rischio da evitare: modificare il core; eseguire codice globale pesante; nomi di funzione generici."
     },
     {
       "id": "fc-09-02-sicurezza-wordpress-1",
       "module": "wordpress",
-      "question": "Qual è l'idea principale di **Sicurezza WordPress** e dove entra `sanitize_text_field`?",
+      "question": "A che cosa serve **Sicurezza WordPress**?",
       "answer": "Sanitizzare significa pulire un dato in ingresso; fare escaping significa renderlo sicuro nel punto in cui viene mostrato. Un nonce aiuta a verificare l'intenzione della richiesta, ma non sostituisce il controllo dei permessi."
     },
     {
@@ -5400,13 +5400,13 @@
     {
       "id": "fc-09-02-sicurezza-wordpress-3",
       "module": "wordpress",
-      "question": "Qual è un errore tipico legato a **Sicurezza WordPress**?",
-      "answer": "I rischi più comuni sono: confondere sanitizzazione input ed escaping output; nonce usato come autorizzazione."
+      "question": "Quale errore evitare quando lavori su **Sicurezza WordPress**?",
+      "answer": "Un rischio da evitare: confondere sanitizzazione input ed escaping output; nonce usato come autorizzazione."
     },
     {
       "id": "fc-10-01-presentare-l-architettura-di-un-app-el-1",
       "module": "portfolio",
-      "question": "Qual è l'idea principale di **Presentare l'architettura di un'app Electron** e dove entra `Electron main`?",
+      "question": "A che cosa serve **Presentare l'architettura di un'app Electron**?",
       "answer": "Nel processo main vivono filesystem, database e funzioni privilegiate; il renderer mostra l'interfaccia. Il preload espone un ponte ristretto e l'IPC permette ai due lati di comunicare senza consegnare alla UI accesso completo al sistema."
     },
     {
@@ -5418,13 +5418,13 @@
     {
       "id": "fc-10-01-presentare-l-architettura-di-un-app-el-3",
       "module": "portfolio",
-      "question": "Qual è un errore tipico legato a **Presentare l'architettura di un'app Electron**?",
-      "answer": "I rischi più comuni sono: elencare librerie senza motivare; non riconoscere file troppo grandi e debito tecnico."
+      "question": "Quale errore evitare quando lavori su **Presentare l'architettura di un'app Electron**?",
+      "answer": "Un rischio da evitare: elencare librerie senza motivare; non riconoscere file troppo grandi e debito tecnico."
     },
     {
       "id": "fc-10-02-presentare-una-pipeline-ai-multimodale-1",
       "module": "portfolio",
-      "question": "Qual è l'idea principale di **Presentare una pipeline AI multimodale** e dove entra `Unity`?",
+      "question": "A che cosa serve **Presentare una pipeline AI multimodale**?",
       "answer": "Racconta la pipeline nell'ordine in cui scorrono i dati: input in un client interattivo, trascrizione con Whisper, recupero del contesto e risposta del modello. Per ogni passaggio chiarisci latenza, possibile errore e dato conservato."
     },
     {
@@ -5436,13 +5436,13 @@
     {
       "id": "fc-10-02-presentare-una-pipeline-ai-multimodale-3",
       "module": "portfolio",
-      "question": "Qual è un errore tipico legato a **Presentare una pipeline AI multimodale**?",
-      "answer": "I rischi più comuni sono: dire soltanto 'usa IA'; non spiegare latenze, errori e separazione dei dati."
+      "question": "Quale errore evitare quando lavori su **Presentare una pipeline AI multimodale**?",
+      "answer": "Un rischio da evitare: dire soltanto 'usa IA'; non spiegare latenze, errori e separazione dei dati."
     },
     {
       "id": "fc-10-03-parlare-onestamente-dell-uso-dell-ia-1",
       "module": "portfolio",
-      "question": "Qual è l'idea principale di **Parlare onestamente dell'uso dell'IA** e dove entra `ownership`?",
+      "question": "A che cosa serve **Parlare onestamente dell'uso dell'IA**?",
       "answer": "Puoi dire che l'IA ti ha aiutato a esplorare o produrre una prima versione, ma devi distinguere quel contributo dalle decisioni che hai verificato tu. La responsabilità finale resta tua: devi saper leggere, correggere e spiegare ciò che presenti."
     },
     {
@@ -5454,13 +5454,13 @@
     {
       "id": "fc-10-03-parlare-onestamente-dell-uso-dell-ia-3",
       "module": "portfolio",
-      "question": "Qual è un errore tipico legato a **Parlare onestamente dell'uso dell'IA**?",
-      "answer": "I rischi più comuni sono: negare l'uso; attribuirsi codice non compreso; descriversi come semplice esecutore dei prompt."
+      "question": "Quale errore evitare quando lavori su **Parlare onestamente dell'uso dell'IA**?",
+      "answer": "Un rischio da evitare: negare l'uso; attribuirsi codice non compreso; descriversi come semplice esecutore dei prompt."
     },
     {
       "id": "fc-10-04-comunicare-decisioni-tecniche-e-risult-1",
       "module": "portfolio",
-      "question": "Qual è l'idea principale di **Comunicare decisioni tecniche e risultati** e dove entra `contesto`?",
+      "question": "A che cosa serve **Comunicare decisioni tecniche e risultati**?",
       "answer": "Un racconto utile parte da una situazione reale, chiarisce la tua responsabilità e descrive una decisione specifica. Termina con il risultato e con ciò che hai imparato, senza trasformarsi in un elenco di tecnologie."
     },
     {
@@ -5472,59 +5472,59 @@
     {
       "id": "fc-10-04-comunicare-decisioni-tecniche-e-risult-3",
       "module": "portfolio",
-      "question": "Qual è un errore tipico legato a **Comunicare decisioni tecniche e risultati**?",
-      "answer": "I rischi più comuni sono: risposte astratte; parlare solo al plurale; non quantificare risultato o apprendimento."
+      "question": "Quale errore evitare quando lavori su **Comunicare decisioni tecniche e risultati**?",
+      "answer": "Un rischio da evitare: risposte astratte; parlare solo al plurale; non quantificare risultato o apprendimento."
     }
   ],
   "simulations": [
     {
       "id": "sim-js-30",
-      "title": "Sessione autonoma JavaScript — 30 minuti",
+      "title": "JavaScript · gestione dei soggetti (30 min)",
       "minutes": 30,
-      "brief": "Ricevi una collezione di soggetti. Devi filtrarla, aggiornare un elemento e calcolare un riepilogo senza modificare i dati originali.",
+      "brief": "Parti da un elenco di soggetti: filtralo, aggiorna un record e calcola un riepilogo senza modificare i dati originali.",
       "checklist": [
-        "Ripeti il requisito con parole tue",
-        "Scrivi un esempio normale e un caso limite",
-        "Dividi la soluzione in funzioni piccole",
-        "Prova anche un array vuoto",
-        "Spiega il costo della soluzione e un possibile compromesso"
+        "Riassumi il requisito con parole tue",
+        "Prova un caso normale e uno limite",
+        "Dividi il lavoro in funzioni piccole",
+        "Controlla anche l'elenco vuoto",
+        "Descrivi il costo della soluzione e un compromesso"
       ]
     },
     {
       "id": "sim-react-60",
-      "title": "Sessione autonoma React — 60 minuti",
+      "title": "React · lista e form (60 min)",
       "minutes": 60,
-      "brief": "Costruisci una lista ricercabile, un form controllato e un'eliminazione con conferma. Mostra chiaramente anche lo stato vuoto.",
+      "brief": "Crea una lista ricercabile, un form controllato e l'eliminazione di un elemento con conferma. Mostra anche quando la lista è vuota.",
       "checklist": [
         "Definisci la forma dei dati",
-        "Decidi quale componente possiede lo state",
+        "Scegli quale componente mantiene lo stato",
         "Gestisci la lista vuota",
-        "Usa una key stabile",
-        "Prova gli eventi come farebbe un utente"
+        "Assegna una chiave stabile a ogni riga",
+        "Prova il flusso con mouse e tastiera"
       ]
     },
     {
       "id": "sim-debug-45",
-      "title": "Debugging guidato — 45 minuti",
+      "title": "Debugging · individua e correggi il problema (45 min)",
       "minutes": 45,
-      "brief": "Hai davanti una piccola applicazione con errori e test falliti. Trova le cause senza riscrivere tutto da capo.",
+      "brief": "Esamina una piccola applicazione con test falliti. Riproduci il problema, individua la causa e limita la correzione ai punti necessari.",
       "checklist": [
         "Riproduci il problema",
-        "Leggi per intero errore e stack trace",
+        "Leggi l'errore e la traccia completa",
         "Formula un'ipotesi verificabile",
-        "Applica la correzione più piccola possibile",
-        "Esegui di nuovo tutti i test per evitare regressioni"
+        "Applica una correzione circoscritta",
+        "Esegui di nuovo i test e controlla le aree vicine"
       ]
     },
     {
       "id": "sim-complete-60",
-      "title": "Sfida completa — 60 minuti",
+      "title": "Prova completa · ragionamento e progetti (60 min)",
       "minutes": 60,
-      "brief": "Completa una sessione che unisce spiegazione tecnica, domande web, analisi di due progetti e riflessione sull'uso consapevole dell'IA.",
+      "brief": "Alterna spiegazione tecnica, domande sul web, analisi di due progetti e riflessione sull'uso dell'IA.",
       "checklist": [
         "Riassumi il tuo approccio in circa 90 secondi",
-        "Racconta due decisioni tecniche concrete",
-        "Descrivi un bug che hai realmente affrontato",
+        "Descrivi due decisioni tecniche concrete",
+        "Racconta un bug che hai affrontato davvero",
         "Riconosci un limite e spiega come lo miglioreresti",
         "Annota due domande da approfondire"
       ]

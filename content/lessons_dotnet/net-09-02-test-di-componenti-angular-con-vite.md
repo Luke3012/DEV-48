@@ -1,72 +1,67 @@
 # Testare componenti Angular con Vitest e TestBed
 
-## In parole semplici
+Un componente Angular dipende da template, injector e ciclo di rendering. Costruirlo con `new` non prepara queste parti: `TestBed` configura il contesto, `ComponentFixture` guida il rendering e il test osserva ciò che compare nel DOM dopo un'azione.
 
-L'obiettivo di questa lezione è usare Vitest e TestBed per creare un componente standalone e verificare il comportamento osservabile nel DOM.
+## Il comportamento che vogliamo proteggere
 
-Vitest esegue i test; TestBed crea il contesto Angular e ComponentFixture permette di osservare il componente e il suo DOM. Un test di componente verifica ciò che vede o fa l'utente, non solo una classe costruita con `new`.
+### Il test segue l'uso della persona
+Componente standalone:
+```typescript
+@Component({
+  selector: 'app-counter',
+  template: '<p data-count>{{ count() }}</p><button (click)="increment()">Aggiungi</button>'
+})
+export class CounterComponent {
+  readonly count = signal(0);
+  increment(): void { this.count.update(value => value + 1); }
+}
+```
 
-## Le parole da riconoscere
-
-- `vitest`
-- `testbed`
-- `componentfixture`
-- `dom`
-- `expect`
-- `change detection`
-
-## Anatomia e Sintassi del Codice
-
-### Test di un componente Standalone con TestBed:
+Spec eseguita da Vitest:
 ```typescript
 import { TestBed } from '@angular/core/testing';
 import { CounterComponent } from './counter.component';
 
 describe('CounterComponent', () => {
-  it('mostra il valore e lo aggiorna dopo un click', async () => {
+  it('mostra il conteggio dopo un click', async () => {
+    // Arrange: prepara import Angular e crea l'istanza.
     await TestBed.configureTestingModule({ imports: [CounterComponent] }).compileComponents();
     const fixture = TestBed.createComponent(CounterComponent);
     fixture.detectChanges();
-    const element = fixture.nativeElement as HTMLElement;
 
-    expect(element.querySelector('[data-count]')?.textContent).toContain('0');
-    element.querySelector('button')?.click();
+    // Act
+    (fixture.nativeElement.querySelector('button') as HTMLButtonElement).click();
     fixture.detectChanges();
-    expect(element.querySelector('[data-count]')?.textContent).toContain('1');
+
+    // Assert: controlla il risultato visibile.
+    expect(fixture.nativeElement.querySelector('[data-count]').textContent).toContain('1');
   });
 });
 ```
 
-## Un esempio concreto
+`TestBed` crea il contesto d'iniezione e risolve i componenti dichiarati in `imports`; `createComponent` restituisce fixture e istanza; `detectChanges()` applica lo stato al DOM. Se il componente usa un service, fornisci un mock con `providers` e osserva l'effetto dell'azione, non un dettaglio privato.
 
-```text
-describe('Component', () => {
-  it('mostra il titolo nel DOM', async () => {
-    await TestBed.configureTestingModule({ imports: [MyComponent] }).compileComponents();
-    const fixture = TestBed.createComponent(MyComponent);
-    fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Home');
-  });
-});
+## Prepara, esegui, osserva
+
+```typescript
+fixture.nativeElement.querySelector('button').click();
+fixture.detectChanges();
+expect(fixture.nativeElement.textContent).toContain('1');
 ```
 
-### Seguilo passo per passo
+### Rendi riproducibile il comportamento
 
-1. `TestBed.configureTestingModule({ imports: [MyComponent] })` prepara il contesto Angular e importa il componente standalone.
-2. `createComponent` crea il componente; `detectChanges()` esegue il primo ciclo e aggiorna il DOM.
-3. L'asserzione cerca il titolo nell'interfaccia visibile. Il test osserva ciò che la persona usa, non un metodo privato isolato.
-4. Cambia un input o clicca un pulsante, attiva di nuovo la change detection e verifica il nuovo DOM. Se il componente usa servizi, fornisci un mock esplicito.
+1. Arrange importa il componente standalone nel modulo di test e crea una fixture.
+2. Il primo `detectChanges()` renderizza il valore iniziale e collega l'handler del pulsante.
+3. Act clicca il pulsante: il metodo aggiorna il Signal; un nuovo ciclo applica il testo aggiornato al DOM.
+4. Assert cerca `1` nell'elemento visibile. Se il test osserva ancora `0`, controlla prima evento, Signal e ciclo di rendering; se usa un service, verifica che il provider di test sia stato registrato.
 
-## Pattern Guida per gli Esercizi
+Nel laboratorio TestBed verifica il DOM dopo un'interazione e aggiungi un caso che riproduce il difetto iniziale. Il runner dell'esercizio breve non compila il template Angular.
 
-La pratica breve isola una regola e non avvia l'applicazione Angular. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
-
-## Dove ci si confonde spesso
+## Che cosa rende il difetto osservabile?
 
 - Testare solo metodi privati senza osservare il DOM
 - dimenticare di attivare la change detection quando serve
 - costruire direttamente un componente Angular che usa dipendenze Angular.
 
-## Domanda di verifica
-
-> Quali parti di Angular prepara TestBed quando crea un componente per il test?
+> **Quale evidenza dimostra il comportamento?** Quali parti di Angular prepara TestBed quando crea un componente per il test?

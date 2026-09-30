@@ -1,21 +1,8 @@
 # Interfacce vs Type Alias e Contratti di Dati
 
-## In parole semplici
-
-L'obiettivo di questa lezione è modellare contratti di dati coerenti tra client Angular e DTO del backend .NET.
-
 Interfacce e type alias descrivono gli oggetti attesi e aiutano il compilatore a rilevare campi e tipi incoerenti. Non verificano i dati ricevuti a runtime: un JSON esterno può violare il contratto e richiedere validazione.
 
-## Le parole da riconoscere
-
-- `interface`
-- `type alias`
-- `extends`
-- `readonly`
-- `optional`
-- `contratto dati`
-
-## Anatomia e Sintassi del Codice
+## Che cosa sa il compilatore del dato
 
 ### `interface` vs `type`:
 - **`interface`**: ideale per descrivere la forma di oggetti e dati DTO. Supporta l'estensione con `extends` e la dichiarazione incrementale.
@@ -32,7 +19,7 @@ export interface UserDto {
 export type UserRole = "Admin" | "Manager" | "Guest";
 ```
 
-## Un esempio concreto
+## Segui il tipo mentre il dato cambia forma
 
 ```typescript
 export interface UserDto {
@@ -44,16 +31,14 @@ export interface UserDto {
 export type Status = 'active' | 'inactive';
 ```
 
-### Seguilo passo per passo
+### Controlla il contratto su un dato reale
 
 1. `UserDto` richiede `id` numerico e `name` testuale; `readonly` impedisce di riassegnare `id` attraverso quel tipo.
 2. `role?` è facoltativo: un oggetto valido può ometterlo, ma se lo include deve fornire una stringa.
 3. `Status` ammette soltanto i valori letterali `active` e `inactive`; una stringa diversa produce un errore TypeScript.
 4. Aggiungi un oggetto con `role` assente e uno con `role: 7`. Poi prova `status: 'pending'` per distinguere i campi facoltativi dall'unione chiusa.
 
-## Pattern Guida per gli Esercizi
-
-Usa il frammento come riferimento iniziale. Prima di aprire gli indizi, prova a prevedere un caso della consegna; dopo la soluzione, riscrivi il passaggio che ti mancava.
+## Estendi il contratto
 
 ```typescript
 export interface ApiResponse<T> {
@@ -63,11 +48,9 @@ export interface ApiResponse<T> {
 }
 ```
 
-## Dove ci si confonde spesso
+## Dove il controllo statico si ferma
 
 - Creare interfacce con proprietà senza tipo esplicito
 - non sincronizzare i nomi dei campi tra backend C# e interfaccia TS.
 
-## Domanda di verifica
-
-> Qual è la differenza pratica tra una proprietà obbligatoria e una opzionale in un'interfaccia?
+> **Quale garanzia hai davvero?** Qual è la differenza pratica tra una proprietà obbligatoria e una opzionale in un'interfaccia?

@@ -170,6 +170,10 @@ Button {
     border: tall #40577e;
 }
 
+Button#language {
+    min-width: 20;
+}
+
 Button.primary {
     background: #6d28d9;
     border: tall #8b5cf6;
@@ -288,6 +292,10 @@ Markdown, #lesson-markdown {
 #exercise-actions Button {
     min-width: 9;
     margin-right: 0;
+}
+
+#exercise-actions Button#language {
+    min-width: 24;
 }
 
 #exercise-right {

@@ -1,98 +1,104 @@
 # Test unitari in C# con xUnit
 
-## In parole semplici
+Un metodo di servizio contiene una regola che deve restare vera quando il codice cambia. Un test unitario prepara dipendenze controllabili, invoca una sola operazione e confronta il risultato; quando la domanda riguarda invece routing, binding e status HTTP, serve una prova d'integrazione che avvii la pipeline.
 
-L'obiettivo di questa lezione è scrivere test unitari affidabili e manutenibili per i servizi e la logica di business .NET.
+## Il comportamento che vogliamo proteggere
 
-I test unitari verificano che singoli metodi o componenti producano il risultato atteso per diversi input, proteggendo il codice da regressioni durante i refactoring.
+### Un test unitario di servizio
+```csharp
+using System.Collections.Generic;
+using System.Linq;
 
-## Le parole da riconoscere
+public sealed record OrderLine(int Price, int Quantity);
 
-- `xunit`
-- `[fact]`
-- `[theory]`
-- `assert`
-- `arrange act assert`
-- `red green refactor`
+public sealed class OrderTotalService
+{
+    public int Calculate(IEnumerable<OrderLine> lines) =>
+        lines.Sum(line => line.Price * line.Quantity);
+}
+```
 
-## Anatomia e Sintassi del Codice
-
-### Il Pattern Arrange - Act - Assert (AAA):
-Il modello Arrange–Act–Assert rende distinguibili tre responsabilità:
-1. **Arrange (Prepara)**: inizializza le variabili, crea gli oggetti e prepara l'ambiente di test.
-2. **Act (Esegui)**: invoca il metodo sotto test con i parametri stabiliti.
-3. **Assert (Verifica)**: controlla che il valore restituito o lo stato coincida con il risultato atteso.
-
-### Esempio con xUnit:
 ```csharp
 using Xunit;
 
-public class CalculatorTests {
-    [Fact]
-    public void Add_TwoNumbers_ReturnsCorrectSum() {
-        // 1. Arrange
-        var calc = new Calculator();
-
-        // 2. Act
-        var result = calc.Add(10, 20);
-
-        // 3. Assert
-        Assert.Equal(30, result);
-    }
-
+public sealed class OrderTotalServiceTests
+{
     [Theory]
-    [InlineData(0, false)]
-    [InlineData(-5, false)]
-    public void IsPositive_VariousInputs_ReturnsExpected(int number, bool expected) {
-        var calc = new Calculator();
-        Assert.Equal(expected, calc.IsPositive(number));
+    [InlineData(10, 2, 20)]
+    [InlineData(0, 3, 0)]
+    public void Calculate_ReturnsTheSum(int price, int quantity, int expected)
+    {
+        // Arrange
+        var service = new OrderTotalService();
+        var lines = new[] { new OrderLine(price, quantity) };
+
+        // Act
+        var total = service.Calculate(lines);
+
+        // Assert
+        Assert.Equal(expected, total);
     }
 }
 ```
 
-Nel progetto di test aggiungi la classe usata dall’esempio (oppure referenzia il progetto che la contiene):
-```csharp
-public class Calculator {
-    public int Add(int a, int b) => a + b;
-    public bool IsPositive(int number) => number > 0;
-}
+`[Fact]` rappresenta un caso nominato; `[Theory]` ripete la stessa regola con più righe di dati. Arrange prepara, Act esegue, Assert verifica: se l'asserzione fallisce, il test indica quale comportamento è cambiato.
+
+### Una prova d'integrazione per la pipeline HTTP
+Per verificare che l'endpoint trasformi davvero una richiesta in `404`, il progetto di test può usare `Microsoft.AspNetCore.Mvc.Testing` e `WebApplicationFactory<Program>`. Dalla cartella `tests/` aggiungi il pacchetto e un riferimento al progetto API:
+```powershell
+dotnet add package Microsoft.AspNetCore.Mvc.Testing --version 10.0.12
+dotnet add reference ../server/Server.csproj
 ```
-Esegui `dotnet test Tests/Server.Tests.csproj` dalla cartella `server/` del laboratorio Suite di Test xUnit e Vitest. Prima fai fallire un test con un difetto controllato, poi correggi il metodo e verifica di nuovo.
-
-## Un esempio concreto
-
+Con le istruzioni top-level, rendi accessibile il punto d'ingresso aggiungendo questa riga alla fine di `server/Program.cs`:
 ```csharp
+public partial class Program { }
+```
+
+Il codice seguente va invece in `tests/SubjectEndpointTests.cs`:
+```csharp
+using System.Net;
+using System.Net.Http;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
-public static class Service {
-    public static int Process(int value) => value * 2;
-}
+public sealed class SubjectEndpointTests : IClassFixture<WebApplicationFactory<Program>>
+{
+    private readonly HttpClient client;
+    public SubjectEndpointTests(WebApplicationFactory<Program> factory) => client = factory.CreateClient();
 
-public class ServiceTests {
     [Fact]
-    public void Calculate_ValidInput_ReturnsExpected() {
-        var result = Service.Process(5);
-        Assert.Equal(10, result);
+    public async Task MissingSubject_ReturnsNotFound()
+    {
+        // Arrange: il client punta all'host di test in memoria.
+        // Act
+        var response = await client.GetAsync("/api/subjects/999");
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }
 ```
 
-### Seguilo passo per passo
+Un test unitario non apre un server e può usare dipendenze controllabili; il test d'integrazione esegue routing, binding, middleware e endpoint in un host di test. Se l'endpoint usa un database, sostituiscilo con un archivio isolato per il test. Usa la prova più piccola che risponde alla domanda e aggiungi la persistenza solo quando è parte del comportamento da verificare.
 
-1. Nella fase Arrange prepara l'input `5` e il servizio; non introdurre database o rete in un test unitario semplice.
-2. La fase Act chiama `Service.Process(5)` una sola volta e conserva il risultato.
-3. `Assert.Equal(10, result)` confronta il comportamento osservato con il valore atteso. Se il metodo restituisce un altro numero, xUnit indica il test fallito.
-4. Prova un input limite con una seconda `[Theory]` o un altro `[Fact]`. Mantieni un solo comportamento principale per test, così un errore resta facile da diagnosticare.
+## Prepara, esegui, osserva
 
-## Pattern Guida per gli Esercizi
+```csharp
+var total = new OrderTotalService().Calculate(new[] { new OrderLine(10, 2) });
+Assert.Equal(20, total);
+```
 
-La pratica breve isola una regola e non avvia l'applicazione .NET. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
+### Rendi riproducibile il comportamento
 
-## Dove ci si confonde spesso
+1. Arrange crea il servizio e una riga con prezzo `10` e quantità `2`.
+2. Act chiama `Calculate` una volta; il metodo moltiplica prezzo e quantità e restituisce `20`.
+3. Assert confronta il risultato con l'atteso. Se un difetto restituisce `10`, il test fallisce mostrando atteso ed effettivo.
+4. La seconda riga della Theory copre quantità con prezzo zero. Per l'endpoint, invia invece una vera GET a `WebApplicationFactory` e verifica status e body senza dipendere da una porta locale.
+
+La pratica breve del laboratorio inizia da un caso limite che fallisce. Correggi il metodo senza cambiare l'atteso; poi aggiungi una prova d'integrazione solo per i comportamenti che attraversano davvero la pipeline ASP.NET Core.
+
+## Che cosa rende il difetto osservabile?
 
 - Scrivere test che dipendono dal database reale o dalla rete (rallentano la suite e falliscono a intermittenza)
 - inserire troppe verifiche non correlate nello stesso test.
 
-## Domanda di verifica
-
-> Qual è la differenza fondamentale tra l'attributo `[Fact]` e `[Theory]` in xUnit?
+> **Quale evidenza dimostra il comportamento?** Qual è la differenza fondamentale tra l'attributo `[Fact]` e `[Theory]` in xUnit?

@@ -1,68 +1,64 @@
 # Modellazione Entità e Relazioni 1:N e N:N
 
-## In parole semplici
+Un soggetto può avere molte misure; molte misure possono riferirsi allo stesso soggetto. Nel database la relazione è memorizzata con chiavi, mentre in C# le navigation property rendono raggiungibili gli oggetti collegati quando EF Core li carica.
 
-L'obiettivo di questa lezione è mappare chiavi primarie, foreign key e relazioni tra tabelle usando Fluent API e convenzioni.
+## Dall'oggetto C# alla riga del database
 
-Le navigation properties consentono di navigare tra entità correlate (es. da un Ordine ai suoi Articoli) in modo naturale orientato agli oggetti.
+### Prima capisci cardinalità e chiavi
+```text
+Subject 1 ───────── * Measure
+Tag     * ───────── * Subject
+```
 
-## Le parole da riconoscere
+`Subject.Id` è la chiave primaria. In `Measure`, `SubjectId` è la foreign key che conserva la relazione; `Measure.Subject` e `Subject.Measures` sono navigation property. Una navigation descrive il collegamento tra oggetti, ma non significa che la riga correlata sia già stata caricata.
 
-- `entita`
-- `primary key`
-- `foreign key`
-- `relazione 1 a molti`
-- `onmodelcreating`
-- `navigation property`
-
-## Anatomia e Sintassi del Codice
-
-### Convenzione per Relazione 1 a Molti (1:N):
 ```csharp
-public class Category {
+public sealed class Subject
+{
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
-
-    // Navigation property: una categoria ha molti prodotti
-    public List<Product> Products { get; set; } = new();
+    public List<Measure> Measures { get; set; } = [];
+    public List<Tag> Tags { get; set; } = [];
 }
 
-public class Product {
+public sealed class Measure
+{
     public int Id { get; set; }
-    public string Title { get; set; } = string.Empty;
+    public decimal Value { get; set; }
+    public int SubjectId { get; set; }
+    public Subject Subject { get; set; } = null!;
+}
 
-    // Foreign Key verso Category
-    public int CategoryId { get; set; }
-    public Category? Category { get; set; }
+public sealed class Tag
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public List<Subject> Subjects { get; set; } = [];
 }
 ```
 
-In `OnModelCreating` si può personalizzare il comportamento di cancellazione (es. `OnDelete(DeleteBehavior.Cascade)`).
+Per 1:N EF Core riconosce normalmente la chiave `SubjectId` per convenzione. Per N:N può creare una tabella di join implicita; se la relazione stessa ha dati, come data di assegnazione o autore, modella una join entity esplicita. La Fluent API rende le regole chiare quando i nomi non seguono le convenzioni.
 
-## Un esempio concreto
+## Segui il lavoro del DbContext
 
-```html
-modelBuilder.Entity<Order>()
-    .HasMany(o => o.Items)
-    .WithOne(i => i.Order)
-    .HasForeignKey(i => i.OrderId);
+```csharp
+modelBuilder.Entity<Subject>()
+    .HasMany(subject => subject.Measures)
+    .WithOne(measure => measure.Subject)
+    .HasForeignKey(measure => measure.SubjectId);
 ```
 
-### Seguilo passo per passo
+### Osserva che cosa ha fatto il contesto
 
-1. `Order` è il lato principale della relazione; `HasMany(o => o.Items)` dichiara che un ordine può avere molti articoli.
-2. `WithOne(i => i.Order)` dichiara che ogni articolo appartiene a un ordine; `HasForeignKey(i => i.OrderId)` indica la colonna che conserva la chiave esterna.
-3. EF Core usa la configurazione per creare lo schema e materializzare le navigation properties; le classi `Order` e `Item` devono esistere e avere chiavi valide.
-4. Prova a salvare due articoli per un ordine e poi un articolo con chiave esterna inesistente. Individua quale vincolo applica il database.
+1. Una riga `Subject` ha `Id` come chiave primaria; più righe `Measure` possono contenere quel valore in `SubjectId`.
+2. EF Core usa la foreign key per collegare `Measure.Subject` al soggetto e `Subject.Measures` alla collezione inversa.
+3. Per leggere la navigazione nel risultato, chiedi esplicitamente il caricamento, ad esempio con `Include(subject => subject.Measures)`, oppure proietta i campi nella query.
+4. Nel laboratorio salva due misure per lo stesso soggetto, poi prova un riferimento a un ID inesistente. Distingui il comportamento del modello C# dal vincolo di integrità che applica il database.
 
-## Pattern Guida per gli Esercizi
+La pratica breve controlla una relazione isolata. Il laboratorio usa proprio Subject e Measure: aggiungi test che leggono il dato correlato dal database SQLite, non soltanto una property in memoria.
 
-La pratica breve isola una regola e non avvia l'applicazione .NET. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
-
-## Dove ci si confonde spesso
+## Che cosa resta responsabilità del database?
 
 - Dimenticare la Foreign Key esplicita lasciando che EF crei 'shadow properties' con nomi automatici difficili da interrogare.
 
-## Domanda di verifica
-
-> Che cos'è una navigation property in Entity Framework Core?
+> **Che cosa è stato caricato o salvato davvero?** Che cos'è una navigation property in Entity Framework Core?

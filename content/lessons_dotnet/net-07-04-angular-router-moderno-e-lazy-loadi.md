@@ -1,67 +1,55 @@
 # Angular Router moderno e Lazy Loading
 
-## In parole semplici
+In una SPA, l'indirizzo del browser cambia senza ricaricare tutta la pagina. Il Router confronta l'URL con una route, crea il componente corrispondente e lo inserisce nel punto `router-outlet` dichiarato dal layout.
 
-L'obiettivo di questa lezione è configurare la navigazione a pagina singola (SPA) caricando moduli e componenti su richiesta.
+## Lo stato che l'utente sta costruendo
 
-L'Angular Router associa gli URL del browser ai componenti dell'applicazione, caricando il codice dei componenti solo quando l'utente visita la relativa pagina (Lazy Loading con loadComponent).
+### URL, route e componente
+```text
+URL browser: /users/42?tab=measures
+        ↓ provideRouter(routes)
+match: path users/:id, parametro id = 42
+        ↓ loadComponent()
+UserDetailComponent
+        ↓
+<router-outlet> nel componente radice
+```
 
-## Le parole da riconoscere
-
-- `router`
-- `routes`
-- `loadcomponent`
-- `router-outlet`
-- `routerlink`
-- `parametri rotta`
-
-## Anatomia e Sintassi del Codice
-
-### Configurazione Rotte con Lazy Loading in `app.routes.ts`:
 ```typescript
+// src/app/app.routes.ts
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-  {
-    path: 'dashboard',
-    loadComponent: () => import('./features/dashboard.component').then(m => m.DashboardComponent)
-  },
+  { path: '', redirectTo: 'users', pathMatch: 'full' },
   {
     path: 'users/:id',
-    loadComponent: () => import('./features/user-detail.component').then(m => m.UserDetailComponent)
+    loadComponent: () => import('./user-detail.component').then(m => m.UserDetailComponent)
   },
-  { path: '**', redirectTo: 'dashboard' } // Wildcard per 404
+  { path: '**', loadComponent: () => import('./not-found.component').then(m => m.NotFoundComponent) }
 ];
 ```
 
-### Nel Template:
-- `<router-outlet />`: punto di montaggio in cui viene renderizzato il componente della rotta attiva.
-- `<a routerLink="/dashboard" routerLinkActive="active">`: navigazione SPA senza ricaricare la pagina.
+Nel layout importa `RouterOutlet` e `RouterLink`; `provideRouter(routes)` va registrato nei provider applicativi. Il `:id` identifica la risorsa nel percorso; `tab=measures` è query string e può rappresentare un filtro o una scheda. `routerLink` naviga senza ricaricare il documento. `loadComponent` ritarda il caricamento del componente quando la route viene richiesta.
 
-## Un esempio concreto
+Una route guard può fermare o reindirizzare la navigazione locale; non sostituisce l'autorizzazione dell'API. La rotta wildcard si mette dopo le rotte più specifiche per fungere da pagina non trovata.
+
+## Segui un campo o una navigazione
 
 ```typescript
-export const routes: Routes = [
-  { path: 'catalog', loadComponent: () => import('./catalog').then(m => m.CatalogComponent) }
-];
+{ path: 'users/:id', loadComponent: () => import('./user-detail.component').then(m => m.UserDetailComponent) }
 ```
 
-### Seguilo passo per passo
+### Segui la persona mentre completa il flusso
 
-1. La route associa il percorso `catalog` a una funzione che importa il file del componente solo quando la navigazione lo richiede.
-2. `then(m => m.CatalogComponent)` seleziona l'export da mostrare; il componente deve comparire in un `<router-outlet>` presente nell'app.
-3. Visitando `/catalog`, il Router carica il componente e mantiene la navigazione nella SPA. Un `routerLink` evita il ricaricamento completo della pagina.
-4. Prova un percorso inesistente e aggiungi una route di fallback. Poi osserva nel Network quando viene scaricato il chunk del catalogo.
+1. L'URL `/users/42?tab=measures` rimane nella barra del browser mentre il Router prova le route configurate.
+2. `users/:id` corrisponde al percorso e fornisce `id = 42`; la query `tab` è un dato facoltativo distinto dal path.
+3. Il Router carica il file `user-detail.component.ts` quando serve, crea `UserDetailComponent` e lo inserisce nel `router-outlet`.
+4. Naviga a `/users/99` con `routerLink` e poi cambia `tab` con `router.navigate`. L'app aggiorna la vista senza ricaricare l'intero documento.
 
-## Pattern Guida per gli Esercizi
+La funzione breve costruisce un URL di dettaglio. Nel laboratorio Router verifica configurazione, outlet, route lazy e navigazione anonima/autorizzata; la lezione successiva spiega la guard e i suoi limiti.
 
-La pratica breve isola una regola e non avvia l'applicazione Angular. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
-
-## Dove ci si confonde spesso
+## Rendi visibile lo stato che blocca il flusso
 
 - Usare `href` standard sui link invece di `routerLink` (provoca il ricaricamento completo dell'applicazione e perdita dello stato in memoria).
 
-## Domanda di verifica
-
-> Qual è il vantaggio di usare `loadComponent: () => import(...)` rispetto a importare direttamente la classe del componente nelle rotte?
+> **Quale stato decide che cosa accade dopo?** Qual è il vantaggio di usare `loadComponent: () => import(...)` rispetto a importare direttamente la classe del componente nelle rotte?

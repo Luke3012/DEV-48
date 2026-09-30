@@ -4,6 +4,16 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 import json
+import re
+
+
+_LESSON_LANGUAGE_PAIR = re.compile(
+    r"(?ms)^\*\*Versione Python\*\*[ \t]*\r?\n[ \t]*\r?\n"
+    r"```python\r?\n(?P<python>.*?)^```[ \t]*\r?\n[ \t]*\r?\n"
+    r"\*\*Versione C\+\+\*\*[ \t]*\r?\n[ \t]*\r?\n"
+    r"```cpp\r?\n(?P<cpp>.*?)^```[ \t]*(?:\r?\n|$)"
+)
+_LESSON_LANGUAGE_MARKER = re.compile(r"(?m)^\*\*Versione (?:Python|C\+\+)\*\*[ \t]*$")
 
 
 @dataclass(frozen=True)
@@ -123,50 +133,50 @@ class TrackDefinition:
 
 TRACK_DEFINITIONS = (
     TrackDefinition(
-        id="dotnet-angular", name="Angular & .NET Enterprise",
+        id="dotnet-angular", name="Percorso Angular e .NET",
         catalog_file="catalog_dotnet_angular.json", card_label="PERCORSO 01",
-        card_heading="ANGULAR & .NET ENTERPRISE", card_subtitle="Stack Enterprise Moderno da Zero",
+        card_heading="ANGULAR & .NET", card_subtitle="Dalle basi alle applicazioni complete",
         card_points=(
-            "C# 14 · Record, Pattern Matching & LINQ",
-            "ASP.NET Core · Minimal API & Dependency Injection",
-            "Entity Framework Core · SQLite & Migrazioni",
-            "Angular Standalone · Control Flow e Signals",
-            "Laboratori Monorepo · client/ (Angular) + server/ (.NET)",
+            "C# e TypeScript · tipi, funzioni e dati",
+            "ASP.NET Core · API e servizi",
+            "Entity Framework Core · SQLite e relazioni",
+            "Angular 22 · componenti, Signals e routing",
+            "Laboratori full-stack · client Angular e server .NET",
         ),
-        window_title="DEV//48 — Angular & .NET Enterprise Academy",
+        window_title="DEV//48 — Angular & .NET",
         window_subtitle=".NET 10 · Minimal API · EF Core · Angular 22 Signals",
         color="#22d3ee",
     ),
     TrackDefinition(
-        id="web-js-react", name="JavaScript & React Academy",
+        id="web-js-react", name="Percorso JavaScript e React",
         catalog_file="catalog.json", card_label="PERCORSO 02",
-        card_heading="JAVASCRIPT & REACT ACADEMY", card_subtitle="Full-Stack Web Standard da Zero",
+        card_heading="JAVASCRIPT & REACT", card_subtitle="Dalle basi alle applicazioni web",
         card_points=(
-            "JavaScript Moderno · ES2024, Closure & Async/Await",
-            "HTML & CSS · Semantica, Flexbox, Grid & Responsive",
-            "TypeScript · Contratti di tipo & Generics",
-            "React 19 · Componenti, Hooks, Form & Stato",
-            "Backend Node.js · Route, Servizi & SQLite SQL",
-            "Testing Vitest · Testing Library & TDD",
+            "JavaScript · funzioni, dati e asincronia",
+            "HTML e CSS · semantica, accessibilità e layout",
+            "TypeScript · tipi e contratti dei dati",
+            "React 19 · componenti, stato e form",
+            "Node.js e SQLite · API e database",
+            "Test con Vitest · logica e interfaccia",
         ),
-        window_title="DEV//48 — Web Development Academy",
+        window_title="DEV//48 — JavaScript & React",
         window_subtitle="JavaScript · React 19 · Node.js · SQL",
         color="#c084fc",
     ),
     TrackDefinition(
-        id="amazon-sde-oa", name="Amazon SDE-I OA Bootcamp",
+        id="amazon-sde-oa", name="Preparazione Amazon SDE-I OA",
         catalog_file="catalog_amazon_sde.json", card_label="PERCORSO 03",
-        card_heading="AMAZON SDE-I OA BOOTCAMP", card_subtitle="Coding Assessment Intensive",
+        card_heading="AMAZON SDE-I OA", card_subtitle="Algoritmi, progetti e prove a tempo",
         card_points=(
-            "Coding · 40 min DSA",
-            "Patterns · HashMap, Window, Graph, Heap & DP",
-            "Repository · 60 min Multi-file Debugging",
-            "AI Assistant · Navigazione, concetti & debugging",
-            "Amazon LP · Work Simulation & Work Style",
-            "Full Mock · 40 + 60 minuti",
+            "Problemi di algoritmi e strutture dati · Python o C++",
+            "Pattern · mappe, finestre, grafi, heap e programmazione dinamica",
+            "Repository esistenti · test e debugging multi-file",
+            "Assistente AI · esplorare il codice e verificare ipotesi",
+            "Leadership Principles · scenari Work Simulation e Work Style",
+            "Prova completa · 40 minuti di coding + 60 di repository",
         ),
-        window_title="DEV//48 — Amazon SDE-I OA Bootcamp",
-        window_subtitle="DSA · Repository debugging · Work Simulation",
+        window_title="DEV//48 — Amazon SDE-I OA",
+        window_subtitle="Algoritmi · debugging di repository · scenari di lavoro",
         color="#f59e0b",
     ),
 )
@@ -237,8 +247,23 @@ class Catalog:
             },
         })
 
-    def lesson_body(self, lesson: Lesson) -> str:
-        return (self.root / lesson.body_file).read_text(encoding="utf-8")
+    def lesson_body(self, lesson: Lesson, language: str | None = None) -> str:
+        """Return shared lesson prose with only the selected code variant visible."""
+        body = (self.root / lesson.body_file).read_text(encoding="utf-8")
+        if language is None:
+            return body
+        if language not in {"python", "cpp"}:
+            raise ValueError(f"Lingua DSA non supportata: {language}")
+
+        def select_variant(match: re.Match[str]) -> str:
+            code = match.group(language).rstrip()
+            label = "C++" if language == "cpp" else "Python"
+            return f"**Esempio in {label}**\n\n```{language}\n{code}\n```"
+
+        rendered, _ = _LESSON_LANGUAGE_PAIR.subn(select_variant, body)
+        if _LESSON_LANGUAGE_MARKER.search(rendered):
+            raise ValueError(f"Blocco linguaggio non chiuso nella lezione {lesson.id}")
+        return rendered
 
     def exercises_for(self, lesson_id: str) -> list[Exercise]:
         return [item for item in self.exercises if item.lesson_id == lesson_id]

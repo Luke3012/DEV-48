@@ -1,77 +1,62 @@
 # Controllo di flusso, Pattern Matching e Switch Expressions
 
-## In parole semplici
+Un programma deve scegliere una risposta in base allo stato di un dato. Con pochi casi un `if` è chiaro; quando le condizioni descrivono forme e proprietà di un oggetto, i pattern di C# rendono esplicito che cosa si sta confrontando e fanno restituire il risultato direttamente.
 
-L'obiettivo di questa lezione è scrivere diramazioni logiche eleganti e sicure usando le nuove switch expressions di C#.
+## Una decisione diventa un valore
 
-Una switch expression confronta un valore con più pattern e restituisce il risultato del primo ramo corrispondente; il ramo `_` fornisce il caso restante. Se nessun ramo corrisponde, a runtime viene sollevata un'eccezione.
-
-## Le parole da riconoscere
-
-- `switch expression`
-- `pattern matching`
-- `is`
-- `when`
-- `guard condition`
-- `discard`
-
-## Anatomia e Sintassi del Codice
-
-### Sintassi della Switch Expression in C# 12:
+### Dalla condizione al caso dell'ordine
+Per una stringa semplice si può partire con condizioni in sequenza:
 ```csharp
-var risultato = espressione switch {
-    pattern1 => valore1,
-    pattern2 when condizione_guardia => valore2,
-    _ => valore_default // Caso restante per i valori non coperti
-};
-```
-
-### Tipologie di Pattern Matching:
-1. **Constant pattern**: `"admin" => ...`
-2. **Relational pattern**: `> 100 and <= 500 => ...`
-3. **Type pattern**: `string s => s.ToUpper()`
-4. **Positional / Tuple pattern**: `(var role, true) => ...`
-5. **Property pattern**: `{ Status: "Active", Age: >= 18 } => ...`
-
-## Un esempio concreto
-
-```text
-string GetRoleDescription(string role, bool isSuperUser) => (role, isSuperUser) switch
+public static class StatusLabels
 {
-    ("admin", true) => "Super Amministratore",
-    ("admin", false) => "Amministratore standard",
-    ("user", _) => "Utente registrato",
-    _ => "Ospite sconosciuto"
-};
+    public static string DescribeStatus(string status)
+    {
+        if (status == "open") return "Da gestire";
+        if (status == "closed") return "Completato";
+        return "Stato non riconosciuto";
+    }
+}
 ```
 
-### Seguilo passo per passo
-
-1. Leggi insieme `role` e `isSuperUser`: la switch expression confronta la coppia, non soltanto il primo valore.
-2. Il primo ramo applicabile produce la descrizione; per `("admin", true)` il risultato è `"Super Amministratore"`.
-3. Il ramo `("user", _)` accetta qualunque secondo valore per l'utente. `_` significa che quel valore non serve alla decisione.
-4. Prova una coppia non elencata: controlla se esiste un ramo che la gestisce o se il metodo deve rendere esplicita l'assenza di un caso valido.
-
-## Pattern Guida per gli Esercizi
-
-Usa il frammento come riferimento iniziale. Prima di aprire gli indizi, prova a prevedere un caso della consegna; dopo la soluzione, riscrivi il passaggio che ti mancava.
-
+Quando la decisione dipende da più proprietà, una switch expression confronta il valore in un solo punto:
 ```csharp
-public static class PricingEngine {
-    public static decimal CalculateDiscount(decimal amount, bool isPremium) => (amount, isPremium) switch {
-        ( >= 500, true) => 0.25m,
-        ( >= 500, false) => 0.15m,
-        ( >= 100, true) => 0.10m,
-        _ => 0.00m
+public sealed record ServiceTicket(string Status, int DaysWaiting);
+
+public static class TicketLabels
+{
+    public static string Describe(ServiceTicket ticket) => ticket switch
+    {
+        { Status: "open", DaysWaiting: >= 3 } => "In ritardo",
+        { Status: "open" } => "In attesa",
+        { Status: "closed" } => "Completato",
+        _ => "Stato non riconosciuto"
     };
 }
 ```
 
-## Dove ci si confonde spesso
+`{ Status: "open" }` è un property pattern; `DaysWaiting: >= 3` aggiunge un relational pattern. `_` copre i valori che non corrispondono ai casi precedenti. L'ordine è leggibile: prima l'ordine aperto in ritardo, poi il caso aperto generale. Se il caso generale fosse sopra, nasconderebbe quello più specifico.
 
-- Usare cascate di if/else annidati illeggibili
-- dimenticare il ramo di scarto `_` (discard) provocando eccezioni a runtime.
+Una switch expression produce un valore, quindi si adatta a etichette e classificazioni. Un normale `switch` resta adatto quando i rami eseguono più istruzioni. Non serve elencare ogni forma di pattern prima di saper seguire una decisione concreta.
 
-## Domanda di verifica
+## Quale pattern corrisponde per primo?
 
-> Quale vantaggio offre una switch expression rispetto a un blocco switch classico imperativo?
+```csharp
+TicketLabels.Describe(new ServiceTicket("open", 5)) // "In ritardo"
+```
+
+### Calcola il risultato prima di eseguirlo
+
+1. Crea `ServiceTicket("open", 5)`: il primo pattern controlla contemporaneamente lo stato e i giorni di attesa.
+2. Entrambe le condizioni sono vere, quindi il risultato è `"In ritardo"`; C# non prova i rami successivi.
+3. Con `ServiceTicket("open", 1)` il primo caso non corrisponde, mentre `{ Status: "open" }` sì: il risultato è `"In attesa"`.
+4. Prova lo stato `"closed"` e un valore nuovo. Segui il ramo specifico e poi il caso `_`; non lasciare una combinazione possibile senza una decisione esplicita.
+
+La pratica breve usa una classificazione di sconti: prova prima una combinazione per volta e poi costruisci i casi. Non copiare lo schema esatto degli stati dell'esempio; nel laboratorio CRUD userai condizioni e validazione su record reali.
+
+## Controlla ordine e copertura dei casi
+
+- Un pattern generale prima di uno specifico rende irraggiungibile il caso dettagliato
+- una switch expression senza copertura adeguata può fallire a runtime
+- non usare un'espressione se i rami devono svolgere molte operazioni.
+
+> **Quando la decisione può diventare un'espressione?** Quale vantaggio offre una switch expression rispetto a un blocco switch classico imperativo?

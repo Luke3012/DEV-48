@@ -1,68 +1,66 @@
 # Data Binding moderno: interpolazione, property ed event binding
 
-## In parole semplici
+Un input deve mostrare il valore corrente del componente e riportare al componente quello che la persona scrive. Il binding non è una collezione di parentesi da memorizzare: è la descrizione della direzione con cui viaggia ogni dato.
 
-L'obiettivo di questa lezione è connettere classe e template con interpolazione `{{ }}`, property binding `[prop]` ed event binding `(event)`.
+## La vista che vogliamo costruire
 
-Il data binding permette lo scambio continuo di dati e interazioni tra l'interfaccia HTML nel browser e la classe TypeScript del componente.
-
-## Le parole da riconoscere
-
-- `interpolazione`
-- `property binding`
-- `event binding`
-- `two way binding`
-- `signal call`
-
-## Anatomia e Sintassi del Codice
-
-### Le 3 Forme Fondamentali di Binding:
-1. **Interpolazione `{{ espressione }}`**:
-   - Inserisce testo dinamico nel DOM: `<h1>{{ title() }}</h1>`.
-   - Con i Signals si invoca il segnale con le parentesi tonde `()`!
-2. **Property Binding `[proprieta]="espressione"`**:
-   - Collega un valore a una proprietà del DOM o a un input di un componente figlio:
-     `<button [disabled]="isSubmitting()">Invia</button>`.
-3. **Event Binding `(evento)="gestore()"`**:
-   - Intercetta azioni dell'utente (click, input, submit):
-     `<button (click)="increment()">Aggiungi</button>`.
-
-```html
-<input [value]="query()" (input)="onSearch($event)" />
-<p>Risultati per: {{ query() }}</p>
-```
-
-## Un esempio concreto
-
-```html
-<button [disabled]="!isValid()" (click)="onSubmit()">Salva</button>
-<input [value]="searchTerm()" (input)="updateSearch($event)" />
-```
-
-### Seguilo passo per passo
-
-1. `[disabled]="!isValid()"` imposta la proprietà DOM `disabled` in base allo stato del componente; quando il form non è valido, il pulsante non è attivabile.
-2. `(click)="onSubmit()"` ascolta un evento del browser e chiama il metodo TypeScript.
-3. Nell'input, `[value]` mostra il valore del Signal `searchTerm()`; `(input)` chiama `updateSearch($event)` quando la persona scrive.
-4. Simula `isValid()` prima falso e poi vero. Digita nel campo e verifica che l'handler trasferisca il nuovo testo nel componente.
-
-## Pattern Guida per gli Esercizi
-
-La pratica breve isola una regola e non avvia l'applicazione Angular. Prova la consegna con gli aiuti chiusi e usa l’esempio della lezione per ricostruire i passaggi che ti mancano. Nel laboratorio del modulo verifica anche il comportamento del framework.
-
+### Costruiamo la stessa schermata in passaggi
+All'inizio la classe contiene soltanto stato e azione:
 ```typescript
-export class SearchBarComponent {
-    query = signal('');
-    setQuery(text: string) { this.query.set(text.trim()); }
-    clear() { this.query.set(''); }
+username = 'Luca';
+
+clear(): void {
+  this.username = '';
 }
 ```
 
-## Dove ci si confonde spesso
+Il testo scende dalla classe al template con l'interpolazione:
+```html
+<p>{{ username }}</p>
+```
+
+Il property binding manda il valore alla proprietà DOM `value`; l'event binding riporta l'input al componente:
+```html
+<input [value]="username" (input)="updateName($event)" />
+<button type="button" (click)="clear()">Pulisci</button>
+```
+```typescript
+updateName(event: Event): void {
+  this.username = (event.target as HTMLInputElement).value;
+}
+```
+
+Per un controllo di form, `[(ngModel)]` abbrevia il binding in entrambe le direzioni e richiede `FormsModule` negli `imports` del componente standalone:
+```html
+<input [(ngModel)]="username" aria-label="Nome utente" />
+```
+```text
+Component → Template: {{ username }} e [value]
+Template → Component: (input), (click)
+Component ↔ Controllo: [(ngModel)]
+```
+
+Nel codice applicativo usa una sola strategia per quel controllo: i frammenti mostrano come si evolve il modello, non tre input da sovrapporre nella stessa schermata.
+
+## Segui il dato fino al DOM
+
+```html
+<input [(ngModel)]="username" aria-label="Nome utente" />
+<p>{{ username }}</p>
+```
+
+### Dal modello alla schermata
+
+1. La classe inizializza `username` a `Luca`; interpolazione e property binding mostrano quel valore nel DOM.
+2. Quando arriva `input`, il browser fornisce l'evento. Il metodo legge il testo dall'elemento e aggiorna la proprietà della classe.
+3. Angular aggiorna il testo interpolato e il valore legato. Con `[(ngModel)]`, la direttiva coordina in breve le due direzioni.
+4. Clicca Pulisci: l'evento chiama il metodo, la classe imposta `''` e la vista riflette il nuovo stato. Rimuovi `FormsModule` e osserva l'errore sul binding `ngModel`.
+
+Il runner breve verifica la logica del componente, non il template. Nel laboratorio Standalone, controlla il valore iniziale, digita, cancella e osserva l'input e il DOM dopo ogni evento.
+
+## Che cosa deve conoscere il template?
 
 - Dimenticare le parentesi tonde quando si legge un segnale nel template (`{{ name }}` invece di `{{ name() }}`)
 - usare property binding quando serve event binding.
 
-## Domanda di verifica
-
-> Perché quando si legge un Signal in un template Angular bisogna includere le parentesi tonde `()`?
+> **Che cosa collega classe e vista?** Perché quando si legge un Signal in un template Angular bisogna includere le parentesi tonde `()`?
